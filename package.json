@@ -23,8 +23,9 @@
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
-    "electron-updater": "^6.3.9",
-    "@playwright/test": "^1.55.1"
+    "@playwright/test": "^1.55.1",
+    "electron-store": "^10.1.0",
+    "electron-updater": "^6.3.9"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "3.0.0",

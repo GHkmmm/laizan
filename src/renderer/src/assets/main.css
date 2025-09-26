@@ -17,7 +17,16 @@ body {
   margin-bottom: 80px;
 }
 
-.start-button {
+.actions {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+button {
   cursor: pointer;
   text-decoration: none;
   display: inline-block;
