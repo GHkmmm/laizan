@@ -85,4 +85,47 @@ export default class DYElementHandler {
     // 等待点赞动画完成
     await sleep(500)
   }
+
+  // 跳转到下一个视频
+  async goToNextVideo(): Promise<void> {
+    try {
+      // 检查评论区是否打开，如果打开则关闭
+      const commentSectionOpen = await this.isCommentSectionOpen()
+      if (commentSectionOpen) {
+        console.log('检测到评论区已打开，尝试关闭评论区')
+        await this.closeCommentSection()
+
+        // 等待评论区关闭
+        await sleep(1000)
+
+        // 再次检查评论区是否已关闭
+        const stillOpen = await this.isCommentSectionOpen()
+        if (stillOpen) {
+          console.log('评论区仍未关闭，再次尝试关闭')
+          await this.closeCommentSectionByButton()
+          await sleep(1000)
+        }
+      }
+
+      // 使用键盘方向键向下跳转到下一个视频
+      await this._page.keyboard.press('ArrowDown')
+
+      await sleep(1000)
+      console.log('成功跳转到下一视频')
+
+      // 等待视频加载
+      try {
+        // 等待视频元素出现
+        await this._page.waitForSelector('[data-e2e="feed-active-video"]', {
+          state: 'visible',
+          timeout: 5000
+        })
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (_) {
+        console.log('等待下一个视频加载超时，继续执行')
+      }
+    } catch (error) {
+      console.log('跳转到下一视频时出错:', error)
+    }
+  }
 }

@@ -79,7 +79,7 @@ export default class ACTask {
     this._dyElementHandler = new DYElementHandler(this._page)
   }
 
-  async run(): Promise<void> {
+  public async run(): Promise<void> {
     await this._launch()
     // 设置视频数据监听
     await this._setupVideoDataListener()
@@ -96,34 +96,31 @@ export default class ACTask {
     for (let i = 0; commentCount < this._maxCount; i++) {
       console.log(`开始处理第 ${i + 1} 个视频，已评论次数：${commentCount}/${this._maxCount}`)
 
-      // 计算浏览时间（统一为5-30秒）
-      const watchTime = this._calculateWatchTime()
-
       // 获取当前视频信息
       const videoInfo = await this._getCurrentVideoInfo()
 
       if (!videoInfo) {
         console.log('未获取到当前视频信息，跳到下一个视频')
         await sleep(random(1000, 3000))
-        await this._goToNextVideo()
+        await this._dyElementHandler.goToNextVideo()
         continue
       }
 
       if (videoInfo.aweme_type !== 0) {
         console.log('不是常规视频，直接跳过')
-        await this._goToNextVideo()
+        await this._dyElementHandler.goToNextVideo()
         continue
       }
 
       const videoDescription = videoInfo.desc
+      console.log(`视频作者: @${videoInfo.author.nickname} (ID: ${videoInfo.author.uid})`)
       console.log(`视频描述: ${videoDescription}`)
-      console.log(`视频作者: ${videoInfo.author.nickname} (ID: ${videoInfo.author.uid})`)
 
       // 输出视频标签信息
-      if (videoInfo.video_tag && videoInfo.video_tag.length > 0) {
+      if (Array.isArray(videoInfo.video_tag) && videoInfo.video_tag.length > 0) {
         console.log(`视频标签: ${JSON.stringify(videoInfo.video_tag)}`)
       } else {
-        console.log('视频没有标签信息')
+        console.log('暂无视频标签')
       }
 
       // 屏蔽关键词功能
@@ -164,7 +161,7 @@ export default class ACTask {
           }`
         )
         await sleep(random(500, 1000))
-        await this._goToNextVideo()
+        await this._dyElementHandler.goToNextVideo()
         continue
       }
 
@@ -175,6 +172,9 @@ export default class ACTask {
         // 需要观看视频 (shouldWatch为true)
         // watchedCount++
         // console.log(`观看第 ${watchedCount} 个视频`)
+
+        // 计算观看时间（统一为5-30秒）
+        const watchTime = this._calculateWatchTime()
 
         if (videoAnalysis.shouldComment) {
           // 需要评论的视频
@@ -274,7 +274,7 @@ export default class ACTask {
 
       // 跳转至下一条视频
       console.log('跳转至下一条视频')
-      await this._goToNextVideo()
+      await this._dyElementHandler.goToNextVideo()
     }
 
     await this._page.close()
@@ -360,49 +360,6 @@ export default class ACTask {
     } catch (error) {
       console.log('获取当前视频信息时出错:', error)
       return null
-    }
-  }
-
-  // 跳转到下一个视频
-  async _goToNextVideo(): Promise<void> {
-    try {
-      // 检查评论区是否打开，如果打开则关闭
-      const commentSectionOpen = await this._dyElementHandler.isCommentSectionOpen()
-      if (commentSectionOpen) {
-        console.log('检测到评论区已打开，尝试关闭评论区')
-        await this._dyElementHandler.closeCommentSection()
-
-        // 等待评论区关闭
-        await sleep(1000)
-
-        // 再次检查评论区是否已关闭
-        const stillOpen = await this._dyElementHandler.isCommentSectionOpen()
-        if (stillOpen) {
-          console.log('评论区仍未关闭，再次尝试关闭')
-          await this._dyElementHandler.closeCommentSectionByButton()
-          await sleep(1000)
-        }
-      }
-
-      // 使用键盘方向键向下跳转到下一个视频
-      await this._page.keyboard.press('ArrowDown')
-
-      await sleep(1000)
-      console.log('成功跳转到下一视频')
-
-      // 等待视频加载
-      try {
-        // 等待视频元素出现
-        await this._page.waitForSelector('[data-e2e="feed-active-video"]', {
-          state: 'visible',
-          timeout: 5000
-        })
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      } catch (_) {
-        console.log('等待下一个视频加载超时，继续执行')
-      }
-    } catch (error) {
-      console.log('跳转到下一视频时出错:', error)
     }
   }
 
