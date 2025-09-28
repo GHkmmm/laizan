@@ -2,7 +2,7 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import { loginAndStorageState, startACTask } from './ac'
+import ACTask, { loginAndStorageState } from './ac'
 import { storage, StorageKey } from './storage'
 function createWindow(): void {
   // Create the browser window.
@@ -50,7 +50,10 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  ipcMain.on('startTask', async () => startACTask())
+  ipcMain.on('startTask', async () => {
+    const acTask = new ACTask()
+    await acTask.run()
+  })
   ipcMain.handle('hasAuth', () => {
     const auth = storage.get(StorageKey.auth)
     return Boolean(auth)
