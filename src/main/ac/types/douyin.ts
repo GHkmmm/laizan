@@ -19,6 +19,7 @@ export interface FeedItem {
   aweme_type: number
   desc: string
   video_tag: VideoTag[]
+  share_url: string
 }
 
 export interface CommentResponse {

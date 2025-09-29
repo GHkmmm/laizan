@@ -1,10 +1,11 @@
 import { chromium, Page } from '@playwright/test'
 import { random, sleep } from '@utils/common'
 import { storage, StorageKey } from '../storage'
-import { CommentResponse, FeedItem, FeedListResponse, VideoTag } from './types/douyin'
+import { CommentResponse, FeedItem, FeedListResponse } from './types/douyin'
 import * as fs from 'fs'
 import * as path from 'path'
 import DYElementHandler from './element/douyin'
+import { ArkService } from '../service/ark'
 
 // 检查视频活跃度的接口
 interface VideoActivityResult {
@@ -94,7 +95,9 @@ export default class ACTask {
 
     // 循环处理视频，直到达到评论次数限制
     for (let i = 0; commentCount < this._maxCount; i++) {
-      console.log(`开始处理第 ${i + 1} 个视频，已评论次数：${commentCount}/${this._maxCount}`)
+      console.log(
+        `\n\n====== 开始处理第 ${i + 1} 个视频，已评论次数：${commentCount}/${this._maxCount} ======\n\n`
+      )
 
       // 获取当前视频信息
       const videoInfo = await this._getCurrentVideoInfo()
@@ -123,10 +126,6 @@ export default class ACTask {
         console.log('暂无视频标签')
       }
 
-      // 屏蔽关键词功能
-      const blockKeywords = ['团', '定制', '亲子', '出发'] // 你可以自定义关键词
-      const hitBlock = blockKeywords.some((keyword) => videoDescription.includes(keyword))
-
       // 作者名称屏蔽关键词
       const authorBlockKeywords = [
         '导游',
@@ -138,15 +137,17 @@ export default class ACTask {
         '定制',
         '定制游',
         '摄影师',
-        '团',
         '旅游省钱路线',
         '旅游',
-        '橙子Travel',
         '品质'
       ]
       const hitAuthorBlock = authorBlockKeywords.some((keyword) =>
         videoInfo.author.nickname.includes(keyword)
       )
+
+      // 屏蔽关键词功能
+      const blockKeywords = ['定制', '亲子'] // 你可以自定义关键词
+      const hitBlock = blockKeywords.some((keyword) => videoDescription.includes(keyword))
 
       if (hitBlock || hitAuthorBlock) {
         console.log(
@@ -166,7 +167,7 @@ export default class ACTask {
       }
 
       // 分析视频类型和处理方式
-      const videoAnalysis = this._analyzeVideoType(videoDescription, videoInfo.video_tag || [])
+      const videoAnalysis = await this._analyzeVideoType(videoInfo)
 
       if (videoAnalysis.shouldWatch) {
         // 需要观看视频 (shouldWatch为true)
@@ -176,10 +177,10 @@ export default class ACTask {
         // 计算观看时间（统一为5-30秒）
         const watchTime = this._calculateWatchTime()
 
-        if (videoAnalysis.shouldComment) {
+        if (videoAnalysis.shouldViewComment) {
           // 需要评论的视频
           // 先浏览一段时间
-          console.log(`视频需要评论，先浏览${watchTime / 1000}秒`)
+          console.log(`视频可能需要评论，先浏览${watchTime / 1000}秒`)
           await sleep(watchTime)
 
           // 浏览完成后，执行随机点赞操作
@@ -364,17 +365,36 @@ export default class ACTask {
   }
 
   // 根据视频标签判断视频类型和处理方式
-  _analyzeVideoType(
-    description: string,
-    videoTags: VideoTag[]
-  ): {
+  async _analyzeVideoType(videoInfo: FeedItem): Promise<{
     shouldWatch: boolean // 是否需要浏览
-    shouldComment: boolean // 是否需要评论
-    cityName: string | null // 城市名称(如果是旅行类视频且提到了城市)
-  } {
-    if (!description || !videoTags || videoTags.length === 0) {
-      return { shouldWatch: false, shouldComment: false, cityName: null }
+    shouldViewComment: boolean // 是否需要浏览评论
+  }> {
+    if (
+      !videoInfo.desc ||
+      !Array.isArray(videoInfo.video_tag) ||
+      videoInfo.video_tag.length === 0
+    ) {
+      return { shouldWatch: false, shouldViewComment: false }
     }
+
+    // 检查视频是否和旅游相关
+    // 旅行攻略、旅行vlog、美食
+    const isTravelVideo = videoInfo.video_tag.some(
+      (tag) => tag.tag_name.includes('旅行') || tag.tag_name.includes('美食')
+    )
+
+    if (!isTravelVideo) {
+      return { shouldWatch: false, shouldViewComment: false }
+    }
+
+    const result = await ArkService.analyzeVideoType(
+      JSON.stringify({
+        author: videoInfo.author.nickname,
+        videoDesc: videoInfo.desc,
+        videoTag: videoInfo.video_tag
+      })
+    )
+    console.log('视频类型分析结果:', result)
 
     // 从resources目录下动态读取城市列表
     const availableCities = this._getAvailableCities()
@@ -382,52 +402,16 @@ export default class ACTask {
     // 检查是否包含resources目录下的城市
     let mentionedCity: string | null = null
     for (const city of availableCities) {
-      if (description.includes(city)) {
+      if (result.targetCity.includes(city)) {
         mentionedCity = city
         break
       }
     }
 
-    // 检查视频标签是否包含"旅行攻略"
-    const isTravelGuide = videoTags.some(
-      (tag) => tag.tag_name === '旅行攻略' || tag.tag_name === '旅行vlog'
-    )
-
-    // 检查视频标签是否包含"vlog"或"手机测评"（只浏览不评论）
-    const isBrowseOnlyVideo = videoTags.some(
-      (tag) =>
-        tag.tag_name.includes('vlog') ||
-        tag.tag_name === '手机测评' ||
-        tag.tag_name === '互联网资讯' ||
-        tag.tag_name === '旅行摄影'
-    )
-
-    // 处理"随拍"或"手机测评"标签的视频（只浏览不评论）
-    if (isBrowseOnlyVideo) {
-      // 随机决定是否浏览(50%概率)
-      const randomWatch = Math.random() >= 0.1
-      console.log(`只浏览不评论，浏览概率10%，结果: ${randomWatch ? '浏览' : '不浏览'}`)
-      return { shouldWatch: false, shouldComment: false, cityName: null }
+    return {
+      shouldWatch: result.shouldWatch,
+      shouldViewComment: mentionedCity !== null
     }
-
-    // 处理旅行类视频
-    if (isTravelGuide) {
-      if (mentionedCity) {
-        // 旅行类视频且提到了resources目录下的城市，需要浏览并评论
-        return {
-          shouldWatch: true,
-          shouldComment: true,
-          cityName: mentionedCity
-        }
-      } else {
-        // 旅行类视频但未提到resources目录下的城市，随机决定是否浏览(50%概率)
-        const randomWatch = Math.random() >= 0.5
-        return { shouldWatch: randomWatch, shouldComment: false, cityName: null }
-      }
-    }
-
-    // 其他类型视频，不浏览
-    return { shouldWatch: false, shouldComment: false, cityName: null }
   }
 
   // 从resources目录下读取可用的城市文件夹
