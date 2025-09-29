@@ -278,6 +278,11 @@ export default class ACTask {
       await this._dyElementHandler.goToNextVideo()
     }
 
+    // 在关闭页面前更新本地登录缓存，避免下次仍然使用初始缓存
+    const context = this._page.context()
+    const state = await context.storageState()
+    storage.set(StorageKey.auth, state)
+
     await this._page.close()
   }
 
