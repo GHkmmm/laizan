@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import { NButton } from 'naive-ui'
 
 const hasAuth = ref<boolean | null>(null)
 
@@ -23,9 +24,13 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="actions">
-    <button v-if="hasAuth === true" class="start-button" @click="startTask">开始任务</button>
-    <button v-if="hasAuth === true" class="logout-button" @click="logout">退出登录</button>
-    <button v-else-if="hasAuth === false" class="login-button" @click="login">抖音账号登录</button>
+  <div class="flex flex-col gap-4">
+    <template v-if="hasAuth">
+      <n-button type="primary" round @click="startTask">开始任务</n-button>
+      <n-button type="primary" secondary round @click="logout">退出登录</n-button>
+    </template>
+    <template v-else>
+      <n-button round @click="login">抖音账号登录</n-button>
+    </template>
   </div>
 </template>
