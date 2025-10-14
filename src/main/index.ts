@@ -50,8 +50,8 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  ipcMain.on('startTask', async () => {
-    const acTask = new ACTask()
+  ipcMain.on('startTask', async (_event, payload: { maxCount?: number } = {}) => {
+    const acTask = new ACTask({ maxCount: payload?.maxCount })
     await acTask.run()
   })
   ipcMain.handle('hasAuth', () => {
