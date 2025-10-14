@@ -400,6 +400,10 @@ export default class ACTask {
       })
     )
     console.log('视频类型分析结果:', result)
+    // 目标城市数量过多直接跳过
+    if (result.targetCity.split(',').length > 1) {
+      return { shouldWatch: false, shouldViewComment: false }
+    }
 
     // 从resources目录下动态读取城市列表
     const availableCities = this._getAvailableCities()
