@@ -1,6 +1,6 @@
 import { Browser, chromium, Page } from '@playwright/test'
 import { random, sleep } from '@utils/common'
-import { storage, StorageKey } from '../storage'
+import { storage, StorageKey, getAppSettings } from '../storage'
 import { CommentResponse, FeedItem, FeedListResponse } from './types/douyin'
 import * as fs from 'fs'
 import * as path from 'path'
@@ -87,6 +87,7 @@ export default class ACTask extends EventEmitter {
 
   public async run(): Promise<void> {
     await this._launch()
+    const settings = getAppSettings()
     // 设置视频数据监听
     await this._setupVideoDataListener()
     console.log('视频数据监听已设置')
@@ -142,40 +143,24 @@ export default class ACTask extends EventEmitter {
         console.log('暂无视频标签')
       }
 
-      // 作者名称屏蔽关键词
-      const authorBlockKeywords = [
-        '导游',
-        '向导',
-        '带你',
-        '旅行社',
-        '旅游团',
-        '旅游顾问',
-        '定制',
-        '定制游',
-        '摄影师',
-        '旅游省钱路线',
-        '旅游',
-        '品质'
-      ]
-      const hitAuthorBlock = authorBlockKeywords.some((keyword) =>
+      // 关键词屏蔽（基于设置）
+      const hitAuthorBlock = (settings.authorBlockKeywords || []).some((keyword) =>
         videoInfo.author.nickname.includes(keyword)
       )
-
-      // 屏蔽关键词功能
-      const blockKeywords = ['定制', '亲子'] // 你可以自定义关键词
-      const hitBlock = blockKeywords.some((keyword) => videoDescription.includes(keyword))
+      const hitBlock = (settings.blockKeywords || []).some((keyword) =>
+        videoDescription.includes(keyword)
+      )
 
       if (hitBlock || hitAuthorBlock) {
         console.log(
-          `视频${hitBlock ? '描述' : '作者'}命中屏蔽关键词，跳过该视频。${
-            hitBlock
-              ? `屏蔽关键词: ${blockKeywords
+          `视频${hitBlock ? '描述' : '作者'}命中屏蔽关键词，跳过该视频。` +
+            (hitBlock
+              ? `屏蔽关键词: ${settings.blockKeywords
                   .filter((k) => videoDescription.includes(k))
                   .join(',')} 视频描述: ${videoDescription}`
-              : `屏蔽关键词: ${authorBlockKeywords
+              : `屏蔽关键词: ${settings.authorBlockKeywords
                   .filter((k) => videoInfo.author.nickname.includes(k))
-                  .join(',')} 视频作者: ${videoInfo.author.nickname}`
-          }`
+                  .join(',')} 视频作者: ${videoInfo.author.nickname}`)
         )
         this._emitProgress('skip-blocked', '命中屏蔽关键词，跳过该视频')
         await sleep(random(500, 1000))

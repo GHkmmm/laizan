@@ -4,11 +4,18 @@ import __Store from 'electron-store'
 const Store = ((__Store as any).default || __Store) as typeof __Store
 
 export const StorageKey = {
-  auth: 'auth'
+  auth: 'auth',
+  settings: 'settings'
 } as const
 
 type AuthState = Awaited<ReturnType<BrowserContext['storageState']>>
-type StorageSchema = Record<typeof StorageKey.auth, AuthState>
+export interface AppSettings {
+  blockKeywords: string[]
+  authorBlockKeywords: string[]
+}
+
+type StorageSchema = Record<typeof StorageKey.auth, AuthState> &
+  Record<typeof StorageKey.settings, AppSettings>
 
 class Storage {
   _store = new Store<StorageSchema>()
@@ -31,3 +38,26 @@ class Storage {
 }
 
 export const storage = new Storage()
+
+// helpers for settings with defaults
+export function getAppSettings(): AppSettings {
+  return storage.get(StorageKey.settings)
+}
+
+export function updateAppSettings(partial: Partial<AppSettings>): AppSettings {
+  console.log('更新设置：', partial)
+  const current = getAppSettings()
+  const next: AppSettings = {
+    ...current,
+    ...partial,
+    // normalize arrays if provided
+    blockKeywords: Array.isArray(partial.blockKeywords)
+      ? partial.blockKeywords.filter((s) => !!s && typeof s === 'string')
+      : current.blockKeywords,
+    authorBlockKeywords: Array.isArray(partial.authorBlockKeywords)
+      ? partial.authorBlockKeywords.filter((s) => !!s && typeof s === 'string')
+      : current.authorBlockKeywords
+  }
+  storage.set(StorageKey.settings, next)
+  return next
+}

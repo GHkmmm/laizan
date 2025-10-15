@@ -6,23 +6,36 @@ const api = {
   hasAuth: (): Promise<boolean> => ipcRenderer.invoke('hasAuth'),
   login: (): Promise<void> => ipcRenderer.invoke('login'),
   logout: (): void => ipcRenderer.send('logout'),
+  getSettings: (): Promise<{
+    blockKeywords: string[]
+    authorBlockKeywords: string[]
+  }> => ipcRenderer.invoke('settings:get'),
+  updateSettings: (
+    payload: Partial<{
+      blockKeywords: string[]
+      authorBlockKeywords: string[]
+    }>
+  ): Promise<{
+    blockKeywords: string[]
+    authorBlockKeywords: string[]
+  }> => ipcRenderer.invoke('settings:update', payload),
   startTask: (payload: { maxCount?: number }): Promise<{ ok: boolean; message?: string }> =>
     ipcRenderer.invoke('task:start', payload),
   stopTask: (): Promise<{ ok: boolean; message?: string }> => ipcRenderer.invoke('task:stop'),
-  onTaskProgress: (handler: (p: { type: string; message: string; timestamp: number }) => void):
-    (() => void) => {
-      const listener = (_e: any, p: { type: string; message: string; timestamp: number }) =>
-        handler(p)
-      ipcRenderer.on('task:progress', listener)
-      return () => ipcRenderer.removeListener('task:progress', listener)
-    },
+  onTaskProgress: (
+    handler: (p: { type: string; message: string; timestamp: number }) => void
+  ): (() => void) => {
+    const listener = (_, p: { type: string; message: string; timestamp: number }): void =>
+      handler(p)
+    ipcRenderer.on('task:progress', listener)
+    return () => ipcRenderer.removeListener('task:progress', listener)
+  },
   onTaskEnded: (
     handler: (p: { status: 'success' | 'stopped' | 'error'; message?: string }) => void
   ): (() => void) => {
-    const listener = (
-      _e: any,
-      p: { status: 'success' | 'stopped' | 'error'; message?: string }
-    ) => handler(p)
+    const listener = (_, p: { status: 'success' | 'stopped' | 'error'; message?: string }): void =>
+      handler(p)
+
     ipcRenderer.on('task:ended', listener)
     return () => ipcRenderer.removeListener('task:ended', listener)
   }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount, ref } from 'vue'
-import { NButton, NInputNumber, NForm, NFormItem } from 'naive-ui'
+import { NButton, NInputNumber, NForm, NFormItem, NInput, NCollapse, NCollapseItem } from 'naive-ui'
 
 const hasAuth = ref<boolean | null>(null)
 type TaskStatus = 'idle' | 'starting' | 'running' | 'stopping'
@@ -14,6 +14,31 @@ interface TaskForm {
 const formModel = ref<TaskForm>({
   maxCount: 10
 })
+
+// settings state
+const authorKeywords = ref<string>('')
+const descKeywords = ref<string>('')
+
+const loadSettings = async (): Promise<void> => {
+  const s = await window.api.getSettings()
+  authorKeywords.value = (s?.authorBlockKeywords || []).join(',')
+  descKeywords.value = (s?.blockKeywords || []).join(',')
+}
+
+const saveSettings = async (): Promise<void> => {
+  const next = await window.api.updateSettings({
+    authorBlockKeywords: authorKeywords.value
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean),
+    blockKeywords: descKeywords.value
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean)
+  })
+  authorKeywords.value = (next.authorBlockKeywords || []).join(',')
+  descKeywords.value = (next.blockKeywords || []).join(',')
+}
 
 const start = async (): Promise<void> => {
   if (taskStatus.value !== 'idle') return
@@ -70,6 +95,7 @@ let offEnded: null | (() => void) = null
 
 onMounted(async () => {
   hasAuth.value = await window.api.hasAuth()
+  await loadSettings()
   offProgress = window.api.onTaskProgress((p) => {
     progressLogs.value.unshift(`${new Date(p.timestamp).toLocaleTimeString()} ${p.message}`)
   })
@@ -113,6 +139,34 @@ onBeforeUnmount(() => {
                     :disabled="taskStatus === 'starting'"
                   />
                 </n-form-item>
+                <n-collapse arrow-placement="right">
+                  <n-collapse-item title="高级设置">
+                    <div class="flex flex-col gap-2">
+                      <div class="flex flex-col">
+                        <h2 class="text-lg font-bold">关键词屏蔽</h2>
+                        <h4 class="text-xs font-bold text-gray-400">
+                          若视频命中下列关键词，则跳过对该视频进行评论
+                        </h4>
+                      </div>
+                      <div class="flex flex-col gap-2">
+                        <div class="mb-1 text-sm">作者昵称</div>
+                        <n-input
+                          v-model:value="authorKeywords"
+                          placeholder="多关键词用英文逗号分隔"
+                          @blur="saveSettings"
+                        />
+                      </div>
+                      <div class="flex flex-col gap-2">
+                        <div class="mb-1 text-sm">视频描述</div>
+                        <n-input
+                          v-model:value="descKeywords"
+                          placeholder="多关键词用英文逗号分隔"
+                          @blur="saveSettings"
+                        />
+                      </div>
+                    </div>
+                  </n-collapse-item>
+                </n-collapse>
                 <n-form-item>
                   <n-button
                     block

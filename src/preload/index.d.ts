@@ -7,6 +7,21 @@ declare global {
       hasAuth: () => Promise<boolean>
       login: () => Promise<void>
       logout: () => void
+      getSettings: () => Promise<
+        {
+          blockKeywords: string[]
+          authorBlockKeywords: string[]
+        }?
+      >
+      updateSettings: (
+        payload: Partial<{
+          blockKeywords: string[]
+          authorBlockKeywords: string[]
+        }>
+      ) => Promise<{
+        blockKeywords: string[]
+        authorBlockKeywords: string[]
+      }>
       startTask: (payload: { maxCount?: number }) => Promise<{ ok: boolean; message?: string }>
       stopTask: () => Promise<{ ok: boolean; message?: string }>
       onTaskProgress: (

@@ -3,7 +3,7 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import ACTask, { loginAndStorageState } from './ac'
-import { storage, StorageKey } from './storage'
+import { storage, StorageKey, getAppSettings, updateAppSettings } from './storage'
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -109,6 +109,14 @@ app.whenReady().then(() => {
   })
   ipcMain.on('logout', () => {
     storage.delete(StorageKey.auth)
+  })
+
+  // settings ipc
+  ipcMain.handle('settings:get', () => {
+    return getAppSettings()
+  })
+  ipcMain.handle('settings:update', (_e, payload: Partial<ReturnType<typeof getAppSettings>>) => {
+    return updateAppSettings(payload)
   })
 
   createWindow()
