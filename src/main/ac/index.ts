@@ -1,4 +1,4 @@
-import { chromium, Page } from '@playwright/test'
+import { Browser, chromium, Page } from '@playwright/test'
 import { random, sleep } from '@utils/common'
 import { storage, StorageKey } from '../storage'
 import { CommentResponse, FeedItem, FeedListResponse } from './types/douyin'
@@ -58,6 +58,7 @@ export async function loginAndStorageState(): Promise<void> {
 
 export default class ACTask extends EventEmitter {
   private _maxCount: number = 10
+  private _browser?: Browser
   private _page?: Page
   private _dyElementHandler!: DYElementHandler
   private _stopped: boolean = false
@@ -78,6 +79,7 @@ export default class ACTask extends EventEmitter {
     const context = await browser.newContext({
       storageState: storage.get(StorageKey.auth) ?? {}
     })
+    this._browser = browser
     this._page = await context.newPage()
     this._page.goto('https://www.douyin.com/?recommend=1')
     this._dyElementHandler = new DYElementHandler(this._page)
@@ -313,13 +315,17 @@ export default class ACTask extends EventEmitter {
   }
 
   private async _close(): Promise<void> {
-    if (!this._page) return
+    if (!this._page || !this._browser) return
     // 在关闭页面前更新本地登录缓存，避免下次仍然使用初始缓存
     const context = this._page.context()
     const state = await context.storageState()
     storage.set(StorageKey.auth, state)
 
     this._page.close()
+    this._browser.close()
+
+    this._page = undefined
+    this._browser = undefined
   }
 
   private _emitProgress(type: string, message: string): void {
