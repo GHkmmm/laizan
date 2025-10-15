@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount, ref } from 'vue'
-import { NButton, NInputNumber, NForm, NFormItem, NInput, NCollapse, NCollapseItem } from 'naive-ui'
+import {
+  NButton,
+  NInputNumber,
+  NForm,
+  NFormItem,
+  NCollapse,
+  NCollapseItem,
+  NDynamicInput
+} from 'naive-ui'
 
 const hasAuth = ref<boolean | null>(null)
 type TaskStatus = 'idle' | 'starting' | 'running' | 'stopping'
@@ -16,28 +24,23 @@ const formModel = ref<TaskForm>({
 })
 
 // settings state
-const authorKeywords = ref<string>('')
-const descKeywords = ref<string>('')
+const authorKeywords = ref<string[]>([])
+const descKeywords = ref<string[]>([])
 
 const loadSettings = async (): Promise<void> => {
   const s = await window.api.getSettings()
-  authorKeywords.value = (s?.authorBlockKeywords || []).join(',')
-  descKeywords.value = (s?.blockKeywords || []).join(',')
+  authorKeywords.value = s?.authorBlockKeywords || []
+  descKeywords.value = s?.blockKeywords || []
 }
 
 const saveSettings = async (): Promise<void> => {
+  console.log('saveSettings', authorKeywords.value, descKeywords.value)
   const next = await window.api.updateSettings({
-    authorBlockKeywords: authorKeywords.value
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean),
-    blockKeywords: descKeywords.value
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean)
+    authorBlockKeywords: [...authorKeywords.value],
+    blockKeywords: [...descKeywords.value]
   })
-  authorKeywords.value = (next.authorBlockKeywords || []).join(',')
-  descKeywords.value = (next.blockKeywords || []).join(',')
+  authorKeywords.value = next.authorBlockKeywords || []
+  descKeywords.value = next.blockKeywords || []
 }
 
 const start = async (): Promise<void> => {
@@ -122,10 +125,10 @@ onBeforeUnmount(() => {
     <div v-if="hasAuth" class="absolute top-4 right-2">
       <n-button type="primary" tertiary round @click="logout">退出登录</n-button>
     </div>
-    <div class="w-screen h-screen flex justify-center items-center">
+    <div class="w-screen h-screen flex justify-center items-center overflow-auto">
       <template v-if="hasAuth">
-        <div class="flex flex-col items-center">
-          <div class="w-80">
+        <div class="flex flex-col items-center max-h-screen py-10">
+          <div class="w-96">
             <template v-if="!['running', 'stopping'].includes(taskStatus)">
               <n-form :model="formModel" size="large">
                 <n-form-item label="评论次数">
@@ -140,28 +143,30 @@ onBeforeUnmount(() => {
                   />
                 </n-form-item>
                 <n-collapse arrow-placement="right">
-                  <n-collapse-item title="高级设置">
-                    <div class="flex flex-col gap-2">
-                      <div class="flex flex-col">
-                        <h2 class="text-lg font-bold">关键词屏蔽</h2>
+                  <n-collapse-item>
+                    <template #header>
+                      <div class="flex flex-col w-full">
+                        <span>关键词屏蔽设置</span>
                         <h4 class="text-xs font-bold text-gray-400">
                           若视频命中下列关键词，则跳过对该视频进行评论
                         </h4>
                       </div>
+                    </template>
+                    <div class="flex flex-col gap-2">
                       <div class="flex flex-col gap-2">
                         <div class="mb-1 text-sm">作者昵称</div>
-                        <n-input
+                        <n-dynamic-input
                           v-model:value="authorKeywords"
-                          placeholder="多关键词用英文逗号分隔"
-                          @blur="saveSettings"
+                          placeholder="输入关键词"
+                          @update:value="saveSettings"
                         />
                       </div>
                       <div class="flex flex-col gap-2">
                         <div class="mb-1 text-sm">视频描述</div>
-                        <n-input
+                        <n-dynamic-input
                           v-model:value="descKeywords"
-                          placeholder="多关键词用英文逗号分隔"
-                          @blur="saveSettings"
+                          placeholder="输入关键词"
+                          @update:value="saveSettings"
                         />
                       </div>
                     </div>
@@ -187,7 +192,7 @@ onBeforeUnmount(() => {
               <div class="flex flex-col gap-4">
                 <div
                   v-if="progressLogs.length"
-                  class="w-80 mt-4 h-48 overflow-auto text-xs border rounded p-2"
+                  class="w-96 mt-4 h-48 overflow-auto text-xs border rounded p-2"
                 >
                   <div v-for="(line, idx) in progressLogs" :key="idx">{{ line }}</div>
                 </div>

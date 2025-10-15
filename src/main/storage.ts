@@ -52,10 +52,10 @@ export function updateAppSettings(partial: Partial<AppSettings>): AppSettings {
     ...partial,
     // normalize arrays if provided
     blockKeywords: Array.isArray(partial.blockKeywords)
-      ? partial.blockKeywords.filter((s) => !!s && typeof s === 'string')
+      ? partial.blockKeywords
       : current.blockKeywords,
     authorBlockKeywords: Array.isArray(partial.authorBlockKeywords)
-      ? partial.authorBlockKeywords.filter((s) => !!s && typeof s === 'string')
+      ? partial.authorBlockKeywords
       : current.authorBlockKeywords
   }
   storage.set(StorageKey.settings, next)
