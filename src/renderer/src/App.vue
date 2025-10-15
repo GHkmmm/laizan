@@ -3,7 +3,8 @@ import { onMounted, onBeforeUnmount, ref } from 'vue'
 import { NButton, NInputNumber, NForm, NFormItem } from 'naive-ui'
 
 const hasAuth = ref<boolean | null>(null)
-const running = ref(false)
+type TaskStatus = 'idle' | 'starting' | 'running' | 'stopping'
+const taskStatus = ref<TaskStatus>('idle')
 const progressLogs = ref<string[]>([])
 
 interface TaskForm {
@@ -15,15 +16,43 @@ const formModel = ref<TaskForm>({
 })
 
 const start = async (): Promise<void> => {
+  if (taskStatus.value !== 'idle') return
+
   const count = Number(formModel.value.maxCount)
   const safeCount = Number.isFinite(count) && count > 0 ? Math.floor(count) : 1
-  running.value = true
+
+  taskStatus.value = 'starting'
   progressLogs.value = []
-  await window.api.startTask({ maxCount: safeCount })
+
+  try {
+    const result = await window.api.startTask({ maxCount: safeCount })
+    if (result.ok) {
+      taskStatus.value = 'running'
+    } else {
+      taskStatus.value = 'idle'
+      progressLogs.value.unshift(`启动失败: ${result.message || '未知错误'}`)
+    }
+  } catch (error) {
+    taskStatus.value = 'idle'
+    progressLogs.value.unshift(`启动异常: ${String(error)}`)
+  }
 }
 
 const stop = async (): Promise<void> => {
-  await window.api.stopTask()
+  if (taskStatus.value !== 'running') return
+
+  taskStatus.value = 'stopping'
+
+  try {
+    const result = await window.api.stopTask()
+    if (!result.ok) {
+      taskStatus.value = 'running'
+      progressLogs.value.unshift(`停止失败: ${result.message || '未知错误'}`)
+    }
+  } catch (error) {
+    taskStatus.value = 'running'
+    progressLogs.value.unshift(`停止异常: ${String(error)}`)
+  }
 }
 
 const login = async (): Promise<void> => {
@@ -45,7 +74,7 @@ onMounted(async () => {
     progressLogs.value.unshift(`${new Date(p.timestamp).toLocaleTimeString()} ${p.message}`)
   })
   offEnded = window.api.onTaskEnded((p) => {
-    running.value = false
+    taskStatus.value = 'idle'
     if (p.status === 'error') {
       progressLogs.value.unshift(`任务异常: ${p.message ?? ''}`)
     } else if (p.status === 'stopped') {
@@ -71,7 +100,7 @@ onBeforeUnmount(() => {
       <template v-if="hasAuth">
         <div class="flex flex-col items-center">
           <div class="w-80">
-            <template v-if="!running">
+            <template v-if="!['running', 'stopping'].includes(taskStatus)">
               <n-form :model="formModel" size="large">
                 <n-form-item label="评论次数">
                   <n-input-number
@@ -81,12 +110,22 @@ onBeforeUnmount(() => {
                     placeholder="输入评论次数"
                     class="w-full"
                     round
+                    :disabled="taskStatus === 'starting'"
                   />
                 </n-form-item>
                 <n-form-item>
-                  <n-button block type="primary" round strong size="large" @click="start"
-                    >开始任务</n-button
+                  <n-button
+                    block
+                    type="primary"
+                    round
+                    strong
+                    size="large"
+                    :loading="taskStatus === 'starting'"
+                    :disabled="taskStatus === 'starting'"
+                    @click="start"
                   >
+                    {{ taskStatus === 'starting' ? '启动中...' : '开始任务' }}
+                  </n-button>
                 </n-form-item>
               </n-form>
             </template>
@@ -98,9 +137,19 @@ onBeforeUnmount(() => {
                 >
                   <div v-for="(line, idx) in progressLogs" :key="idx">{{ line }}</div>
                 </div>
-                <n-button block type="error" round strong secondary size="large" @click="stop"
-                  >停止任务</n-button
+                <n-button
+                  block
+                  type="error"
+                  round
+                  strong
+                  secondary
+                  size="large"
+                  :loading="taskStatus === 'stopping'"
+                  :disabled="taskStatus === 'stopping'"
+                  @click="stop"
                 >
+                  {{ taskStatus === 'stopping' ? '停止中...' : '停止任务' }}
+                </n-button>
               </div>
             </template>
           </div>
