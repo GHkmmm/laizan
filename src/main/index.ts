@@ -50,9 +50,55 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  ipcMain.on('startTask', async (_event, payload: { maxCount?: number } = {}) => {
-    const acTask = new ACTask({ maxCount: payload?.maxCount })
-    await acTask.run()
+  let currentTask: ACTask | null = null
+  let running = false
+
+  ipcMain.handle('task:start', async (event, payload: { maxCount?: number } = {}) => {
+    if (running) {
+      return { ok: false, message: 'Task already running' }
+    }
+    const win = BrowserWindow.fromWebContents(event.sender)
+    currentTask = new ACTask({ maxCount: payload?.maxCount })
+    running = true
+
+    // 订阅进度
+    currentTask.on('progress', (p) => {
+      try {
+        win?.webContents.send('task:progress', p)
+      } catch (e) {
+        console.error(e)
+      }
+    })
+    ;(async () => {
+      try {
+        await currentTask?.run()
+        win?.webContents.send('task:ended', { status: 'success' })
+      } catch (err) {
+        const msg = String(err)
+        const isClosed = msg.includes('Task stopped') || msg.includes('has been closed')
+        win?.webContents.send('task:ended', {
+          status: isClosed ? 'stopped' : 'error',
+          message: msg
+        })
+      } finally {
+        running = false
+        currentTask = null
+      }
+    })()
+
+    return { ok: true }
+  })
+
+  ipcMain.handle('task:stop', async () => {
+    if (!running || !currentTask) {
+      return { ok: true }
+    }
+    try {
+      await currentTask.stop()
+      return { ok: true }
+    } catch (e) {
+      return { ok: false, message: String(e) }
+    }
   })
   ipcMain.handle('hasAuth', () => {
     const auth = storage.get(StorageKey.auth)

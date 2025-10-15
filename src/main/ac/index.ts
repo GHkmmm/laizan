@@ -6,6 +6,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import DYElementHandler from './element/douyin'
 import { ArkService } from '../service/ark'
+import { EventEmitter } from 'events'
 
 // 检查视频活跃度的接口
 interface VideoActivityResult {
@@ -55,15 +56,17 @@ export async function loginAndStorageState(): Promise<void> {
   await context.close()
 }
 
-export default class ACTask {
+export default class ACTask extends EventEmitter {
   private _maxCount: number = 10
-  private _page!: Page
+  private _page?: Page
   private _dyElementHandler!: DYElementHandler
+  private _stopped: boolean = false
 
   // 用于缓存视频数据的Map
   private _videoDataCache = new Map<string, FeedItem>()
 
   constructor({ maxCount }: { maxCount?: number } = {}) {
+    super()
     maxCount && (this._maxCount = maxCount)
   }
 
@@ -85,18 +88,27 @@ export default class ACTask {
     // 设置视频数据监听
     await this._setupVideoDataListener()
     console.log('视频数据监听已设置')
+    this._emitProgress('ready', '视频数据监听已设置')
     // 等待假视频图片消失 (recommend-fake-video-img)
-    await this._page.waitForSelector('.recommend-fake-video-img', {
+    await this._page!.waitForSelector('.recommend-fake-video-img', {
       state: 'detached'
     })
     console.log('视频已加载完成')
+    this._emitProgress('loaded', '视频已加载完成')
 
     let commentCount = 0 // 记录已评论次数
 
     // 循环处理视频，直到达到评论次数限制
     for (let i = 0; commentCount < this._maxCount; i++) {
+      if (this._stopped) {
+        throw new Error('Task stopped')
+      }
       console.log(
         `\n\n====== 开始处理第 ${i + 1} 个视频，已评论次数：${commentCount}/${this._maxCount} ======\n\n`
+      )
+      this._emitProgress(
+        'processing',
+        `开始处理第 ${i + 1} 个视频，已评论次数：${commentCount}/${this._maxCount}`
       )
 
       // 获取当前视频信息
@@ -104,6 +116,7 @@ export default class ACTask {
 
       if (!videoInfo) {
         console.log('未获取到当前视频信息，跳到下一个视频')
+        this._emitProgress('info-miss', '未获取到当前视频信息，跳到下一个视频')
         await sleep(random(1000, 3000))
         await this._dyElementHandler.goToNextVideo()
         continue
@@ -111,6 +124,7 @@ export default class ACTask {
 
       if (videoInfo.aweme_type !== 0) {
         console.log('不是常规视频，直接跳过')
+        this._emitProgress('skip-nonstandard', '不是常规视频，直接跳过')
         await this._dyElementHandler.goToNextVideo()
         continue
       }
@@ -161,6 +175,7 @@ export default class ACTask {
                   .join(',')} 视频作者: ${videoInfo.author.nickname}`
           }`
         )
+        this._emitProgress('skip-blocked', '命中屏蔽关键词，跳过该视频')
         await sleep(random(500, 1000))
         await this._dyElementHandler.goToNextVideo()
         continue
@@ -181,6 +196,7 @@ export default class ACTask {
           // 需要评论的视频
           // 先浏览一段时间
           console.log(`视频可能需要评论，先浏览${watchTime / 1000}秒`)
+          this._emitProgress('watch', `浏览 ${Math.floor(watchTime / 1000)} 秒`)
           await sleep(watchTime)
 
           // 浏览完成后，执行随机点赞操作
@@ -188,10 +204,12 @@ export default class ACTask {
 
           // 使用快捷键打开评论区并监听评论接口
           console.log('打开评论区并监听评论接口')
+          this._emitProgress('open-comment', '打开评论区并监听评论接口')
           const activityCheck = await this._openCommentSectionAndMonitor()
 
           // 根据视频活跃度决定是否评论
           console.log('视频活跃度判断结果:', activityCheck.activityInfo)
+          this._emitProgress('activity', activityCheck.activityInfo)
 
           // 更新调试面板，添加活跃度信息
           // await createOrUpdateDebugPanel(page, {
@@ -215,11 +233,13 @@ export default class ACTask {
 
           // 浏览评论区2～4秒
           console.log('浏览评论区2-4秒')
+          this._emitProgress('browse-comment', '浏览评论区2-4秒')
           await sleep(random(2000, 4000))
 
           if (activityCheck.shouldComment) {
             // 尝试发布评论
             console.log('视频活跃度符合标准，尝试发布评论')
+            this._emitProgress('try-comment', '尝试发布评论')
             // 函数内部会随机选择评论内容
             const commentSuccess = await this._postComment(videoDescription)
 
@@ -227,6 +247,7 @@ export default class ACTask {
               // 评论发送成功，记录评论次数
               commentCount++
               console.log(`评论发送成功，已评论次数：${commentCount}/${this._maxCount}`)
+              this._emitProgress('comment-success', `评论成功 ${commentCount}/${this._maxCount}`)
 
               // 随机等待1-3秒
               await sleep(random(1000, 3000))
@@ -239,11 +260,13 @@ export default class ACTask {
               // 如果已达到评论限制，退出循环
               if (commentCount >= this._maxCount) {
                 console.log(`已达到评论次数限制 ${this._maxCount}，任务完成`)
+                this._emitProgress('completed', `已达到评论次数限制 ${this._maxCount}，任务完成`)
                 break
               }
             } else {
               // 评论发送失败，尝试通过点击按钮关闭评论区
               console.log('评论发送失败，尝试通过点击按钮关闭评论区')
+              this._emitProgress('comment-fail', '评论发送失败')
               try {
                 await this._dyElementHandler.closeCommentSectionByButton()
               } catch (closeError) {
@@ -253,6 +276,7 @@ export default class ACTask {
             }
           } else {
             console.log('视频活跃度不符合标准，不发布评论')
+            this._emitProgress('inactive', '视频活跃度不符合标准，不发布评论')
             // 关闭评论区
             await this._dyElementHandler.closeCommentSection()
             await sleep(random(1000, 2000))
@@ -260,6 +284,7 @@ export default class ACTask {
         } else {
           // 只需要观看不需要评论的视频
           console.log(`只观看视频 ${watchTime / 1000}秒`)
+          this._emitProgress('watch-only', `只观看 ${Math.floor(watchTime / 1000)} 秒`)
           await sleep(watchTime)
 
           // 浏览完成后，执行随机点赞操作
@@ -271,6 +296,7 @@ export default class ACTask {
         // 不需要浏览的视频快速滑走(0.5秒~1.5秒的随机数)
         await sleep(random(500, 1500))
         console.log('视频不需要观看，快速滑走')
+        this._emitProgress('fast-skip', '快速滑走')
       }
 
       // 跳转至下一条视频
@@ -278,12 +304,26 @@ export default class ACTask {
       await this._dyElementHandler.goToNextVideo()
     }
 
+    await this._close()
+  }
+
+  public async stop(): Promise<void> {
+    this._stopped = true
+    await this._close()
+  }
+
+  private async _close(): Promise<void> {
+    if (!this._page) return
     // 在关闭页面前更新本地登录缓存，避免下次仍然使用初始缓存
     const context = this._page.context()
     const state = await context.storageState()
     storage.set(StorageKey.auth, state)
 
-    await this._page.close()
+    this._page.close()
+  }
+
+  private _emitProgress(type: string, message: string): void {
+    this.emit('progress', { type, message, timestamp: Date.now() })
   }
 
   // 监听并缓存视频信息接口数据
@@ -291,7 +331,7 @@ export default class ACTask {
     console.log('设置视频信息接口监听...')
 
     // 添加响应监听器
-    this._page.on('response', async (response) => {
+    this._page?.on('response', async (response) => {
       const url = response.url()
       if (url.includes('https://www.douyin.com/aweme/v1/web/tab/feed/')) {
         console.log('捕获到视频Feed接口请求')
@@ -331,7 +371,7 @@ export default class ACTask {
   async _getCurrentVideoInfo(): Promise<FeedItem | null> {
     try {
       // 查找当前活跃视频元素
-      const activeVideoElement = await this._page.$('[data-e2e="feed-active-video"]')
+      const activeVideoElement = await this._page?.$('[data-e2e="feed-active-video"]')
 
       if (!activeVideoElement) {
         console.log('未找到当前活跃视频元素')
@@ -483,7 +523,7 @@ export default class ACTask {
 
       // 等待输入框容器出现并点击，设置5秒超时
       const inputContainer = await this._page
-        .waitForSelector(inputContainerSelector, { timeout: 5000 })
+        ?.waitForSelector(inputContainerSelector, { timeout: 5000 })
         .catch(() => null)
       if (!inputContainer) {
         console.log('未找到评论输入框容器')
@@ -500,7 +540,7 @@ export default class ACTask {
       console.log(`开始模拟人类输入评论: ${randomComment}`)
       for (let i = 0; i < randomComment.length; i++) {
         // 输入单个字符
-        await this._page.keyboard.type(randomComment[i])
+        await this._page?.keyboard.type(randomComment[i])
 
         // 添加随机延迟，模拟人类输入速度（100-300毫秒）
         await sleep(random(100, 300))
@@ -537,13 +577,13 @@ export default class ACTask {
           // 设置文件选择器监听并点击上传按钮
           const [fileChooser] = await Promise.all([
             // 等待文件选择器出现
-            this._page.waitForEvent('filechooser', { timeout: 5000 }),
+            this._page?.waitForEvent('filechooser', { timeout: 5000 }),
             // 点击上传按钮触发文件选择器
-            this._page.click(uploadBtnSelector)
+            this._page?.click(uploadBtnSelector)
           ])
 
           // 设置文件
-          await fileChooser.setFiles(imagePath)
+          await fileChooser?.setFiles(imagePath)
           console.log('通过fileChooser成功上传图片')
 
           // 等待图片上传完成和预览显示
@@ -581,7 +621,7 @@ export default class ACTask {
               const responseBody = await response.json().catch(() => null)
 
               // 移除监听器，防止重复处理
-              this._page.removeListener('response', responseListener)
+              this._page?.removeListener('response', responseListener)
               // 清除超时计时器
               clearTimeout(timeoutId)
 
@@ -599,7 +639,7 @@ export default class ACTask {
               }
             } catch (error) {
               console.log('解析评论发布接口响应时出错:', error)
-              this._page.removeListener('response', responseListener)
+              this._page?.removeListener('response', responseListener)
               // 清除超时计时器
               clearTimeout(timeoutId)
               resolve({ success: false, reason: '解析评论发布接口响应出错' })
@@ -608,18 +648,18 @@ export default class ACTask {
         }
 
         // 添加响应监听器
-        this._page.on('response', responseListener)
+        this._page?.on('response', responseListener)
 
         // 设置超时处理，5秒后如果没有捕获到评论发布响应就移除监听器
         const timeoutId = setTimeout(() => {
-          this._page.removeListener('response', responseListener)
+          this._page?.removeListener('response', responseListener)
           console.log('评论发布接口响应监听超时，未捕获到数据')
           resolve({ success: false, reason: '评论发布接口响应监听超时' })
         }, 5000)
       })
 
       // 发送评论
-      await this._page.keyboard.press('Enter')
+      await this._page?.keyboard.press('Enter')
 
       // 等待评论发布接口响应
       console.log('等待评论发布接口响应...')
@@ -668,7 +708,7 @@ export default class ACTask {
   async _openCommentSectionAndMonitor(): Promise<{ shouldComment: boolean; activityInfo: string }> {
     try {
       // 确保当前页面已加载完成
-      await this._page.waitForLoadState('domcontentloaded', { timeout: 5000 }).catch(() => {
+      await this._page?.waitForLoadState('domcontentloaded', { timeout: 5000 }).catch(() => {
         console.log('等待页面加载完成超时，继续执行')
       })
 
@@ -694,7 +734,7 @@ export default class ACTask {
                 console.log('视频活跃度检查结果:', activityResult.reason)
 
                 // 移除监听器，防止重复处理
-                this._page.removeListener('response', responseListener)
+                this._page?.removeListener('response', responseListener)
                 // 清除超时计时器
                 clearTimeout(timeoutId)
                 resolve({
@@ -704,7 +744,7 @@ export default class ACTask {
               } else {
                 console.log('无法解析评论列表接口返回的JSON数据')
                 // 移除监听器，默认不评论
-                this._page.removeListener('response', responseListener)
+                this._page?.removeListener('response', responseListener)
                 // 清除超时计时器
                 clearTimeout(timeoutId)
                 resolve({
@@ -715,7 +755,7 @@ export default class ACTask {
             } catch (error) {
               console.log('解析评论列表接口响应时出错:', error)
               // 移除监听器，默认不评论
-              this._page.removeListener('response', responseListener)
+              this._page?.removeListener('response', responseListener)
               // 清除超时计时器
               clearTimeout(timeoutId)
               resolve({
@@ -727,11 +767,11 @@ export default class ACTask {
         }
 
         // 添加响应监听器
-        this._page.on('response', responseListener)
+        this._page?.on('response', responseListener)
 
         // 设置超时处理，10秒后如果没有捕获到评论数据就移除监听器
         const timeoutId = setTimeout(() => {
-          this._page.removeListener('response', responseListener)
+          this._page?.removeListener('response', responseListener)
           console.log('评论数据监听超时，未捕获到数据')
           resolve({
             shouldComment: false,
@@ -742,7 +782,7 @@ export default class ACTask {
 
       // 使用键盘快捷键 "X" 开启评论区
       console.log('使用快捷键X打开评论区')
-      await this._page.keyboard.press('x')
+      await this._page?.keyboard.press('x')
 
       // 等待评论数据
       return await commentDataPromise
