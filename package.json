@@ -27,6 +27,7 @@
     "@tailwindcss/vite": "^4.1.13",
     "electron-store": "^10.1.0",
     "electron-updater": "^6.3.9",
+    "highlight.js": "^11.11.1",
     "tailwindcss": "^4.1.13"
   },
   "devDependencies": {
