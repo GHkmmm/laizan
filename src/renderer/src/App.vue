@@ -61,9 +61,14 @@ const acRuleOptions = ref<SelectOption[]>([
   }
 ])
 
-const value = ref([50, 70])
+// 新增：用户可配置的评论规则与行为设置
+const ruleRelation = ref<'and' | 'or'>('and')
+const rules = ref<{ field: 'nickName' | 'videoDesc' | 'videoTag'; keyword: string }[]>([])
+const simulateWatchBeforeComment = ref<boolean>(true)
+const watchTimeRangeSeconds = ref<[number, number]>([5, 15])
+const onlyCommentActiveVideo = ref<boolean>(true)
 
-// settings state
+// settings state for block keywords
 const authorKeywords = ref<string[]>([])
 const descKeywords = ref<string[]>([])
 
@@ -71,20 +76,43 @@ const loadSettings = async (): Promise<void> => {
   const s = await window.api.getSettings()
   authorKeywords.value = s?.authorBlockKeywords || []
   descKeywords.value = s?.blockKeywords || []
+  ruleRelation.value = (s?.ruleRelation as 'and' | 'or') ?? 'and'
+  rules.value = Array.isArray(s?.rules) ? s!.rules : []
+  simulateWatchBeforeComment.value = s?.simulateWatchBeforeComment ?? true
+  watchTimeRangeSeconds.value =
+    Array.isArray(s?.watchTimeRangeSeconds) && s!.watchTimeRangeSeconds.length === 2
+      ? (s!.watchTimeRangeSeconds as [number, number])
+      : [5, 15]
+  onlyCommentActiveVideo.value = s?.onlyCommentActiveVideo ?? true
 }
 
 const saveSettings = async (): Promise<void> => {
-  console.log('saveSettings', authorKeywords.value, descKeywords.value)
   const next = await window.api.updateSettings({
     authorBlockKeywords: [...authorKeywords.value],
-    blockKeywords: [...descKeywords.value]
+    blockKeywords: [...descKeywords.value],
+    ruleRelation: ruleRelation.value,
+    rules: JSON.parse(JSON.stringify(rules.value)),
+    simulateWatchBeforeComment: simulateWatchBeforeComment.value,
+    watchTimeRangeSeconds: [...watchTimeRangeSeconds.value],
+    onlyCommentActiveVideo: onlyCommentActiveVideo.value
   })
   authorKeywords.value = next.authorBlockKeywords || []
   descKeywords.value = next.blockKeywords || []
+  ruleRelation.value = (next.ruleRelation as 'and' | 'or') ?? 'and'
+  rules.value = Array.isArray(next.rules) ? next.rules : []
+  simulateWatchBeforeComment.value = next.simulateWatchBeforeComment ?? true
+  watchTimeRangeSeconds.value =
+    Array.isArray(next.watchTimeRangeSeconds) && next.watchTimeRangeSeconds.length === 2
+      ? (next.watchTimeRangeSeconds as [number, number])
+      : [5, 15]
+  onlyCommentActiveVideo.value = next.onlyCommentActiveVideo ?? true
 }
 
 const start = async (): Promise<void> => {
   if (taskStatus.value !== 'idle') return
+
+  // 启动前保存设置
+  await saveSettings()
 
   const count = Number(formModel.value.maxCount)
   const safeCount = Number.isFinite(count) && count > 0 ? Math.floor(count) : 1
@@ -179,41 +207,80 @@ onBeforeUnmount(() => {
                     <div class="flex items-center gap-1">
                       <span class="text-nowrap">规则关系：</span>
                       <n-select
+                        v-model:value="ruleRelation"
                         placeholder="规则关系"
                         :options="acRuleRelationOptions"
                         size="medium"
+                        @update:value="saveSettings"
                       />
                     </div>
                     <div class="flex gap-1 w-96">
                       <span class="text-nowrap pt-1">规则列表：</span>
                       <div class="flex flex-col gap-3 flex-1">
-                        <div class="flex items-center gap-2">
-                          <n-select placeholder="选择类型" :options="acRuleOptions" size="medium" />
+                        <div v-for="(r, idx) in rules" :key="idx" class="flex items-center gap-2">
+                          <n-select
+                            v-model:value="r.field"
+                            placeholder="选择类型"
+                            :options="acRuleOptions"
+                            size="medium"
+                            @update:value="saveSettings"
+                          />
                           <span class="text-nowrap">包含关键字</span>
-                          <n-input placeholder="输入关键字" class="w-full" size="medium" />
+                          <n-input
+                            v-model:value="r.keyword"
+                            placeholder="输入关键字"
+                            class="w-full"
+                            size="medium"
+                            @update:value="saveSettings"
+                          />
                         </div>
-                        <div class="w-10">
-                          <n-button class="w-10" size="medium" tertiary round type="primary"
-                            >添加条件</n-button
+                        <div class="w-10 flex gap-2">
+                          <n-button
+                            class="w-10"
+                            size="medium"
+                            tertiary
+                            round
+                            type="primary"
+                            @click="
+                              () => {
+                                rules.push({ field: 'videoDesc', keyword: '' })
+                                saveSettings()
+                              }
+                            "
                           >
+                            添加条件
+                          </n-button>
                         </div>
                       </div>
                     </div>
                     <div class="flex flex-col gap-2">
                       <div class="flex flex-col gap-2">
-                        <n-checkbox size="small"> 是否模拟真人先观看视频再评论 </n-checkbox>
-                        <div class="flex flex-col gap-2 py-3">
+                        <n-checkbox
+                          v-model:checked="simulateWatchBeforeComment"
+                          size="small"
+                          @update:checked="saveSettings"
+                        >
+                          是否模拟真人先观看视频再评论
+                        </n-checkbox>
+                        <div v-if="simulateWatchBeforeComment" class="flex flex-col gap-2 py-3">
                           <span>观看视频（按照下方设置的时间范围随机）：</span>
                           <n-slider
-                            v-model:value="value"
+                            v-model:value="watchTimeRangeSeconds"
                             range
                             :min="0"
-                            :max="100"
+                            :max="120"
                             :format-tooltip="(value: number) => `${value}秒`"
+                            @update:value="saveSettings"
                           />
                         </div>
                       </div>
-                      <n-checkbox size="small"> 只评论活跃视频 </n-checkbox>
+                      <n-checkbox
+                        v-model:checked="onlyCommentActiveVideo"
+                        size="small"
+                        @update:checked="saveSettings"
+                      >
+                        只评论活跃视频
+                      </n-checkbox>
                     </div>
                   </div>
                 </n-form-item>

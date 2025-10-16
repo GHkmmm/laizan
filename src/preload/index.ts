@@ -9,15 +9,30 @@ const api = {
   getSettings: (): Promise<{
     blockKeywords: string[]
     authorBlockKeywords: string[]
+    ruleRelation: 'and' | 'or'
+    rules: { field: 'nickName' | 'videoDesc' | 'videoTag'; keyword: string }[]
+    simulateWatchBeforeComment: boolean
+    watchTimeRangeSeconds: [number, number]
+    onlyCommentActiveVideo: boolean
   }> => ipcRenderer.invoke('settings:get'),
   updateSettings: (
     payload: Partial<{
       blockKeywords: string[]
       authorBlockKeywords: string[]
+      ruleRelation: 'and' | 'or'
+      rules: { field: 'nickName' | 'videoDesc' | 'videoTag'; keyword: string }[]
+      simulateWatchBeforeComment: boolean
+      watchTimeRangeSeconds: [number, number]
+      onlyCommentActiveVideo: boolean
     }>
   ): Promise<{
     blockKeywords: string[]
     authorBlockKeywords: string[]
+    ruleRelation: 'and' | 'or'
+    rules: { field: 'nickName' | 'videoDesc' | 'videoTag'; keyword: string }[]
+    simulateWatchBeforeComment: boolean
+    watchTimeRangeSeconds: [number, number]
+    onlyCommentActiveVideo: boolean
   }> => ipcRenderer.invoke('settings:update', payload),
   startTask: (payload: { maxCount?: number }): Promise<{ ok: boolean; message?: string }> =>
     ipcRenderer.invoke('task:start', payload),

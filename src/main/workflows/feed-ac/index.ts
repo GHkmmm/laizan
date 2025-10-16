@@ -5,7 +5,7 @@ import { CommentResponse, FeedItem, FeedListResponse } from './types'
 import * as fs from 'fs'
 import * as path from 'path'
 import DYElementHandler from '../../elements/douyin'
-import { ArkService } from '../../service/ark'
+// import { ArkService } from '../../service/ark'
 import { EventEmitter } from 'events'
 import { getFeedAcSettings } from './settings'
 
@@ -169,121 +169,79 @@ export default class ACTask extends EventEmitter {
         continue
       }
 
-      // 分析视频类型和处理方式
-      const videoAnalysis = await this._analyzeVideoType(videoInfo)
+      // 分析视频是否需要评论与是否需要模拟观看
+      const videoAnalysis = await this._analyzeVideoType(videoInfo, settings)
 
-      if (videoAnalysis.shouldWatch) {
-        // 需要观看视频 (shouldWatch为true)
-        // watchedCount++
-        // console.log(`观看第 ${watchedCount} 个视频`)
-
-        // 计算观看时间（统一为5-30秒）
-        const watchTime = this._calculateWatchTime()
-
-        if (videoAnalysis.shouldViewComment) {
-          // 需要评论的视频
-          // 先浏览一段时间
-          console.log(`视频可能需要评论，先浏览${watchTime / 1000}秒`)
-          this._emitProgress('watch', `浏览 ${Math.floor(watchTime / 1000)} 秒`)
+      if (videoAnalysis.shouldViewComment) {
+        console.log('视频需要评论')
+        // 针对需要评论的视频，若需要模拟观看，则先观看再评论
+        if (videoAnalysis.shouldSimulateWatch) {
+          const watchTime = this._calculateWatchTime(settings)
+          console.log(`先模拟观看 ${watchTime / 1000} 秒`)
+          this._emitProgress('watch', `模拟观看 ${Math.floor(watchTime / 1000)} 秒`)
           await sleep(watchTime)
+        }
 
-          // 浏览完成后，执行随机点赞操作
-          await this._randomLike()
+        await this._randomLike()
 
-          // 使用快捷键打开评论区并监听评论接口
-          console.log('打开评论区并监听评论接口')
-          this._emitProgress('open-comment', '打开评论区并监听评论接口')
-          const activityCheck = await this._openCommentSectionAndMonitor()
+        // 打开评论区
+        console.log('打开评论区并监听评论接口')
+        this._emitProgress('open-comment', '打开评论区并监听评论接口')
 
-          // 根据视频活跃度决定是否评论
+        const activityCheck = await this._openCommentSectionAndMonitor()
+        if (settings.onlyCommentActiveVideo) {
           console.log('视频活跃度判断结果:', activityCheck.activityInfo)
-          this._emitProgress('activity', activityCheck.activityInfo)
+        } else {
+          console.log('跳过活跃度检查，直接评论')
+          activityCheck.shouldComment = true
+          activityCheck.activityInfo = '跳过活跃度检查，直接评论'
+        }
+        this._emitProgress('activity', activityCheck.activityInfo)
 
-          // 更新调试面板，添加活跃度信息
-          // await createOrUpdateDebugPanel(page, {
-          //   awemeId: await page.$eval('[data-e2e="feed-active-video"]', (el) =>
-          //     el.getAttribute('data-e2e-vid')
-          //   ),
-          //   desc: videoDescription,
-          //   nickname: videoInfo.nickname,
-          //   uid: videoInfo.uid,
-          //   video_tag: videoInfo.video_tag || [],
-          //   analysis: videoAnalysis,
-          //   activity: activityCheck,
-          //   stats: {
-          //     commentCount,
-          //     commentLimit,
-          //     watchedCount,
-          //     browsedCount,
-          //     videoCount
-          //   }
-          // })
+        // 浏览评论区2～4秒
+        console.log('浏览评论区2-4秒')
+        this._emitProgress('browse-comment', '浏览评论区2-4秒')
+        await sleep(random(2000, 4000))
 
-          // 浏览评论区2～4秒
-          console.log('浏览评论区2-4秒')
-          this._emitProgress('browse-comment', '浏览评论区2-4秒')
-          await sleep(random(2000, 4000))
-
-          if (activityCheck.shouldComment) {
-            // 尝试发布评论
-            console.log('视频活跃度符合标准，尝试发布评论')
-            this._emitProgress('try-comment', '尝试发布评论')
-            // 函数内部会随机选择评论内容
-            const commentSuccess = await this._postComment(videoDescription)
-
-            if (commentSuccess) {
-              // 评论发送成功，记录评论次数
-              commentCount++
-              console.log(`评论发送成功，已评论次数：${commentCount}/${this._maxCount}`)
-              this._emitProgress('comment-success', `评论成功 ${commentCount}/${this._maxCount}`)
-
-              // 随机等待1-3秒
-              await sleep(random(1000, 3000))
-
-              // 使用快捷键关闭评论区
-              console.log('关闭评论区')
-              await this._dyElementHandler.closeCommentSection()
-              await sleep(random(1000, 2000))
-
-              // 如果已达到评论限制，退出循环
-              if (commentCount >= this._maxCount) {
-                console.log(`已达到评论次数限制 ${this._maxCount}，任务完成`)
-                this._emitProgress('completed', `已达到评论次数限制 ${this._maxCount}，任务完成`)
-                break
-              }
-            } else {
-              // 评论发送失败，尝试通过点击按钮关闭评论区
-              console.log('评论发送失败，尝试通过点击按钮关闭评论区')
-              this._emitProgress('comment-fail', '评论发送失败')
-              try {
-                await this._dyElementHandler.closeCommentSectionByButton()
-              } catch (closeError) {
-                console.log('关闭评论区失败:', closeError)
-              }
-              await sleep(random(1000, 2000))
+        if (activityCheck.shouldComment) {
+          console.log('尝试发布评论')
+          this._emitProgress('try-comment', '尝试发布评论')
+          const commentSuccess = await this._postComment(videoDescription)
+          if (commentSuccess) {
+            commentCount++
+            console.log(`评论发送成功，已评论次数：${commentCount}/${this._maxCount}`)
+            this._emitProgress('comment-success', `评论成功 ${commentCount}/${this._maxCount}`)
+            await sleep(random(1000, 3000))
+            console.log('关闭评论区')
+            await this._dyElementHandler.closeCommentSection()
+            await sleep(random(1000, 2000))
+            if (commentCount >= this._maxCount) {
+              console.log(`已达到评论次数限制 ${this._maxCount}，任务完成`)
+              this._emitProgress('completed', `已达到评论次数限制 ${this._maxCount}，任务完成`)
+              break
             }
           } else {
-            console.log('视频活跃度不符合标准，不发布评论')
-            this._emitProgress('inactive', '视频活跃度不符合标准，不发布评论')
-            // 关闭评论区
-            await this._dyElementHandler.closeCommentSection()
+            console.log('评论发送失败，尝试通过点击按钮关闭评论区')
+            this._emitProgress('comment-fail', '评论发送失败')
+            try {
+              await this._dyElementHandler.closeCommentSectionByButton()
+            } catch (closeError) {
+              console.log('关闭评论区失败:', closeError)
+            }
             await sleep(random(1000, 2000))
           }
         } else {
-          // 只需要观看不需要评论的视频
-          console.log(`只观看视频 ${watchTime / 1000}秒`)
-          this._emitProgress('watch-only', `只观看 ${Math.floor(watchTime / 1000)} 秒`)
-          await sleep(watchTime)
-
-          // 浏览完成后，执行随机点赞操作
-          await this._randomLike()
+          console.log('视频活跃度不符合标准，不发布评论')
+          this._emitProgress('inactive', '视频活跃度不符合标准，不发布评论')
+          await this._dyElementHandler.closeCommentSection()
+          await sleep(random(1000, 2000))
         }
 
         await sleep(random(500, 3000))
       } else {
-        // 不需要浏览的视频快速滑走(0.5秒~1.5秒的随机数)
+        // 不需要评论的视频快速滑走
         await sleep(random(500, 1500))
-        console.log('视频不需要观看，快速滑走')
+        console.log('当前视频不满足评论规则，快速滑走')
         this._emitProgress('fast-skip', '快速滑走')
       }
 
@@ -348,15 +306,12 @@ export default class ACTask extends EventEmitter {
     })
   }
 
-  // 统一设置视频浏览时间为5-15秒
-  _calculateWatchTime(): number {
-    // 随机生成5-15秒之间的浏览时间
-    const minSeconds = 5
-    const maxSeconds = 15
+  // 根据配置设置视频浏览时间
+  _calculateWatchTime(settings: ReturnType<typeof getFeedAcSettings>): number {
+    const [minSeconds, maxSeconds] = settings.watchTimeRangeSeconds || [5, 15]
     const watchTime = Math.floor(Math.random() * (maxSeconds - minSeconds + 1)) + minSeconds
-
-    console.log(`计算浏览时间: ${watchTime}秒 (统一设置为5-15秒随机值)`)
-    return watchTime * 1000 // 转换为毫秒
+    console.log(`计算浏览时间: ${watchTime}秒 (基于用户设置 ${minSeconds}-${maxSeconds} 秒)`)
+    return watchTime * 1000
   }
 
   // 获取当前视频的信息
@@ -401,57 +356,55 @@ export default class ACTask extends EventEmitter {
     }
   }
 
-  // 根据视频标签判断视频类型和处理方式
-  async _analyzeVideoType(videoInfo: FeedItem): Promise<{
-    shouldWatch: boolean // 是否需要浏览
-    shouldViewComment: boolean // 是否需要浏览评论
+  // 根据用户配置的规则判断是否需要评论及是否需要模拟观看
+  async _analyzeVideoType(
+    videoInfo: FeedItem,
+    settings: ReturnType<typeof getFeedAcSettings>
+  ): Promise<{
+    shouldSimulateWatch: boolean
+    shouldViewComment: boolean
   }> {
-    if (
-      !videoInfo.desc ||
-      !Array.isArray(videoInfo.video_tag) ||
-      videoInfo.video_tag.length === 0
-    ) {
-      return { shouldWatch: false, shouldViewComment: false }
-    }
+    // ArkService 智能分析暂时注释保留，先用用户规则代替
+    // const result = await ArkService.analyzeVideoType(
+    //   JSON.stringify({
+    //     author: videoInfo.author.nickname,
+    //     videoDesc: videoInfo.desc,
+    //     videoTag: videoInfo.video_tag
+    //   })
+    // )
+    // console.log('视频类型分析结果:', result)
+    // // 目标城市数量过多直接跳过（暂时注释，不删除）
+    // if (result.targetCity.split(',').length > 1) {
+    //   return { shouldSimulateWatch: false, shouldViewComment: false }
+    // }
 
-    // 检查视频是否和旅游相关
-    // 旅行攻略、旅行vlog、美食
-    const isTravelVideo = videoInfo.video_tag.some(
-      (tag) => tag.tag_name.includes('旅行') || tag.tag_name.includes('美食')
-    )
+    const rules = Array.isArray(settings.rules) ? settings.rules : []
+    const relation = settings.ruleRelation || 'and'
 
-    if (!isTravelVideo) {
-      return { shouldWatch: false, shouldViewComment: false }
-    }
-
-    const result = await ArkService.analyzeVideoType(
-      JSON.stringify({
-        author: videoInfo.author.nickname,
-        videoDesc: videoInfo.desc,
-        videoTag: videoInfo.video_tag
-      })
-    )
-    console.log('视频类型分析结果:', result)
-    // 目标城市数量过多直接跳过
-    if (result.targetCity.split(',').length > 1) {
-      return { shouldWatch: false, shouldViewComment: false }
-    }
-
-    // 从resources目录下动态读取城市列表
-    const availableCities = this._getAvailableCities()
-
-    // 检查是否包含resources目录下的城市
-    let mentionedCity: string | null = null
-    for (const city of availableCities) {
-      if (result.targetCity.includes(city)) {
-        mentionedCity = city
-        break
+    const matches = rules.map((rule) => {
+      if (!rule || !rule.keyword) return false
+      if (rule.field === 'nickName') {
+        return videoInfo.author.nickname.includes(rule.keyword)
       }
-    }
+      if (rule.field === 'videoDesc') {
+        return (videoInfo.desc || '').includes(rule.keyword)
+      }
+      if (rule.field === 'videoTag') {
+        return (videoInfo.video_tag || []).some((t) => t.tag_name.includes(rule.keyword))
+      }
+      return false
+    })
+
+    const rulesMatched =
+      matches.length === 0
+        ? false
+        : relation === 'and'
+          ? matches.every(Boolean)
+          : matches.some(Boolean)
 
     return {
-      shouldWatch: result.shouldWatch,
-      shouldViewComment: mentionedCity !== null
+      shouldSimulateWatch: Boolean(settings.simulateWatchBeforeComment) && rulesMatched,
+      shouldViewComment: rulesMatched
     }
   }
 
