@@ -1,39 +1,15 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
+import { FeedAcSettings } from '@shared/feed-ac-setting'
 
 // Custom APIs for renderer
 const api = {
   hasAuth: (): Promise<boolean> => ipcRenderer.invoke('hasAuth'),
   login: (): Promise<void> => ipcRenderer.invoke('login'),
   logout: (): void => ipcRenderer.send('logout'),
-  getSettings: (): Promise<{
-    blockKeywords: string[]
-    authorBlockKeywords: string[]
-    ruleRelation: 'and' | 'or'
-    rules: { field: 'nickName' | 'videoDesc' | 'videoTag'; keyword: string }[]
-    simulateWatchBeforeComment: boolean
-    watchTimeRangeSeconds: [number, number]
-    onlyCommentActiveVideo: boolean
-  }> => ipcRenderer.invoke('settings:get'),
-  updateSettings: (
-    payload: Partial<{
-      blockKeywords: string[]
-      authorBlockKeywords: string[]
-      ruleRelation: 'and' | 'or'
-      rules: { field: 'nickName' | 'videoDesc' | 'videoTag'; keyword: string }[]
-      simulateWatchBeforeComment: boolean
-      watchTimeRangeSeconds: [number, number]
-      onlyCommentActiveVideo: boolean
-    }>
-  ): Promise<{
-    blockKeywords: string[]
-    authorBlockKeywords: string[]
-    ruleRelation: 'and' | 'or'
-    rules: { field: 'nickName' | 'videoDesc' | 'videoTag'; keyword: string }[]
-    simulateWatchBeforeComment: boolean
-    watchTimeRangeSeconds: [number, number]
-    onlyCommentActiveVideo: boolean
-  }> => ipcRenderer.invoke('settings:update', payload),
+  getSettings: (): Promise<FeedAcSettings> => ipcRenderer.invoke('settings:get'),
+  updateSettings: (payload: Partial<FeedAcSettings>): Promise<FeedAcSettings> =>
+    ipcRenderer.invoke('settings:update', payload),
   startTask: (payload: { maxCount?: number }): Promise<{ ok: boolean; message?: string }> =>
     ipcRenderer.invoke('task:start', payload),
   stopTask: (): Promise<{ ok: boolean; message?: string }> => ipcRenderer.invoke('task:stop'),
