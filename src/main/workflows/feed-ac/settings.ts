@@ -1,6 +1,6 @@
 import { storage, StorageKey } from '../../utils/storage'
-import type { FeedAcSettings, FeedAcRule } from '@shared/settings'
-import { getDefaults } from '@shared/settings'
+import type { FeedAcSettings, FeedAcRule } from '@shared/feed-ac-setting'
+import { getDefaults } from '@shared/feed-ac-setting'
 
 export function getFeedAcSettings(): FeedAcSettings {
   const saved = storage.get(StorageKey.settings) as Partial<FeedAcSettings> | undefined

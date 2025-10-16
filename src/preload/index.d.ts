@@ -1,5 +1,5 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
-import type { FeedAcSettings } from '@shared/settings'
+import type { FeedAcSettings } from '@shared/feed-ac-setting'
 
 declare global {
   interface Window {
