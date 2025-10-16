@@ -1,4 +1,5 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
+import type { FeedAcSettings } from '@shared/settings'
 
 declare global {
   interface Window {
@@ -7,36 +8,8 @@ declare global {
       hasAuth: () => Promise<boolean>
       login: () => Promise<void>
       logout: () => void
-      getSettings: () => Promise<
-        {
-          blockKeywords: string[]
-          authorBlockKeywords: string[]
-          ruleRelation: 'and' | 'or'
-          rules: { field: 'nickName' | 'videoDesc' | 'videoTag'; keyword: string }[]
-          simulateWatchBeforeComment: boolean
-          watchTimeRangeSeconds: [number, number]
-          onlyCommentActiveVideo: boolean
-        }?
-      >
-      updateSettings: (
-        payload: Partial<{
-          blockKeywords: string[]
-          authorBlockKeywords: string[]
-          ruleRelation: 'and' | 'or'
-          rules: { field: 'nickName' | 'videoDesc' | 'videoTag'; keyword: string }[]
-          simulateWatchBeforeComment: boolean
-          watchTimeRangeSeconds: [number, number]
-          onlyCommentActiveVideo: boolean
-        }>
-      ) => Promise<{
-        blockKeywords: string[]
-        authorBlockKeywords: string[]
-        ruleRelation: 'and' | 'or'
-        rules: { field: 'nickName' | 'videoDesc' | 'videoTag'; keyword: string }[]
-        simulateWatchBeforeComment: boolean
-        watchTimeRangeSeconds: [number, number]
-        onlyCommentActiveVideo: boolean
-      }>
+      getSettings: () => Promise<FeedAcSettings | undefined>
+      updateSettings: (payload: Partial<FeedAcSettings>) => Promise<FeedAcSettings>
       startTask: (payload: { maxCount?: number }) => Promise<{ ok: boolean; message?: string }>
       stopTask: () => Promise<{ ok: boolean; message?: string }>
       onTaskProgress: (

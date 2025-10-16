@@ -1,6 +1,6 @@
 import type { BrowserContext } from '@playwright/test'
 import __Store from 'electron-store'
-import { FeedAcSettings } from '../workflows/feed-ac/settings'
+import type { FeedAcSettings } from '@shared/settings'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Store = ((__Store as any).default || __Store) as typeof __Store
 

@@ -1,33 +1,6 @@
 import { storage, StorageKey } from '../../utils/storage'
-
-export type RuleField = 'nickName' | 'videoDesc' | 'videoTag'
-
-export interface FeedAcRule {
-  field: RuleField
-  keyword: string
-}
-
-export interface FeedAcSettings {
-  blockKeywords: string[]
-  authorBlockKeywords: string[]
-  ruleRelation: 'and' | 'or'
-  rules: FeedAcRule[]
-  simulateWatchBeforeComment: boolean
-  watchTimeRangeSeconds: [number, number]
-  onlyCommentActiveVideo: boolean
-}
-
-function getDefaults(): FeedAcSettings {
-  return {
-    blockKeywords: [],
-    authorBlockKeywords: [],
-    ruleRelation: 'and',
-    rules: [],
-    simulateWatchBeforeComment: true,
-    watchTimeRangeSeconds: [5, 15],
-    onlyCommentActiveVideo: true
-  }
-}
+import type { FeedAcSettings, FeedAcRule } from '@shared/settings'
+import { getDefaults } from '@shared/settings'
 
 export function getFeedAcSettings(): FeedAcSettings {
   const saved = storage.get(StorageKey.settings) as Partial<FeedAcSettings> | undefined
