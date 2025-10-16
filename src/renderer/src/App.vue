@@ -31,12 +31,12 @@ const formModel = ref<TaskForm>({
 
 const acRuleRelationOptions = ref<SelectOption[]>([
   {
-    label: '全部满足',
-    value: 'and'
-  },
-  {
     label: '任一满足',
     value: 'or'
+  },
+  {
+    label: '全部满足',
+    value: 'and'
   }
 ])
 
@@ -62,7 +62,7 @@ const acRuleOptions = ref<SelectOption[]>([
 ])
 
 // 新增：用户可配置的评论规则与行为设置
-const ruleRelation = ref<'and' | 'or'>('and')
+const ruleRelation = ref<'and' | 'or'>('or')
 const rules = ref<{ field: 'nickName' | 'videoDesc' | 'videoTag'; keyword: string }[]>([])
 const simulateWatchBeforeComment = ref<boolean>(true)
 const watchTimeRangeSeconds = ref<[number, number]>([5, 15])
@@ -76,7 +76,7 @@ const loadSettings = async (): Promise<void> => {
   const s = await window.api.getSettings()
   authorKeywords.value = s?.authorBlockKeywords || []
   descKeywords.value = s?.blockKeywords || []
-  ruleRelation.value = (s?.ruleRelation as 'and' | 'or') ?? 'and'
+  ruleRelation.value = (s?.ruleRelation as 'and' | 'or') ?? 'or'
   rules.value = Array.isArray(s?.rules) ? s!.rules : []
   simulateWatchBeforeComment.value = s?.simulateWatchBeforeComment ?? true
   watchTimeRangeSeconds.value =
@@ -98,7 +98,7 @@ const saveSettings = async (): Promise<void> => {
   })
   authorKeywords.value = next.authorBlockKeywords || []
   descKeywords.value = next.blockKeywords || []
-  ruleRelation.value = (next.ruleRelation as 'and' | 'or') ?? 'and'
+  ruleRelation.value = (next.ruleRelation as 'and' | 'or') ?? 'or'
   rules.value = Array.isArray(next.rules) ? next.rules : []
   simulateWatchBeforeComment.value = next.simulateWatchBeforeComment ?? true
   watchTimeRangeSeconds.value =

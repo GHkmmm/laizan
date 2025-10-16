@@ -19,7 +19,7 @@ export function getDefaults(): FeedAcSettings {
   return {
     blockKeywords: [],
     authorBlockKeywords: [],
-    ruleRelation: 'and',
+    ruleRelation: 'or',
     rules: [],
     simulateWatchBeforeComment: true,
     watchTimeRangeSeconds: [5, 15],

@@ -379,7 +379,7 @@ export default class ACTask extends EventEmitter {
     // }
 
     const rules = Array.isArray(settings.rules) ? settings.rules : []
-    const relation = settings.ruleRelation || 'and'
+    const relation = settings.ruleRelation || 'or'
 
     const matches = rules.map((rule) => {
       if (!rule || !rule.keyword) return false
