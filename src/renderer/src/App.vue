@@ -1,13 +1,19 @@
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, ref } from 'vue'
+import { onMounted, onBeforeUnmount, ref, h } from 'vue'
 import {
   NButton,
+  NInput,
   NInputNumber,
   NForm,
   NFormItem,
   NCollapse,
   NCollapseItem,
-  NDynamicInput
+  NDynamicInput,
+  SelectOption,
+  NSelect,
+  NTooltip,
+  NCheckbox,
+  NSlider
 } from 'naive-ui'
 
 const hasAuth = ref<boolean | null>(null)
@@ -22,6 +28,40 @@ interface TaskForm {
 const formModel = ref<TaskForm>({
   maxCount: 10
 })
+
+const acRuleRelationOptions = ref<SelectOption[]>([
+  {
+    label: '全部满足',
+    value: 'and'
+  },
+  {
+    label: '任一满足',
+    value: 'or'
+  }
+])
+
+const acRuleOptions = ref<SelectOption[]>([
+  {
+    label: '作者名称',
+    value: 'nickName'
+  },
+  {
+    label: '视频描述',
+    value: 'videoDesc'
+  },
+  {
+    label: '视频标签',
+    value: 'videoTag',
+    render: ({ node }) => {
+      return h(NTooltip, null, {
+        trigger: () => node,
+        default: () => '请注意区分视频话题和视频标签，标签为抖音系统自动生成'
+      })
+    }
+  }
+])
+
+const value = ref([50, 70])
 
 // settings state
 const authorKeywords = ref<string[]>([])
@@ -128,50 +168,97 @@ onBeforeUnmount(() => {
     <div class="w-screen h-screen flex justify-center items-center overflow-auto">
       <template v-if="hasAuth">
         <div class="flex flex-col items-center max-h-screen py-10">
-          <div class="w-96">
+          <div>
             <template v-if="!['running', 'stopping'].includes(taskStatus)">
-              <n-form :model="formModel" size="large">
-                <n-form-item label="评论次数">
+              <n-form :model="formModel" size="large" label-placement="left">
+                <n-form-item label="规则设置：">
+                  <div class="flex flex-col gap-3 pt-3">
+                    <h4 class="text-xs font-bold text-gray-400">
+                      当视频满足以下要求时 系统会自动评论
+                    </h4>
+                    <div class="flex items-center gap-1">
+                      <span class="text-nowrap">规则关系：</span>
+                      <n-select
+                        placeholder="规则关系"
+                        :options="acRuleRelationOptions"
+                        size="medium"
+                      />
+                    </div>
+                    <div class="flex gap-1 w-96">
+                      <span class="text-nowrap pt-1">规则列表：</span>
+                      <div class="flex flex-col gap-3 flex-1">
+                        <div class="flex items-center gap-2">
+                          <n-select placeholder="选择类型" :options="acRuleOptions" size="medium" />
+                          <span class="text-nowrap">包含关键字</span>
+                          <n-input placeholder="输入关键字" class="w-full" size="medium" />
+                        </div>
+                        <div class="w-10">
+                          <n-button class="w-10" size="medium" tertiary round type="primary"
+                            >添加条件</n-button
+                          >
+                        </div>
+                      </div>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                      <div class="flex flex-col gap-2">
+                        <n-checkbox size="small"> 是否模拟真人先观看视频再评论 </n-checkbox>
+                        <div class="flex flex-col gap-2 py-3">
+                          <span>观看视频（按照下方设置的时间范围随机）：</span>
+                          <n-slider
+                            v-model:value="value"
+                            range
+                            :min="0"
+                            :max="100"
+                            :format-tooltip="(value: number) => `${value}秒`"
+                          />
+                        </div>
+                      </div>
+                      <n-checkbox size="small"> 只评论活跃视频 </n-checkbox>
+                    </div>
+                  </div>
+                </n-form-item>
+                <n-form-item label="评论次数：">
                   <n-input-number
                     v-model:value="formModel.maxCount"
                     :min="1"
                     :max="999"
                     placeholder="输入评论次数"
                     class="w-full"
-                    round
                     :disabled="taskStatus === 'starting'"
                   />
                 </n-form-item>
-                <n-collapse arrow-placement="right">
-                  <n-collapse-item>
-                    <template #header>
-                      <div class="flex flex-col w-full">
-                        <span>关键词屏蔽设置</span>
-                        <h4 class="text-xs font-bold text-gray-400">
-                          若视频命中设置的关键词，则跳过视频
-                        </h4>
-                      </div>
-                    </template>
-                    <div class="flex flex-col gap-2">
+                <n-form-item>
+                  <n-collapse arrow-placement="right">
+                    <n-collapse-item>
+                      <template #header>
+                        <div class="flex flex-col w-full">
+                          <span>关键词屏蔽设置</span>
+                          <h4 class="text-xs font-bold text-gray-400">
+                            若视频命中设置的关键词，则跳过视频
+                          </h4>
+                        </div>
+                      </template>
                       <div class="flex flex-col gap-2">
-                        <div class="mb-1 text-sm">作者昵称</div>
-                        <n-dynamic-input
-                          v-model:value="authorKeywords"
-                          placeholder="输入关键词"
-                          @update:value="saveSettings"
-                        />
+                        <div class="flex flex-col gap-2">
+                          <div class="mb-1 text-sm">作者昵称</div>
+                          <n-dynamic-input
+                            v-model:value="authorKeywords"
+                            placeholder="输入关键词"
+                            @update:value="saveSettings"
+                          />
+                        </div>
+                        <div class="flex flex-col gap-2">
+                          <div class="mb-1 text-sm">视频描述</div>
+                          <n-dynamic-input
+                            v-model:value="descKeywords"
+                            placeholder="输入关键词"
+                            @update:value="saveSettings"
+                          />
+                        </div>
                       </div>
-                      <div class="flex flex-col gap-2">
-                        <div class="mb-1 text-sm">视频描述</div>
-                        <n-dynamic-input
-                          v-model:value="descKeywords"
-                          placeholder="输入关键词"
-                          @update:value="saveSettings"
-                        />
-                      </div>
-                    </div>
-                  </n-collapse-item>
-                </n-collapse>
+                    </n-collapse-item>
+                  </n-collapse>
+                </n-form-item>
                 <n-form-item>
                   <n-button
                     block
