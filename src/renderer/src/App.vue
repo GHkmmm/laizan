@@ -148,7 +148,7 @@ onBeforeUnmount(() => {
                       <div class="flex flex-col w-full">
                         <span>关键词屏蔽设置</span>
                         <h4 class="text-xs font-bold text-gray-400">
-                          若视频命中下列关键词，则跳过对该视频进行评论
+                          若视频命中设置的关键词，则跳过视频
                         </h4>
                       </div>
                     </template>

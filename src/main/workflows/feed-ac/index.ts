@@ -1,12 +1,13 @@
 import { Browser, chromium, Page } from '@playwright/test'
 import { random, sleep } from '@utils/common'
-import { storage, StorageKey, getAppSettings } from '../storage'
-import { CommentResponse, FeedItem, FeedListResponse } from './types/douyin'
+import { storage, StorageKey } from '../../utils/storage'
+import { CommentResponse, FeedItem, FeedListResponse } from './types'
 import * as fs from 'fs'
 import * as path from 'path'
-import DYElementHandler from './element/douyin'
-import { ArkService } from '../service/ark'
+import DYElementHandler from '../../elements/douyin'
+import { ArkService } from '../../service/ark'
 import { EventEmitter } from 'events'
+import { getFeedAcSettings } from './settings'
 
 // 检查视频活跃度的接口
 interface VideoActivityResult {
@@ -87,7 +88,7 @@ export default class ACTask extends EventEmitter {
 
   public async run(): Promise<void> {
     await this._launch()
-    const settings = getAppSettings()
+    const settings = getFeedAcSettings()
     // 设置视频数据监听
     await this._setupVideoDataListener()
     console.log('视频数据监听已设置')

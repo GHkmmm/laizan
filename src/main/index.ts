@@ -2,8 +2,9 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import ACTask, { loginAndStorageState } from './ac'
-import { storage, StorageKey, getAppSettings, updateAppSettings } from './storage'
+import ACTask, { loginAndStorageState } from './workflows/feed-ac'
+import { storage, StorageKey } from './utils/storage'
+import { getFeedAcSettings, updateFeedAcSettings } from './workflows/feed-ac/settings'
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -113,11 +114,14 @@ app.whenReady().then(() => {
 
   // settings ipc
   ipcMain.handle('settings:get', () => {
-    return getAppSettings()
+    return getFeedAcSettings()
   })
-  ipcMain.handle('settings:update', (_e, payload: Partial<ReturnType<typeof getAppSettings>>) => {
-    return updateAppSettings(payload)
-  })
+  ipcMain.handle(
+    'settings:update',
+    (_e, payload: Partial<ReturnType<typeof getFeedAcSettings>>) => {
+      return updateFeedAcSettings(payload)
+    }
+  )
 
   createWindow()
 
