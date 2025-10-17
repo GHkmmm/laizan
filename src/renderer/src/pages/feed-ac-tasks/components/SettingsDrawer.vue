@@ -47,7 +47,7 @@ import {
   NButton,
   NCard
 } from 'naive-ui'
-import { useSettingsStore } from '@renderer/stores/settings'
+import { useSettingsStore } from '../stores/settings'
 import { useAuthStore } from '@renderer/stores/auth'
 
 const props = defineProps<{ modelValue: boolean }>()

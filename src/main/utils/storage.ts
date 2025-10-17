@@ -6,13 +6,13 @@ const Store = ((__Store as any).default || __Store) as typeof __Store
 
 export const StorageKey = {
   auth: 'auth',
-  settings: 'settings'
+  feedAcSetting: 'feedAcSetting'
 } as const
 
 type AuthState = Awaited<ReturnType<BrowserContext['storageState']>>
 
 type StorageSchema = Record<typeof StorageKey.auth, AuthState> &
-  Record<typeof StorageKey.settings, FeedAcSettings>
+  Record<typeof StorageKey.feedAcSetting, FeedAcSettings>
 
 class Storage {
   _store = new Store<StorageSchema>()

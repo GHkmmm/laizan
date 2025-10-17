@@ -13,7 +13,7 @@
 
 <script setup lang="ts">
 import { NFormItem, NInputNumber } from 'naive-ui'
-import { useTaskStore } from '@renderer/stores/task'
+import { useTaskStore } from '../stores/task'
 
 const taskStore = useTaskStore()
 const { formModel, taskStatus } = taskStore

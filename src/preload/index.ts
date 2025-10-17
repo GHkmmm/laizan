@@ -7,9 +7,9 @@ const api = {
   hasAuth: (): Promise<boolean> => ipcRenderer.invoke('hasAuth'),
   login: (): Promise<void> => ipcRenderer.invoke('login'),
   logout: (): void => ipcRenderer.send('logout'),
-  getSettings: (): Promise<FeedAcSettings> => ipcRenderer.invoke('settings:get'),
-  updateSettings: (payload: Partial<FeedAcSettings>): Promise<FeedAcSettings> =>
-    ipcRenderer.invoke('settings:update', payload),
+  getFeedAcSettings: (): Promise<FeedAcSettings> => ipcRenderer.invoke('feedAcSetting:get'),
+  updateFeedAcSettings: (payload: Partial<FeedAcSettings>): Promise<FeedAcSettings> =>
+    ipcRenderer.invoke('feedAcSetting:update', payload),
   startTask: (payload: { maxCount?: number }): Promise<{ ok: boolean; message?: string }> =>
     ipcRenderer.invoke('task:start', payload),
   stopTask: (): Promise<{ ok: boolean; message?: string }> => ipcRenderer.invoke('task:stop'),

@@ -30,7 +30,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useMessage, useDialog, NForm, NFormItem, NInput, NSelect, NButton, NCard } from 'naive-ui'
-import { useSettingsStore } from '@renderer/stores/settings'
 
 const props = defineProps<{ modelValue: boolean }>()
 const emit = defineEmits<{ (e: 'update:modelValue', v: boolean): void }>()
@@ -54,7 +53,6 @@ const modelOptions = [
 const clearing = ref<boolean>(false)
 const message = useMessage()
 const dialog = useDialog()
-const settingsStore = useSettingsStore()
 
 const onClearCache = async (): Promise<void> => {
   if (clearing.value) return
@@ -72,7 +70,6 @@ const onClearCache = async (): Promise<void> => {
       try {
         clearing.value = true
         await window.api.clearCache({ excludeKeys: ['auth'] })
-        await settingsStore.loadSettings()
         message.success('缓存已清理')
       } catch (e) {
         message.error(`清理失败：${String(e)}`)

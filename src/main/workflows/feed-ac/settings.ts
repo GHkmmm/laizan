@@ -3,7 +3,7 @@ import type { FeedAcSettings, FeedAcRule } from '@shared/feed-ac-setting'
 import { getDefaults } from '@shared/feed-ac-setting'
 
 export function getFeedAcSettings(): FeedAcSettings {
-  const saved = storage.get(StorageKey.settings) as Partial<FeedAcSettings> | undefined
+  const saved = storage.get(StorageKey.feedAcSetting) as Partial<FeedAcSettings> | undefined
   const defaults = getDefaults()
   const merged: FeedAcSettings = {
     ...defaults,
@@ -43,6 +43,6 @@ export function updateFeedAcSettings(partial: Partial<FeedAcSettings>): FeedAcSe
         ? (partial.watchTimeRangeSeconds as [number, number])
         : current.watchTimeRangeSeconds
   }
-  storage.set(StorageKey.settings, next)
+  storage.set(StorageKey.feedAcSetting, next)
   return next
 }

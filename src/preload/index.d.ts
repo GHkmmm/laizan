@@ -8,8 +8,8 @@ declare global {
       hasAuth: () => Promise<boolean>
       login: () => Promise<void>
       logout: () => void
-      getSettings: () => Promise<FeedAcSettings | undefined>
-      updateSettings: (payload: Partial<FeedAcSettings>) => Promise<FeedAcSettings>
+      getFeedAcSettings: () => Promise<FeedAcSettings | undefined>
+      updateFeedAcSettings: (payload: Partial<FeedAcSettings>) => Promise<FeedAcSettings>
       startTask: (payload: { maxCount?: number }) => Promise<{ ok: boolean; message?: string }>
       stopTask: () => Promise<{ ok: boolean; message?: string }>
       onTaskProgress: (
@@ -18,7 +18,9 @@ declare global {
       onTaskEnded: (
         handler: (p: { status: 'success' | 'stopped' | 'error'; message?: string }) => void
       ) => () => void
-      clearCache: (payload?: { excludeKeys?: string[] }) => Promise<{ ok: boolean; cleared: string[] }>
+      clearCache: (payload?: {
+        excludeKeys?: string[]
+      }) => Promise<{ ok: boolean; cleared: string[] }>
     }
   }
 }

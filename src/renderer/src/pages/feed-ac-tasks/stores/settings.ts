@@ -19,7 +19,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const descKeywords = ref<string[]>([])
 
   const loadSettings = async (): Promise<void> => {
-    const s = await window.api.getSettings()
+    const s = await window.api.getFeedAcSettings()
     authorKeywords.value = s?.authorBlockKeywords || []
     descKeywords.value = s?.blockKeywords || []
     ruleRelation.value = (s?.ruleRelation as 'and' | 'or') ?? 'or'
@@ -33,7 +33,7 @@ export const useSettingsStore = defineStore('settings', () => {
   }
 
   const saveSettings = async (): Promise<void> => {
-    const next = await window.api.updateSettings({
+    const next = await window.api.updateFeedAcSettings({
       authorBlockKeywords: [...authorKeywords.value],
       blockKeywords: [...descKeywords.value],
       ruleRelation: ruleRelation.value,

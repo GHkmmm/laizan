@@ -124,11 +124,11 @@ app.whenReady().then(() => {
   })
 
   // settings ipc
-  ipcMain.handle('settings:get', () => {
+  ipcMain.handle('feedAcSetting:get', () => {
     return getFeedAcSettings()
   })
   ipcMain.handle(
-    'settings:update',
+    'feedAcSetting:update',
     (_e, payload: Partial<ReturnType<typeof getFeedAcSettings>>) => {
       return updateFeedAcSettings(payload)
     }

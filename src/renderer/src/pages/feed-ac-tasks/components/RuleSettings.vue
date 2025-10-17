@@ -93,7 +93,7 @@ import {
   NTooltip,
   SelectOption
 } from 'naive-ui'
-import { useSettingsStore } from '@renderer/stores/settings'
+import { useSettingsStore } from '../stores/settings'
 import { storeToRefs } from 'pinia'
 
 const settingsStore = useSettingsStore()

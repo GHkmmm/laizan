@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount } from 'vue'
 import { NForm } from 'naive-ui'
-import { useTaskStore } from '@renderer/stores/task'
-import { useSettingsStore } from '@renderer/stores/settings'
-import { useLogsStore } from '@renderer/stores/logs'
+import { useTaskStore } from './stores/task'
+import { useSettingsStore } from './stores/settings'
+import { useLogsStore } from './stores/logs'
 import { storeToRefs } from 'pinia'
 import RuleSettings from './components/RuleSettings.vue'
 import KeywordBlocking from './components/KeywordBlocking.vue'

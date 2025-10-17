@@ -33,7 +33,7 @@
 
 <script setup lang="ts">
 import { NFormItem, NCollapse, NCollapseItem, NDynamicInput } from 'naive-ui'
-import { useSettingsStore } from '@renderer/stores/settings'
+import { useSettingsStore } from '../stores/settings'
 import { storeToRefs } from 'pinia'
 
 const settingsStore = useSettingsStore()
