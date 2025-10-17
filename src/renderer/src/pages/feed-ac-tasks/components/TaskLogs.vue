@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col gap-4 w-96">
-    <n-log ref="logInstRef" :log="progressLogs" language="naive-log" trim />
+    <n-log ref="logInstRef" :log="progressLogs" language="javascript" trim />
   </div>
 </template>
 

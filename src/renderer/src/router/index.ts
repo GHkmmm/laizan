@@ -4,24 +4,32 @@ import { useAuthStore } from '@renderer/stores/auth'
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
-    name: 'root',
-    redirect: '/home'
+    name: 'index',
+    component: () => import('@renderer/pages/index/index.vue'),
+    meta: { requiresAuth: true },
+    redirect: '/feed-ac-tasks',
+    children: [
+      {
+        path: 'feed-ac-tasks',
+        name: 'feedAcTasks',
+        component: () => import('@renderer/pages/feed-ac-tasks/index.vue')
+      },
+      {
+        path: 'settings',
+        name: 'settings',
+        component: () => import('@renderer/pages/settings/index.vue')
+      }
+    ]
   },
   {
-    path: '/home',
-    name: 'home',
-    component: () => import('@renderer/pages/home/index.vue'),
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/unauth',
-    name: 'unauth',
-    component: () => import('@renderer/pages/unauth/index.vue'),
+    path: '/login',
+    name: 'login',
+    component: () => import('@renderer/pages/login/index.vue'),
     meta: { requiresAuth: false }
   },
   {
     path: '/:pathMatch(.*)*',
-    redirect: '/home'
+    redirect: '/'
   }
 ]
 
@@ -37,10 +45,10 @@ router.beforeEach(async (to) => {
   }
   const isAuthed = !!authStore.hasAuth
   if (to.meta.requiresAuth && !isAuthed) {
-    return { name: 'unauth' }
+    return { name: 'login' }
   }
-  if (to.name === 'unauth' && isAuthed) {
-    return { name: 'home' }
+  if (to.name === 'login' && isAuthed) {
+    return { name: 'index' }
   }
   return true
 })

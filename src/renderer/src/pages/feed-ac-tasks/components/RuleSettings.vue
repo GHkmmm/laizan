@@ -63,7 +63,7 @@
               v-model:value="watchTimeRangeSeconds"
               range
               :min="0"
-              :max="120"
+              :max="60"
               :format-tooltip="(value: number) => `${value}秒`"
               @update:value="saveSettings"
             />

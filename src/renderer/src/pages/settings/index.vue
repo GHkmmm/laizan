@@ -1,54 +1,36 @@
 <template>
-  <n-drawer v-model:show="show" placement="right" :width="500">
-    <n-drawer-content title="全局设置">
-      <div class="flex flex-col">
-        <h2 class="text-lg font-bold">模型设置</h2>
-        <n-card :bordered="false">
-          <n-form label-width="auto">
-            <n-form-item label="选择模型">
-              <n-select
-                v-model:value="modelProvider"
-                :options="modelOptions"
-                placeholder="选择模型提供方"
-              />
-            </n-form-item>
-            <n-form-item label="API Key">
-              <n-input
-                v-model:value="doubaoKey"
-                type="password"
-                show-password-on="click"
-                placeholder="仅展示，不保存"
-              />
-            </n-form-item>
-          </n-form>
-        </n-card>
+  <div class="flex flex-col gap-8 p-6">
+    <div class="flex flex-col gap-3">
+      <h2 class="text-lg font-bold">模型设置</h2>
+      <n-card :bordered="true">
+        <n-form label-width="auto">
+          <n-form-item label="选择模型">
+            <n-select
+              v-model:value="modelProvider"
+              :options="modelOptions"
+              placeholder="选择模型提供方"
+            />
+          </n-form-item>
+          <n-form-item label="API Key">
+            <n-input
+              v-model:value="doubaoKey"
+              type="password"
+              show-password-on="click"
+              placeholder="仅展示，不保存"
+            />
+          </n-form-item>
+        </n-form>
+      </n-card>
+    </div>
 
-        <div class="absolute bottom-4 left-4 right-4 flex flex-col gap-3">
-          <n-button :loading="clearing" tertiary @click="onClearCache"> 清理缓存 </n-button>
-          <n-button type="error" secondary @click="onLogout">退出登录</n-button>
-        </div>
-      </div>
-    </n-drawer-content>
-  </n-drawer>
+    <n-button :loading="clearing" tertiary size="large" @click="onClearCache"> 清理缓存 </n-button>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import {
-  useMessage,
-  useDialog,
-  NDrawer,
-  NDrawerContent,
-  NForm,
-  NFormItem,
-  NInput,
-  NSelect,
-  NButton,
-  NCard
-} from 'naive-ui'
+import { useMessage, useDialog, NForm, NFormItem, NInput, NSelect, NButton, NCard } from 'naive-ui'
 import { useSettingsStore } from '@renderer/stores/settings'
-import { useAuthStore } from '@renderer/stores/auth'
 
 const props = defineProps<{ modelValue: boolean }>()
 const emit = defineEmits<{ (e: 'update:modelValue', v: boolean): void }>()
@@ -72,9 +54,7 @@ const modelOptions = [
 const clearing = ref<boolean>(false)
 const message = useMessage()
 const dialog = useDialog()
-const router = useRouter()
 const settingsStore = useSettingsStore()
-const authStore = useAuthStore()
 
 const onClearCache = async (): Promise<void> => {
   if (clearing.value) return
@@ -102,10 +82,6 @@ const onClearCache = async (): Promise<void> => {
     }
   })
 }
-
-const onLogout = async (): Promise<void> => {
-  await authStore.logout()
-  show.value = false
-  router.push('/unauth')
-}
 </script>
+
+<style lang="scss" scoped></style>

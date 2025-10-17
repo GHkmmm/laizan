@@ -17,7 +17,7 @@ const loginHandler = async (): Promise<void> => {
   await authStore.login()
 
   if (authStore.hasAuth === true) {
-    router.push({ name: 'home' })
+    router.push({ name: 'index' })
   }
 }
 </script>

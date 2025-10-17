@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import hljs from 'highlight.js/lib/core'
+import javascript from 'highlight.js/lib/languages/javascript'
+
 import {
   GlobalThemeOverrides,
   NConfigProvider,
@@ -9,6 +11,8 @@ import {
   NMessageProvider,
   NDialogProvider
 } from 'naive-ui'
+
+hljs.registerLanguage('javascript', javascript)
 
 const themeOverrides: GlobalThemeOverrides = {
   common: {
@@ -30,8 +34,9 @@ const themeOverrides: GlobalThemeOverrides = {
     <main>
       <n-dialog-provider>
         <n-message-provider>
-          <RouterView /> </n-message-provider
-      ></n-dialog-provider>
+          <RouterView />
+        </n-message-provider>
+      </n-dialog-provider>
     </main>
     <n-global-style />
   </n-config-provider>

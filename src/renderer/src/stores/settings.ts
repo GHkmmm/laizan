@@ -56,10 +56,12 @@ export const useSettingsStore = defineStore('settings', () => {
 
   const addRule = (): void => {
     rules.value.push({ field: 'videoDesc', keyword: '' })
+    saveSettings()
   }
 
   const removeRule = (index: number): void => {
     rules.value.splice(index, 1)
+    saveSettings()
   }
 
   return {
