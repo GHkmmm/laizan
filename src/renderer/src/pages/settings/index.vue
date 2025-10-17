@@ -37,6 +37,36 @@
         </n-form>
       </n-card>
     </div>
+    <div class="flex flex-col gap-3">
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-bold">浏览器路径</h2>
+        <div class="flex items-center gap-2">
+          <n-button
+            type="primary"
+            size="small"
+            :loading="isSavingBrowser"
+            :disabled="isSavingBrowser"
+            @click="onSaveBrowser"
+          >
+            {{ isSavingBrowser ? '正在验证路径...' : '保存' }}
+          </n-button>
+        </div>
+      </div>
+      <n-card :bordered="true">
+        <n-form label-width="auto">
+          <n-form-item label="可执行文件路径">
+            <div class="flex items-center gap-2 w-full">
+              <n-input v-model:value="browserPath" placeholder="/path/to/Google Chrome" />
+              <n-button tertiary @click="onPickBrowser">选择</n-button>
+            </div>
+          </n-form-item>
+          <div class="text-gray-500 text-sm leading-6">
+            <div>Mac：默认/Applications/Google Chrome.app/Contents/MacOS/Google Chrome</div>
+            <div>Windows：请选择 chrome.exe 或手动输入</div>
+          </div>
+        </n-form>
+      </n-card>
+    </div>
   </div>
 </template>
 
@@ -86,6 +116,7 @@ onMounted(async () => {
     platform.value = ai.platform as 'volcengine' | 'bailian' | 'openai'
     model.value = ai.model
     apiKey.value = ai.apiKeys[platform.value] || ''
+    browserPath.value = (await window.api.getBrowserExecPath()) || ''
   } catch (e) {
     // ignore
     message.error(String(e))
@@ -144,6 +175,32 @@ const onClearAiSettings = (): void => {
       }
     }
   })
+}
+
+const browserPath = ref<string>('')
+const isSavingBrowser = ref<boolean>(false)
+const onPickBrowser = async (): Promise<void> => {
+  const picked = await window.api.selectBrowserExecPath()
+  if (picked) browserPath.value = picked
+}
+const onSaveBrowser = async (): Promise<void> => {
+  if (isSavingBrowser.value) return
+  isSavingBrowser.value = true
+  try {
+    const r = await window.api.testBrowserLaunch({
+      path: browserPath.value
+    })
+    if (!r.ok) {
+      message.error(`路径错误：${r.message || '无法启动，请检查路径'}`)
+      return
+    }
+    await window.api.updateBrowserExecPath({ path: browserPath.value.trim() })
+    message.success('已保存浏览器路径')
+  } catch (e) {
+    message.error(`路径检测异常：${String(e)}`)
+  } finally {
+    isSavingBrowser.value = false
+  }
 }
 </script>
 

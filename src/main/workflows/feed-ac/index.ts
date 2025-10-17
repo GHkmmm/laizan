@@ -16,8 +16,12 @@ interface VideoActivityResult {
 }
 
 export async function loginAndStorageState(): Promise<void> {
+  const execPath = storage.get(StorageKey.browserExecPath)
+  if (!execPath) {
+    throw new Error('Browser executable path not found')
+  }
   const browser = await chromium.launch({
-    executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', // Example: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe' on Windows
+    executablePath: execPath,
     headless: false
   })
   const context = await browser.newContext()
@@ -35,7 +39,7 @@ export async function loginAndStorageState(): Promise<void> {
   await page
     .waitForSelector('#login-panel-new', {
       state: 'hidden',
-      timeout: 60000
+      timeout: 1000 * 60 * 2
     })
     .catch(() => null)
   // 等待登录数据存入缓存
@@ -73,8 +77,12 @@ export default class ACTask extends EventEmitter {
   }
 
   async _launch(): Promise<void> {
+    const execPath = storage.get(StorageKey.browserExecPath)
+    if (!execPath) {
+      throw new Error('Browser executable path not found')
+    }
     const browser = await chromium.launch({
-      executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', // Example: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe' on Windows
+      executablePath: execPath,
       headless: false
     })
     const context = await browser.newContext({

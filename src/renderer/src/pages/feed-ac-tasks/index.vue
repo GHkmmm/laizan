@@ -85,9 +85,9 @@ const onClearSettings = (): void => {
     <div class="absolute right-0 top-0 m-4">
       <n-button tertiary size="small" @click="onClearSettings">清空配置</n-button>
     </div>
-    <div class="flex flex-col justify-center items-center py-10">
+    <div class="flex flex-col justify-center items-center py-10 min-h-screen">
       <template v-if="!['running', 'stopping'].includes(taskStatus)">
-        <n-form size="large" label-placement="left">
+        <n-form size="large" label-placement="left" class="w-full px-10">
           <!-- 规则设置组件 -->
           <RuleSettings />
 

@@ -52,5 +52,3 @@ export function resetAiSettings(): AiSettings {
   storage.set(StorageKey.aiSettings, defaults)
   return defaults
 }
-
-

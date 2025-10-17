@@ -16,6 +16,14 @@ const api = {
   updateAiSettings: (payload: Partial<AiSettings>): Promise<AiSettings> =>
     ipcRenderer.invoke('aiSetting:update', payload),
   clearAiSettings: (): Promise<AiSettings> => ipcRenderer.invoke('aiSetting:clear'),
+  // browser executable path
+  getBrowserExecPath: (): Promise<string | undefined> => ipcRenderer.invoke('browserExec:get'),
+  updateBrowserExecPath: (payload: { path?: string }): Promise<string | undefined> =>
+    ipcRenderer.invoke('browserExec:update', payload),
+  testBrowserLaunch: (payload: { path?: string }): Promise<{ ok: boolean; message?: string }> =>
+    ipcRenderer.invoke('browserExec:testLaunch', payload),
+  selectBrowserExecPath: (): Promise<string | undefined> =>
+    ipcRenderer.invoke('browserExec:select'),
   startTask: (payload: { maxCount?: number }): Promise<{ ok: boolean; message?: string }> =>
     ipcRenderer.invoke('task:start', payload),
   stopTask: (): Promise<{ ok: boolean; message?: string }> => ipcRenderer.invoke('task:stop'),
