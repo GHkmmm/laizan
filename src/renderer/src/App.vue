@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import hljs from 'highlight.js/lib/core'
 import { GlobalThemeOverrides, NConfigProvider, NGlobalStyle, darkTheme, zhCN } from 'naive-ui'
-import IndexPage from './pages/index.vue'
 
 hljs.registerLanguage('naive-log', () => ({
   contains: [
@@ -26,7 +25,9 @@ const themeOverrides: GlobalThemeOverrides = {
     :theme-overrides="themeOverrides"
     :hljs="hljs"
   >
-    <IndexPage />
+    <main>
+      <RouterView />
+    </main>
     <n-global-style />
   </n-config-provider>
 </template>
