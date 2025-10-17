@@ -32,6 +32,24 @@ class Storage {
   delete<K extends keyof StorageSchema>(key: K): void {
     this._store.delete(key)
   }
+
+  /**
+   * List all keys currently stored in electron-store.
+   */
+  keys(): string[] {
+    // electron-store exposes the underlying store object
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const obj = (this._store as any).store as Record<string, unknown>
+    return Object.keys(obj || {})
+  }
+
+  /**
+   * Delete by raw key name without type restriction.
+   */
+  deleteKey(key: string): void {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(this._store as any).delete(key)
+  }
 }
 
 export const storage = new Storage()

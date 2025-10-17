@@ -112,6 +112,17 @@ app.whenReady().then(() => {
     storage.delete(StorageKey.auth)
   })
 
+  // cache clear ipc
+  ipcMain.handle('cache:clear', (_e, payload: { excludeKeys?: string[] } = {}) => {
+    const exclude = new Set(payload?.excludeKeys || [])
+    const allKeys = storage.keys()
+    for (const key of allKeys) {
+      if (exclude.has(key)) continue
+      storage.deleteKey(key)
+    }
+    return { ok: true, cleared: allKeys.filter((k) => !exclude.has(k)) }
+  })
+
   // settings ipc
   ipcMain.handle('settings:get', () => {
     return getFeedAcSettings()

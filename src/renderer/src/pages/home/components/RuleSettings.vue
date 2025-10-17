@@ -94,18 +94,17 @@ import {
   SelectOption
 } from 'naive-ui'
 import { useSettingsStore } from '@renderer/stores/settings'
+import { storeToRefs } from 'pinia'
 
 const settingsStore = useSettingsStore()
+const { saveSettings, addRule, removeRule } = settingsStore
 const {
   ruleRelation,
   rules,
   simulateWatchBeforeComment,
   watchTimeRangeSeconds,
-  onlyCommentActiveVideo,
-  saveSettings,
-  addRule,
-  removeRule
-} = settingsStore
+  onlyCommentActiveVideo
+} = storeToRefs(settingsStore)
 
 const acRuleRelationOptions = [
   {

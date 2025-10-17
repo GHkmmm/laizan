@@ -1,19 +1,21 @@
 <script setup lang="ts">
 import hljs from 'highlight.js/lib/core'
-import { GlobalThemeOverrides, NConfigProvider, NGlobalStyle, darkTheme, zhCN } from 'naive-ui'
-
-hljs.registerLanguage('naive-log', () => ({
-  contains: [
-    {
-      className: 'number',
-      begin: /\d+/
-    }
-  ]
-}))
+import {
+  GlobalThemeOverrides,
+  NConfigProvider,
+  NGlobalStyle,
+  darkTheme,
+  zhCN,
+  NMessageProvider,
+  NDialogProvider
+} from 'naive-ui'
 
 const themeOverrides: GlobalThemeOverrides = {
   common: {
     primaryColor: '#32f08c'
+  },
+  Drawer: {
+    // color: '#101014'
   }
 }
 </script>
@@ -26,7 +28,10 @@ const themeOverrides: GlobalThemeOverrides = {
     :hljs="hljs"
   >
     <main>
-      <RouterView />
+      <n-dialog-provider>
+        <n-message-provider>
+          <RouterView /> </n-message-provider
+      ></n-dialog-provider>
     </main>
     <n-global-style />
   </n-config-provider>

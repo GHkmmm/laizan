@@ -1,20 +1,21 @@
 <template>
   <div class="absolute top-4 right-2">
-    <n-button type="primary" tertiary @click="handleLogout">退出登录</n-button>
+    <n-button quaternary @click="openSettings = true">
+      <template #icon>
+        <n-icon size="22">
+          <Menu />
+        </n-icon>
+      </template>
+    </n-button>
+    <SettingsDrawer v-model:model-value="openSettings" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { NButton } from 'naive-ui'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '@renderer/stores/auth'
+import { ref } from 'vue'
+import { NButton, NIcon } from 'naive-ui'
+import { Menu } from '@vicons/tabler'
+import SettingsDrawer from './SettingsDrawer.vue'
 
-const router = useRouter()
-const authStore = useAuthStore()
-const { logout } = authStore
-
-const handleLogout = async (): Promise<void> => {
-  await logout()
-  router.push('/unauth')
-}
+const openSettings = ref<boolean>(false)
 </script>

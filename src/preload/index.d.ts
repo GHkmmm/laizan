@@ -18,6 +18,7 @@ declare global {
       onTaskEnded: (
         handler: (p: { status: 'success' | 'stopped' | 'error'; message?: string }) => void
       ) => () => void
+      clearCache: (payload?: { excludeKeys?: string[] }) => Promise<{ ok: boolean; cleared: string[] }>
     }
   }
 }

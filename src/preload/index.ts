@@ -29,7 +29,9 @@ const api = {
 
     ipcRenderer.on('task:ended', listener)
     return () => ipcRenderer.removeListener('task:ended', listener)
-  }
+  },
+  clearCache: (payload?: { excludeKeys?: string[] }): Promise<{ ok: boolean; cleared: string[] }> =>
+    ipcRenderer.invoke('cache:clear', payload || { excludeKeys: ['auth'] })
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to
