@@ -1,5 +1,6 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
 import type { FeedAcSettings } from '@shared/feed-ac-setting'
+import type { AiSettings } from '@shared/ai-setting'
 
 declare global {
   interface Window {
@@ -10,6 +11,10 @@ declare global {
       logout: () => void
       getFeedAcSettings: () => Promise<FeedAcSettings | undefined>
       updateFeedAcSettings: (payload: Partial<FeedAcSettings>) => Promise<FeedAcSettings>
+      clearFeedAcSettings: () => Promise<FeedAcSettings>
+      getAiSettings: () => Promise<AiSettings>
+      updateAiSettings: (payload: Partial<AiSettings>) => Promise<AiSettings>
+      clearAiSettings: () => Promise<AiSettings>
       startTask: (payload: { maxCount?: number }) => Promise<{ ok: boolean; message?: string }>
       stopTask: () => Promise<{ ok: boolean; message?: string }>
       onTaskProgress: (
@@ -18,9 +23,7 @@ declare global {
       onTaskEnded: (
         handler: (p: { status: 'success' | 'stopped' | 'error'; message?: string }) => void
       ) => () => void
-      clearCache: (payload?: {
-        excludeKeys?: string[]
-      }) => Promise<{ ok: boolean; cleared: string[] }>
+      // removed global clearCache per new design
     }
   }
 }

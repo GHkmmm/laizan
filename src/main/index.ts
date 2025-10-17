@@ -4,7 +4,8 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import ACTask, { loginAndStorageState } from './workflows/feed-ac'
 import { storage, StorageKey } from './utils/storage'
-import { getFeedAcSettings, updateFeedAcSettings } from './workflows/feed-ac/settings'
+import { getFeedAcSettings, updateFeedAcSettings, clearFeedAcSettings } from './workflows/feed-ac/settings'
+import { getAiSettings, updateAiSettings, getAiDefaults } from './workflows/feed-ac/ai-settings'
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -112,15 +113,9 @@ app.whenReady().then(() => {
     storage.delete(StorageKey.auth)
   })
 
-  // cache clear ipc
-  ipcMain.handle('cache:clear', (_e, payload: { excludeKeys?: string[] } = {}) => {
-    const exclude = new Set(payload?.excludeKeys || [])
-    const allKeys = storage.keys()
-    for (const key of allKeys) {
-      if (exclude.has(key)) continue
-      storage.deleteKey(key)
-    }
-    return { ok: true, cleared: allKeys.filter((k) => !exclude.has(k)) }
+  // settings clear ipc
+  ipcMain.handle('feedAcSetting:clear', () => {
+    return clearFeedAcSettings()
   })
 
   // settings ipc
@@ -133,6 +128,19 @@ app.whenReady().then(() => {
       return updateFeedAcSettings(payload)
     }
   )
+
+  // ai setting ipc
+  ipcMain.handle('aiSetting:get', () => {
+    return getAiSettings()
+  })
+  ipcMain.handle('aiSetting:update', (_e, payload: Parameters<typeof updateAiSettings>[0]) => {
+    return updateAiSettings(payload)
+  })
+  ipcMain.handle('aiSetting:clear', () => {
+    // clear ai settings by deleting and returning defaults
+    storage.delete(StorageKey.aiSettings)
+    return getAiDefaults()
+  })
 
   createWindow()
 

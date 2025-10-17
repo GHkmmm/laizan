@@ -1,13 +1,21 @@
 export class ArkService {
-  static async _request(content: string): Promise<string | null> {
+  private readonly apiKey: string
+  private readonly model: string
+
+  constructor({ apiKey, model }: { apiKey: string; model: string }) {
+    this.apiKey = apiKey
+    this.model = model
+  }
+
+  private async _request(content: string): Promise<string | null> {
     const response = await fetch('https://ark.cn-beijing.volces.com/api/v3/chat/completions', {
       method: 'POST',
       headers: {
-        Authorization: 'Bearer c87cdab3-daf1-460e-b67d-97d27c04c1b4',
+        Authorization: this.apiKey,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'doubao-seed-1.6-250615',
+        model: this.model,
         messages: [
           {
             role: 'user',
@@ -33,7 +41,7 @@ export class ArkService {
     const data = await response.json()
     return data.choices[0].message.content
   }
-  static async analyzeVideoType(
+  async analyzeVideoType(
     videoInfo: string
   ): Promise<{ shouldWatch: boolean; targetCity: string }> {
     const result = await this._request(

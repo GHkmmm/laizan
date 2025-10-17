@@ -14,15 +14,3 @@ export interface FeedAcSettings {
   watchTimeRangeSeconds: [number, number]
   onlyCommentActiveVideo: boolean
 }
-
-export function getDefaults(): FeedAcSettings {
-  return {
-    blockKeywords: [],
-    authorBlockKeywords: [],
-    ruleRelation: 'or',
-    rules: [],
-    simulateWatchBeforeComment: true,
-    watchTimeRangeSeconds: [5, 15],
-    onlyCommentActiveVideo: true
-  }
-}

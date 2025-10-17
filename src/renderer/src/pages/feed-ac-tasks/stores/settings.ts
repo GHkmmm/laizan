@@ -54,6 +54,20 @@ export const useSettingsStore = defineStore('settings', () => {
     onlyCommentActiveVideo.value = next.onlyCommentActiveVideo ?? true
   }
 
+  const resetSettings = async (): Promise<void> => {
+    const next = await window.api.clearFeedAcSettings()
+    authorKeywords.value = next.authorBlockKeywords || []
+    descKeywords.value = next.blockKeywords || []
+    ruleRelation.value = (next.ruleRelation as 'and' | 'or') ?? 'or'
+    rules.value = Array.isArray(next.rules) ? next.rules : []
+    simulateWatchBeforeComment.value = next.simulateWatchBeforeComment ?? true
+    watchTimeRangeSeconds.value =
+      Array.isArray(next.watchTimeRangeSeconds) && next.watchTimeRangeSeconds.length === 2
+        ? (next.watchTimeRangeSeconds as [number, number])
+        : [5, 15]
+    onlyCommentActiveVideo.value = next.onlyCommentActiveVideo ?? true
+  }
+
   const addRule = (): void => {
     rules.value.push({ field: 'videoDesc', keyword: '' })
     saveSettings()
@@ -78,6 +92,7 @@ export const useSettingsStore = defineStore('settings', () => {
     loadSettings,
     saveSettings,
     addRule,
-    removeRule
+    removeRule,
+    resetSettings
   }
 })

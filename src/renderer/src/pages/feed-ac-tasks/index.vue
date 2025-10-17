@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount } from 'vue'
-import { NForm } from 'naive-ui'
+import { NForm, NButton, useDialog, useMessage } from 'naive-ui'
 import { useTaskStore } from './stores/task'
 import { useSettingsStore } from './stores/settings'
 import { useLogsStore } from './stores/logs'
@@ -24,6 +24,9 @@ const { addLog, setupAutoScroll } = logsStore
 
 let offProgress: null | (() => void) = null
 let offEnded: null | (() => void) = null
+
+const dialog = useDialog()
+const message = useMessage()
 
 onMounted(async () => {
   await loadSettings()
@@ -53,11 +56,36 @@ onBeforeUnmount(() => {
   offProgress?.()
   offEnded?.()
 })
+
+const onClearSettings = (): void => {
+  dialog.warning({
+    title: '确认清空配置',
+    content: '此操作将恢复任务配置为默认值，是否继续？',
+    positiveText: '继续',
+    negativeText: '取消',
+    negativeButtonProps: {
+      ghost: false,
+      type: 'default',
+      tertiary: true
+    },
+    onPositiveClick: async () => {
+      try {
+        await settingsStore.resetSettings()
+        message.success('已清空配置')
+      } catch (e) {
+        message.error(String(e))
+      }
+    }
+  })
+}
 </script>
 
 <template>
-  <div class="relative flex flex-col gap-4">
-    <div class="flex flex-col items-center py-10">
+  <div>
+    <div class="absolute right-0 top-0 m-4">
+      <n-button tertiary size="small" @click="onClearSettings">清空配置</n-button>
+    </div>
+    <div class="flex flex-col justify-center items-center py-10">
       <template v-if="!['running', 'stopping'].includes(taskStatus)">
         <n-form size="large" label-placement="left">
           <!-- 规则设置组件 -->

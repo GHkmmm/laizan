@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 import { FeedAcSettings } from '@shared/feed-ac-setting'
+import { AiSettings } from '@shared/ai-setting'
 
 // Custom APIs for renderer
 const api = {
@@ -10,6 +11,11 @@ const api = {
   getFeedAcSettings: (): Promise<FeedAcSettings> => ipcRenderer.invoke('feedAcSetting:get'),
   updateFeedAcSettings: (payload: Partial<FeedAcSettings>): Promise<FeedAcSettings> =>
     ipcRenderer.invoke('feedAcSetting:update', payload),
+  clearFeedAcSettings: (): Promise<FeedAcSettings> => ipcRenderer.invoke('feedAcSetting:clear'),
+  getAiSettings: (): Promise<AiSettings> => ipcRenderer.invoke('aiSetting:get'),
+  updateAiSettings: (payload: Partial<AiSettings>): Promise<AiSettings> =>
+    ipcRenderer.invoke('aiSetting:update', payload),
+  clearAiSettings: (): Promise<AiSettings> => ipcRenderer.invoke('aiSetting:clear'),
   startTask: (payload: { maxCount?: number }): Promise<{ ok: boolean; message?: string }> =>
     ipcRenderer.invoke('task:start', payload),
   stopTask: (): Promise<{ ok: boolean; message?: string }> => ipcRenderer.invoke('task:stop'),
@@ -29,9 +35,7 @@ const api = {
 
     ipcRenderer.on('task:ended', listener)
     return () => ipcRenderer.removeListener('task:ended', listener)
-  },
-  clearCache: (payload?: { excludeKeys?: string[] }): Promise<{ ok: boolean; cleared: string[] }> =>
-    ipcRenderer.invoke('cache:clear', payload || { excludeKeys: ['auth'] })
+  }
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to
