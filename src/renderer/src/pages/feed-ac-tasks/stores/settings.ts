@@ -18,6 +18,10 @@ export const useSettingsStore = defineStore('settings', () => {
   const authorKeywords = ref<string[]>([])
   const descKeywords = ref<string[]>([])
 
+  // AI视频过滤
+  const enableAIVideoFilter = ref<boolean>(false)
+  const customAIVideoFilterPrompt = ref<string>('')
+
   const loadSettings = async (): Promise<void> => {
     const s = await window.api.getFeedAcSettings()
     authorKeywords.value = s?.authorBlockKeywords || []
@@ -30,6 +34,8 @@ export const useSettingsStore = defineStore('settings', () => {
         ? (s!.watchTimeRangeSeconds as [number, number])
         : [5, 15]
     onlyCommentActiveVideo.value = s?.onlyCommentActiveVideo ?? true
+    enableAIVideoFilter.value = s?.enableAIVideoFilter ?? false
+    customAIVideoFilterPrompt.value = s?.customAIVideoFilterPrompt ?? ''
   }
 
   const saveSettings = async (): Promise<void> => {
@@ -40,7 +46,9 @@ export const useSettingsStore = defineStore('settings', () => {
       rules: JSON.parse(JSON.stringify(rules.value)),
       simulateWatchBeforeComment: simulateWatchBeforeComment.value,
       watchTimeRangeSeconds: [...watchTimeRangeSeconds.value],
-      onlyCommentActiveVideo: onlyCommentActiveVideo.value
+      onlyCommentActiveVideo: onlyCommentActiveVideo.value,
+      enableAIVideoFilter: enableAIVideoFilter.value,
+      customAIVideoFilterPrompt: customAIVideoFilterPrompt.value
     })
     authorKeywords.value = next.authorBlockKeywords || []
     descKeywords.value = next.blockKeywords || []
@@ -52,6 +60,8 @@ export const useSettingsStore = defineStore('settings', () => {
         ? (next.watchTimeRangeSeconds as [number, number])
         : [5, 15]
     onlyCommentActiveVideo.value = next.onlyCommentActiveVideo ?? true
+    enableAIVideoFilter.value = next.enableAIVideoFilter ?? false
+    customAIVideoFilterPrompt.value = next.customAIVideoFilterPrompt ?? ''
   }
 
   const resetSettings = async (): Promise<void> => {
@@ -66,6 +76,8 @@ export const useSettingsStore = defineStore('settings', () => {
         ? (next.watchTimeRangeSeconds as [number, number])
         : [5, 15]
     onlyCommentActiveVideo.value = next.onlyCommentActiveVideo ?? true
+    enableAIVideoFilter.value = next.enableAIVideoFilter ?? false
+    customAIVideoFilterPrompt.value = next.customAIVideoFilterPrompt ?? ''
   }
 
   const addRule = (): void => {
@@ -88,6 +100,9 @@ export const useSettingsStore = defineStore('settings', () => {
     // 关键词屏蔽
     authorKeywords,
     descKeywords,
+    // AI视频过滤
+    enableAIVideoFilter,
+    customAIVideoFilterPrompt,
     // 方法
     loadSettings,
     saveSettings,

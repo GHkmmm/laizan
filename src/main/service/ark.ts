@@ -42,32 +42,33 @@ export class ArkService {
     return data.choices[0].message.content
   }
   async analyzeVideoType(
-    videoInfo: string
-  ): Promise<{ shouldWatch: boolean; targetCity: string }> {
-    const result = await this._request(
-      // `
-      //   请你根据视频信息，判断我是否需要观看这个视频，最后按照格式{"shouldWatch":true|false,"targetCity":""}返回json数据给我，具体规则如下：
-      //   如果视频不是旅游攻略相关的，则直接返回{"shouldWatch":false,"targetCity": ""}，如果是旅游攻略相关的，请你先提取视频提到的城市，以下称为“目标城市”。
-      //   接着，假设我是一个即将前往目标城市旅游的外地游客，结合视频信息，判断我是否需要观看此视频，最后返回对应格式数据。
-      //   视频信息如下：${videoInfo}
-      // `
-      `
-        目标： 根据视频信息，判断是否需要观看这个视频，最后按照格式{"shouldWatch":true|false,"targetCity":""}返回json数据 
-        
-        规则： 
-        如果视频不是旅游相关的，则直接返回{"shouldWatch":false,"targetCity": ""}，如果是旅游相关的，请你先提取视频提到的城市，以下称为“目标城市”。
-        接着，假设我是一个即将前往目标城市旅游的外地游客正在做旅游规划，请结合视频信息，判断该视频对我是否有帮助，另外如果视频是单一景点的攻略或单个地点的种草或是导游（根据作者名称判断，一般名字中带有城市名或是导游字眼的是导游）发布的视频，则不需要观看。
-        综合以上和视频信息，判断我是否需要观看此视频，最后返回对应格式数据。 
-        
-        视频信息：
-        ${videoInfo}
-      `
-    )
-    if (result === null)
+    videoInfo: string,
+    customPrompt: string = ''
+  ): Promise<{ shouldWatch: boolean }> {
+    const prompt = `
+目标： 根据视频信息，判断是否需要观看这个视频，最后按照格式{"shouldWatch":true|false}返回json数据
+
+规则： 
+${customPrompt}
+
+视频信息：
+${videoInfo}
+    `
+    
+    const result = await this._request(prompt)
+    if (result === null) {
       return {
-        shouldWatch: false,
-        targetCity: ''
+        shouldWatch: false
       }
-    return JSON.parse(result)
+    }
+    
+    try {
+      return JSON.parse(result)
+    } catch (error) {
+      // 如果解析失败，默认不观看
+      return {
+        shouldWatch: false
+      }
+    }
   }
 }

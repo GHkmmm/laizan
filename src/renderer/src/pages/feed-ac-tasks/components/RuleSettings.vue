@@ -1,6 +1,6 @@
 <template>
   <n-form-item label="规则配置：">
-    <div class="flex flex-col gap-3 pt-3">
+    <div class="flex flex-col gap-3 pt-3 w-full">
       <h4 class="text-xs font-bold text-gray-400">当视频满足以下规则配置 系统会自动评论</h4>
       <div class="flex items-center gap-1">
         <span class="text-nowrap">规则关系：</span>
@@ -12,7 +12,7 @@
           @update:value="saveSettings"
         />
       </div>
-      <div class="flex gap-1 w-96">
+      <div class="flex gap-1">
         <span class="text-nowrap pt-1">规则列表：</span>
         <div class="flex flex-col gap-3 flex-1">
           <div v-for="(r, idx) in rules" :key="idx" class="flex items-center gap-2">
@@ -48,19 +48,47 @@
           </div>
         </div>
       </div>
+
+      <!-- AI视频过滤配置 -->
+      <div class="flex flex-col gap-3 pt-3">
+        <div class="flex items-center gap-2">
+          <span class="text-nowrap">启用AI判断：</span>
+          <n-switch
+            v-model:value="enableAIVideoFilter"
+            size="medium"
+            @update:value="saveSettings"
+          />
+        </div>
+        <div v-if="enableAIVideoFilter" class="flex flex-col gap-2">
+          <span class="text-xs font-medium text-gray-400"
+            >请描述您希望AI以什么规则判断是否观看视频：</span
+          >
+          <n-input
+            v-model:value="customAIVideoFilterPrompt"
+            type="textarea"
+            placeholder="请输入提示词"
+            :maxlength="1000"
+            show-count
+            size="medium"
+            :rows="5"
+            @update:value="saveSettings"
+          />
+        </div>
+      </div>
     </div>
   </n-form-item>
 </template>
 
 <script setup lang="ts">
 import { h } from 'vue'
-import { NFormItem, NSelect, NInput, NButton, NTooltip, SelectOption } from 'naive-ui'
+import { NFormItem, NSelect, NInput, NButton, NTooltip, NSwitch, SelectOption } from 'naive-ui'
 import { useSettingsStore } from '../stores/settings'
 import { storeToRefs } from 'pinia'
 
 const settingsStore = useSettingsStore()
 const { saveSettings, addRule, removeRule } = settingsStore
-const { ruleRelation, rules } = storeToRefs(settingsStore)
+const { ruleRelation, rules, enableAIVideoFilter, customAIVideoFilterPrompt } =
+  storeToRefs(settingsStore)
 
 const acRuleRelationOptions = [
   {

@@ -13,4 +13,6 @@ export interface FeedAcSettings {
   simulateWatchBeforeComment: boolean
   watchTimeRangeSeconds: [number, number]
   onlyCommentActiveVideo: boolean
+  enableAIVideoFilter: boolean
+  customAIVideoFilterPrompt: string
 }

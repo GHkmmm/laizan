@@ -5,9 +5,10 @@ import { CommentResponse, FeedItem, FeedListResponse } from './types'
 import * as fs from 'fs'
 import * as path from 'path'
 import DYElementHandler from '../../elements/douyin'
-// import { ArkService } from '../../service/ark'
+import { ArkService } from '../../service/ark'
 import { EventEmitter } from 'events'
 import { getFeedAcSettings } from './settings'
+import { getAiSettings } from './ai-settings'
 
 // 检查视频活跃度的接口
 interface VideoActivityResult {
@@ -372,23 +373,10 @@ export default class ACTask extends EventEmitter {
     shouldSimulateWatch: boolean
     shouldViewComment: boolean
   }> {
-    // ArkService 智能分析暂时注释保留，先用用户规则代替
-    // const result = await ArkService.analyzeVideoType(
-    //   JSON.stringify({
-    //     author: videoInfo.author.nickname,
-    //     videoDesc: videoInfo.desc,
-    //     videoTag: videoInfo.video_tag
-    //   })
-    // )
-    // console.log('视频类型分析结果:', result)
-    // // 目标城市数量过多直接跳过（暂时注释，不删除）
-    // if (result.targetCity.split(',').length > 1) {
-    //   return { shouldSimulateWatch: false, shouldViewComment: false }
-    // }
-
     const rules = Array.isArray(settings.rules) ? settings.rules : []
     const relation = settings.ruleRelation || 'or'
 
+    // 第一步：规则列表过滤
     const matches = rules.map((rule) => {
       if (!rule || !rule.keyword) return false
       if (rule.field === 'nickName') {
@@ -410,9 +398,57 @@ export default class ACTask extends EventEmitter {
           ? matches.every(Boolean)
           : matches.some(Boolean)
 
+    // 如果规则不匹配，直接返回不观看
+    if (!rulesMatched) {
+      return {
+        shouldSimulateWatch: false,
+        shouldViewComment: false
+      }
+    }
+
+    // 第二步：如果启用AI过滤，进行AI判断
+    if (settings.enableAIVideoFilter && settings.customAIVideoFilterPrompt) {
+      try {
+        const aiSettings = getAiSettings()
+        const arkService = new ArkService({
+          apiKey: aiSettings.apiKeys[aiSettings.platform],
+          model: aiSettings.model
+        })
+
+        const videoInfoStr = JSON.stringify({
+          author: videoInfo.author.nickname,
+          videoDesc: videoInfo.desc,
+          videoTag: videoInfo.video_tag
+        })
+
+        const aiResult = await arkService.analyzeVideoType(
+          videoInfoStr,
+          settings.customAIVideoFilterPrompt
+        )
+
+        console.log('AI视频过滤结果:', aiResult)
+
+        // AI判断不观看，则最终不观看
+        if (!aiResult.shouldWatch) {
+          return {
+            shouldSimulateWatch: false,
+            shouldViewComment: false
+          }
+        }
+      } catch (error) {
+        console.error('AI视频过滤失败:', error)
+        // AI判断失败等同于AI认为不需要观看
+        return {
+          shouldSimulateWatch: false,
+          shouldViewComment: false
+        }
+      }
+    }
+
+    // 规则匹配且AI判断通过（如果启用），返回观看
     return {
-      shouldSimulateWatch: Boolean(settings.simulateWatchBeforeComment) && rulesMatched,
-      shouldViewComment: rulesMatched
+      shouldSimulateWatch: Boolean(settings.simulateWatchBeforeComment),
+      shouldViewComment: true
     }
   }
 

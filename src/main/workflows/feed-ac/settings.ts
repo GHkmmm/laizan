@@ -9,7 +9,9 @@ export function getFeedAcDefaults(): FeedAcSettings {
     rules: [],
     simulateWatchBeforeComment: true,
     watchTimeRangeSeconds: [5, 15],
-    onlyCommentActiveVideo: true
+    onlyCommentActiveVideo: true,
+    enableAIVideoFilter: false,
+    customAIVideoFilterPrompt: ''
   }
 }
 
