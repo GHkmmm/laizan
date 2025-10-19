@@ -9,6 +9,7 @@ import RuleSettings from './components/RuleSettings.vue'
 import KeywordBlocking from './components/KeywordBlocking.vue'
 import TaskLogs from './components/TaskLogs.vue'
 import FormCount from './components/FormCount.vue'
+import RuntimeSettings from './components/RuntimeSettings.vue'
 import StartButton from './components/StartButton.vue'
 
 // 使用 Pinia stores
@@ -93,6 +94,9 @@ const onClearSettings = (): void => {
 
           <!-- 评论次数组件 -->
           <FormCount />
+
+          <!-- 运行设置组件 -->
+          <RuntimeSettings />
 
           <!-- 关键词屏蔽设置组件 -->
           <KeywordBlocking />

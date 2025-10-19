@@ -1,7 +1,7 @@
 <template>
-  <n-form-item label="规则设置：">
+  <n-form-item label="规则配置：">
     <div class="flex flex-col gap-3 pt-3">
-      <h4 class="text-xs font-bold text-gray-400">当视频满足以下要求时 系统会自动评论</h4>
+      <h4 class="text-xs font-bold text-gray-400">当视频满足以下规则配置 系统会自动评论</h4>
       <div class="flex items-center gap-1">
         <span class="text-nowrap">规则关系：</span>
         <n-select
@@ -48,63 +48,19 @@
           </div>
         </div>
       </div>
-      <div class="flex flex-col gap-2">
-        <div class="flex flex-col gap-2">
-          <n-checkbox
-            v-model:checked="simulateWatchBeforeComment"
-            size="small"
-            @update:checked="saveSettings"
-          >
-            是否模拟真人先观看视频再评论
-          </n-checkbox>
-          <div v-if="simulateWatchBeforeComment" class="flex flex-col gap-2 py-3">
-            <span>观看视频（按照下方设置的时间范围随机）：</span>
-            <n-slider
-              v-model:value="watchTimeRangeSeconds"
-              range
-              :min="0"
-              :max="60"
-              :format-tooltip="(value: number) => `${value}秒`"
-              @update:value="saveSettings"
-            />
-          </div>
-        </div>
-        <n-checkbox
-          v-model:checked="onlyCommentActiveVideo"
-          size="small"
-          @update:checked="saveSettings"
-        >
-          只评论活跃视频
-        </n-checkbox>
-      </div>
     </div>
   </n-form-item>
 </template>
 
 <script setup lang="ts">
 import { h } from 'vue'
-import {
-  NFormItem,
-  NSelect,
-  NInput,
-  NButton,
-  NCheckbox,
-  NSlider,
-  NTooltip,
-  SelectOption
-} from 'naive-ui'
+import { NFormItem, NSelect, NInput, NButton, NTooltip, SelectOption } from 'naive-ui'
 import { useSettingsStore } from '../stores/settings'
 import { storeToRefs } from 'pinia'
 
 const settingsStore = useSettingsStore()
 const { saveSettings, addRule, removeRule } = settingsStore
-const {
-  ruleRelation,
-  rules,
-  simulateWatchBeforeComment,
-  watchTimeRangeSeconds,
-  onlyCommentActiveVideo
-} = storeToRefs(settingsStore)
+const { ruleRelation, rules } = storeToRefs(settingsStore)
 
 const acRuleRelationOptions = [
   {
