@@ -71,14 +71,14 @@ onBeforeUnmount(() => {
           <!-- 规则设置组件 -->
           <RuleSettings />
 
-          <!-- 运行设置组件 -->
-          <RuntimeSettings />
-
           <!-- 评论内容配置组件 -->
           <CommentContent />
 
           <!-- 评论次数组件 -->
           <FormCount />
+
+          <!-- 运行设置组件 -->
+          <RuntimeSettings />
 
           <!-- 关键词屏蔽设置组件 -->
           <KeywordBlocking />

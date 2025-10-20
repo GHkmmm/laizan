@@ -52,10 +52,11 @@
       <!-- AI视频过滤配置 -->
       <div class="flex flex-col gap-3 pt-3">
         <div class="flex items-center gap-2">
-          <span class="text-nowrap">启用AI判断：</span>
+          <span class="text-nowrap">启用AI判断（后续开放）：</span>
           <n-switch
             v-model:value="enableAIVideoFilter"
             size="medium"
+            disabled
             @update:value="saveSettings"
           />
         </div>

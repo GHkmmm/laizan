@@ -1,6 +1,6 @@
 <template>
   <n-form-item>
-    <n-collapse arrow-placement="right">
+    <n-collapse>
       <n-collapse-item>
         <template #header>
           <div class="flex flex-col w-full">
