@@ -167,6 +167,6 @@ const handleSelect = async (key: Key): Promise<void> => {
 
 <template>
   <n-dropdown :options="options" trigger="click" :disabled="disabled" @select="handleSelect">
-    <n-button tertiary size="medium">配置管理</n-button>
+    <n-button tertiary>配置管理</n-button>
   </n-dropdown>
 </template>

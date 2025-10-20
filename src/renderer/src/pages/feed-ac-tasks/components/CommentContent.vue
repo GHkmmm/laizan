@@ -15,11 +15,11 @@
         <div v-else>
           <div v-for="(_, index) in commentTexts" :key="index" class="flex items-center gap-2 mb-2">
             <n-input v-model:value="commentTexts[index]" placeholder="输入评论文案" size="medium" />
-            <n-button size="medium" secondary type="error" @click="removeCommentText(index)">
+            <n-button size="medium" tertiary type="error" @click="removeCommentText(index)">
               删除
             </n-button>
           </div>
-          <n-button size="medium" secondary type="primary" @click="addCommentText"
+          <n-button size="medium" tertiary type="primary" @click="addCommentText"
             >添加文案</n-button
           >
         </div>
@@ -42,7 +42,7 @@
             clearable
             size="medium"
           />
-          <n-button size="medium" secondary type="primary" @click="selectImagePath">选择</n-button>
+          <n-button size="medium" tertiary type="primary" @click="selectImagePath">选择</n-button>
         </div>
       </div>
     </div>

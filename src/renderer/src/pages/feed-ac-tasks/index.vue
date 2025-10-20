@@ -62,10 +62,11 @@ onBeforeUnmount(() => {
 
 <template>
   <div>
-    <div class="absolute right-0 top-0 m-4">
+    <div class="sticky top-0 z-10 flex gap-2 justify-end items-center p-4">
       <ConfigManager />
+      <StartButton />
     </div>
-    <div class="flex flex-col justify-center items-center py-10 min-h-screen">
+    <div class="flex flex-col justify-center items-center pb-10 min-h-screen">
       <template v-if="!['running', 'stopping'].includes(taskStatus)">
         <n-form size="large" label-placement="left" class="w-full px-10">
           <!-- 规则设置组件 -->
@@ -82,16 +83,11 @@ onBeforeUnmount(() => {
 
           <!-- 关键词屏蔽设置组件 -->
           <KeywordBlocking />
-
-          <!-- 开始任务按钮组件 -->
-          <StartButton />
         </n-form>
       </template>
       <template v-else>
         <!-- 任务运行时的日志显示 -->
         <TaskLogs />
-        <!-- 停止任务按钮 -->
-        <StartButton />
       </template>
     </div>
   </div>

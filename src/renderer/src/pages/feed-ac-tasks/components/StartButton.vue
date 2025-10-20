@@ -1,39 +1,45 @@
 <template>
-  <n-form-item>
-    <n-button
-      v-if="!['running', 'stopping'].includes(taskStatus)"
-      block
-      type="primary"
-      strong
-      size="large"
-      :loading="taskStatus === 'starting'"
-      :disabled="taskStatus === 'starting'"
-      @click="handleStart"
-    >
-      {{ taskStatus === 'starting' ? '启动中...' : '开始任务' }}
-    </n-button>
-    <n-button
-      v-else
-      block
-      type="error"
-      strong
-      secondary
-      size="large"
-      :loading="taskStatus === 'stopping'"
-      :disabled="taskStatus === 'stopping'"
-      @click="handleStop"
-    >
-      {{ taskStatus === 'stopping' ? '停止中...' : '停止任务' }}
-    </n-button>
-  </n-form-item>
+  <n-button
+    v-if="!['running', 'stopping'].includes(taskStatus)"
+    type="primary"
+    strong
+    :loading="taskStatus === 'starting'"
+    :disabled="taskStatus === 'starting'"
+    @click="handleStart"
+  >
+    <template #icon>
+      <NIcon>
+        <PlayerPlay />
+      </NIcon>
+    </template>
+    {{ taskStatus === 'starting' ? '启动中...' : '开始任务' }}
+  </n-button>
+  <n-button
+    v-else
+    type="error"
+    strong
+    secondary
+    size="large"
+    :loading="taskStatus === 'stopping'"
+    :disabled="taskStatus === 'stopping'"
+    @click="handleStop"
+  >
+    <template #icon>
+      <NIcon>
+        <PlayerPause />
+      </NIcon>
+    </template>
+    {{ taskStatus === 'stopping' ? '停止中...' : '停止任务' }}
+  </n-button>
 </template>
 
 <script setup lang="ts">
-import { NButton, NFormItem, useMessage } from 'naive-ui'
+import { NButton, useMessage, NIcon } from 'naive-ui'
 import { useTaskStore } from '../stores/task'
 import { useSettingsStore } from '../stores/settings'
 import { useLogsStore } from '../stores/logs'
 import { storeToRefs } from 'pinia'
+import { PlayerPlay, PlayerPause } from '@vicons/tabler'
 
 const taskStore = useTaskStore()
 const settingsStore = useSettingsStore()
@@ -43,7 +49,6 @@ const message = useMessage()
 const { taskStatus } = storeToRefs(taskStore)
 const { commentTexts } = storeToRefs(settingsStore)
 const { start, stop } = taskStore
-
 const validateForm = (): boolean => {
   // 检查评论文案
   if (commentTexts.value.length === 0 || commentTexts.value.some((text) => !text.trim())) {
