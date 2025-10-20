@@ -15,4 +15,7 @@ export interface FeedAcSettings {
   onlyCommentActiveVideo: boolean
   enableAIVideoFilter: boolean
   customAIVideoFilterPrompt: string
+  commentTexts: string[]
+  commentImagePath?: string
+  commentImageType: 'folder' | 'file'
 }

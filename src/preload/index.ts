@@ -43,7 +43,9 @@ const api = {
 
     ipcRenderer.on('task:ended', listener)
     return () => ipcRenderer.removeListener('task:ended', listener)
-  }
+  },
+  selectImagePath: (type: 'folder' | 'file'): Promise<{ ok: boolean; path?: string; message?: string }> =>
+    ipcRenderer.invoke('imagePath:select', type)
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

@@ -215,7 +215,7 @@ export default class ACTask extends EventEmitter {
         if (activityCheck.shouldComment) {
           console.log('尝试发布评论')
           this._emitProgress('try-comment', '尝试发布评论')
-          const commentSuccess = await this._postComment(videoDescription)
+          const commentSuccess = await this._postComment()
           if (commentSuccess) {
             commentCount++
             console.log(`评论发送成功，已评论次数：${commentCount}/${this._maxCount}`)
@@ -488,22 +488,10 @@ export default class ACTask extends EventEmitter {
     }
   }
 
-  async _postComment(videoDescription: string): Promise<boolean> {
+  async _postComment(): Promise<boolean> {
     try {
-      // 从resources目录下动态读取城市列表
-      const availableCities = this._getAvailableCities()
-
-      // 尝试匹配视频描述中提到的城市
-      let cityName = ''
-      for (const city of availableCities) {
-        if (videoDescription.includes(city)) {
-          cityName = city
-          break
-        }
-      }
-
-      // 随机选择评论内容
-      const randomComment = this._getRandomComment(cityName)
+      // 从用户配置中获取随机评论内容
+      const randomComment = this._getRandomComment()
       console.log(`随机选择评论内容: ${randomComment}`)
 
       // 查找评论输入框容器
@@ -548,41 +536,40 @@ export default class ACTask extends EventEmitter {
 
       // 尝试添加图片
       try {
-        // 选择与视频内容相关的图片的绝对路径
-        const imagePath = this._selectImagePath(videoDescription)
+        // 从用户配置中获取图片路径
+        const imagePath = this._selectImagePath()
         console.log(`选择图片路径: ${imagePath}`)
 
-        // 检查图片路径是否有效且文件存在
-        if (!imagePath || !fs.existsSync(imagePath)) {
-          console.log(`图片路径无效或文件不存在: ${imagePath}`)
-          return false
-        }
+        // 如果配置了图片路径，则上传图片
+        if (imagePath && fs.existsSync(imagePath)) {
+          // 使用fileChooser方法上传图片
+          try {
+            const uploadBtnSelector = '.commentInput-right-ct > div > span:nth-child(2)'
+            console.log('点击上传按钮并等待文件选择器...')
 
-        // 使用fileChooser方法上传图片
-        try {
-          const uploadBtnSelector = '.commentInput-right-ct > div > span:nth-child(2)'
-          console.log('点击上传按钮并等待文件选择器...')
+            // 设置文件选择器监听并点击上传按钮
+            const [fileChooser] = await Promise.all([
+              // 等待文件选择器出现
+              this._page?.waitForEvent('filechooser', { timeout: 5000 }),
+              // 点击上传按钮触发文件选择器
+              this._page?.click(uploadBtnSelector)
+            ])
 
-          // 设置文件选择器监听并点击上传按钮
-          const [fileChooser] = await Promise.all([
-            // 等待文件选择器出现
-            this._page?.waitForEvent('filechooser', { timeout: 5000 }),
-            // 点击上传按钮触发文件选择器
-            this._page?.click(uploadBtnSelector)
-          ])
+            // 设置文件
+            await fileChooser?.setFiles(imagePath)
+            console.log('通过fileChooser成功上传图片')
 
-          // 设置文件
-          await fileChooser?.setFiles(imagePath)
-          console.log('通过fileChooser成功上传图片')
-
-          // 等待图片上传完成和预览显示
-          console.log('等待图片上传和预览...')
-          await sleep(2000)
-        } catch (uploadError) {
-          console.log('上传图片失败:', uploadError)
-          // 图片上传失败，取消发送评论
-          console.log('由于图片上传失败，取消发送评论')
-          return false
+            // 等待图片上传完成和预览显示
+            console.log('等待图片上传和预览...')
+            await sleep(2000)
+          } catch (uploadError) {
+            console.log('上传图片失败:', uploadError)
+            // 图片上传失败，取消发送评论
+            console.log('由于图片上传失败，取消发送评论')
+            return false
+          }
+        } else {
+          console.log('未配置图片或图片路径无效，跳过图片上传')
         }
       } catch (error) {
         console.log('添加图片过程中出错:', error)
@@ -671,26 +658,16 @@ export default class ACTask extends EventEmitter {
   }
 
   // 随机选择评论内容
-  _getRandomComment(cityName: string): string {
-    // 当cityName为空时使用"这里"作为默认值
-    const city = cityName || '这里'
-
-    const comments = [
-      '帮大家整理好了！！',
-      `本地人的${city}攻略！！`,
-      '攻略做好了！谁要！！',
-      `去了不下10次${city}总结的攻略！！ `,
-      '这题我会！！',
-      `${city}真的很好 去了三次了 给大家整理的攻略！！`,
-      '按照我的来，绝对不踩雷！！',
-      `${city}课代表来了！！`,
-      `${city}真的好玩又好吃！！`,
-      '攻略做好了 但是缺个搭子T_T',
-      `本J人的${city}攻略！！`
-    ]
-
-    const randomIndex = Math.floor(Math.random() * comments.length)
-    return comments[randomIndex]
+  _getRandomComment(): string {
+    const settings = getFeedAcSettings()
+    const customTexts = settings.commentTexts || []
+    
+    if (customTexts.length === 0) {
+      throw new Error('未配置评论文案')
+    }
+    
+    const randomIndex = Math.floor(Math.random() * customTexts.length)
+    return customTexts[randomIndex]
   }
 
   // 使用快捷键开启评论区并监听评论接口数据
@@ -824,50 +801,40 @@ export default class ACTask extends EventEmitter {
   }
 
   // 根据视频描述选择合适的图片路径
-  _selectImagePath(description: string): string {
-    // 从resources目录下动态读取城市列表
-    const availableCities = this._getAvailableCities()
-
-    // 尝试匹配视频描述中提到的城市
-    let cityFolder: string | null = null
-    for (const city of availableCities) {
-      if (description.includes(city)) {
-        cityFolder = city
-        break
-      }
+  // 选择图片路径
+  _selectImagePath(): string {
+    const settings = getFeedAcSettings()
+    
+    if (!settings.commentImagePath) {
+      return '' // 不配置图片
     }
-
-    // 如果没有匹配的城市，返回空字符串
-    if (!cityFolder) {
-      console.log('视频描述中没有匹配到任何支持的城市，取消评论')
-      return ''
+    
+    if (settings.commentImageType === 'file') {
+      // 单文件模式
+      return fs.existsSync(settings.commentImagePath) ? settings.commentImagePath : ''
+    } else {
+      // 文件夹模式
+      return this._getRandomImageFromFolder(settings.commentImagePath)
     }
+  }
 
-    // 读取该城市文件夹中的所有图片
+  // 从文件夹随机选择图片
+  _getRandomImageFromFolder(folderPath: string): string {
     try {
-      const cityPath = path.join(process.cwd(), `resources/ac_assets/${cityFolder}`)
-      const files = fs
-        .readdirSync(cityPath)
-        .filter(
-          (file) =>
-            file.endsWith('.PNG') ||
-            file.endsWith('.JPG') ||
-            file.endsWith('.png') ||
-            file.endsWith('.jpg')
-        )
-
-      // 如果文件夹中有图片，随机选择一张
-      if (files.length > 0) {
-        const randomIndex = Math.floor(Math.random() * files.length)
-        const randomFile = files[randomIndex]
-        console.log(`为城市 ${cityFolder} 随机选择图片: ${randomFile}`)
-        return `${cityPath}/${randomFile}`
-      } else {
-        console.log(`城市 ${cityFolder} 文件夹中没有图片，取消评论`)
+      const files = fs.readdirSync(folderPath)
+        .filter(file => {
+          const ext = path.extname(file).toLowerCase()
+          return ['.png', '.jpg', '.jpeg', '.gif', '.webp'].includes(ext)
+        })
+      
+      if (files.length === 0) {
         return ''
       }
+      
+      const randomIndex = Math.floor(Math.random() * files.length)
+      return path.join(folderPath, files[randomIndex])
     } catch (error) {
-      console.log(`读取 ${cityFolder} 文件夹出错:`, error)
+      console.log(`读取文件夹 ${folderPath} 出错:`, error)
       return ''
     }
   }

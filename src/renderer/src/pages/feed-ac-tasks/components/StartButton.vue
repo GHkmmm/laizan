@@ -29,7 +29,7 @@
 </template>
 
 <script setup lang="ts">
-import { NButton, NFormItem } from 'naive-ui'
+import { NButton, NFormItem, useMessage } from 'naive-ui'
 import { useTaskStore } from '../stores/task'
 import { useSettingsStore } from '../stores/settings'
 import { useLogsStore } from '../stores/logs'
@@ -38,12 +38,29 @@ import { storeToRefs } from 'pinia'
 const taskStore = useTaskStore()
 const settingsStore = useSettingsStore()
 const logsStore = useLogsStore()
+const message = useMessage()
 
 const { taskStatus } = storeToRefs(taskStore)
+const { commentTexts } = storeToRefs(settingsStore)
 const { start, stop } = taskStore
+
+const validateForm = (): boolean => {
+  // 检查评论文案
+  if (commentTexts.value.length === 0 || commentTexts.value.some((text) => !text.trim())) {
+    message.error('请至少配置一个有效的评论文案')
+    return false
+  }
+
+  return true
+}
 
 const handleStart = async (): Promise<void> => {
   try {
+    // 表单验证
+    if (!validateForm()) {
+      return
+    }
+
     // 启动前保存设置
     await settingsStore.saveSettings()
     logsStore.clearLogs()

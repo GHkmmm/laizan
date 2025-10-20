@@ -22,6 +22,11 @@ export const useSettingsStore = defineStore('settings', () => {
   const enableAIVideoFilter = ref<boolean>(false)
   const customAIVideoFilterPrompt = ref<string>('')
 
+  // 评论内容配置
+  const commentTexts = ref<string[]>([])
+  const commentImagePath = ref<string | undefined>(undefined)
+  const commentImageType = ref<'folder' | 'file'>('folder')
+
   const loadSettings = async (): Promise<void> => {
     const s = await window.api.getFeedAcSettings()
     authorKeywords.value = s?.authorBlockKeywords || []
@@ -36,6 +41,9 @@ export const useSettingsStore = defineStore('settings', () => {
     onlyCommentActiveVideo.value = s?.onlyCommentActiveVideo ?? true
     enableAIVideoFilter.value = s?.enableAIVideoFilter ?? false
     customAIVideoFilterPrompt.value = s?.customAIVideoFilterPrompt ?? ''
+    commentTexts.value = Array.isArray(s?.commentTexts) ? s!.commentTexts : []
+    commentImagePath.value = s?.commentImagePath
+    commentImageType.value = s?.commentImageType || 'folder'
   }
 
   const saveSettings = async (): Promise<void> => {
@@ -48,7 +56,10 @@ export const useSettingsStore = defineStore('settings', () => {
       watchTimeRangeSeconds: [...watchTimeRangeSeconds.value],
       onlyCommentActiveVideo: onlyCommentActiveVideo.value,
       enableAIVideoFilter: enableAIVideoFilter.value,
-      customAIVideoFilterPrompt: customAIVideoFilterPrompt.value
+      customAIVideoFilterPrompt: customAIVideoFilterPrompt.value,
+      commentTexts: [...commentTexts.value],
+      commentImagePath: commentImagePath.value,
+      commentImageType: commentImageType.value
     })
     authorKeywords.value = next.authorBlockKeywords || []
     descKeywords.value = next.blockKeywords || []
@@ -62,6 +73,9 @@ export const useSettingsStore = defineStore('settings', () => {
     onlyCommentActiveVideo.value = next.onlyCommentActiveVideo ?? true
     enableAIVideoFilter.value = next.enableAIVideoFilter ?? false
     customAIVideoFilterPrompt.value = next.customAIVideoFilterPrompt ?? ''
+    commentTexts.value = Array.isArray(next.commentTexts) ? next.commentTexts : []
+    commentImagePath.value = next.commentImagePath
+    commentImageType.value = next.commentImageType || 'folder'
   }
 
   const resetSettings = async (): Promise<void> => {
@@ -78,6 +92,9 @@ export const useSettingsStore = defineStore('settings', () => {
     onlyCommentActiveVideo.value = next.onlyCommentActiveVideo ?? true
     enableAIVideoFilter.value = next.enableAIVideoFilter ?? false
     customAIVideoFilterPrompt.value = next.customAIVideoFilterPrompt ?? ''
+    commentTexts.value = Array.isArray(next.commentTexts) ? next.commentTexts : []
+    commentImagePath.value = next.commentImagePath
+    commentImageType.value = next.commentImageType || 'folder'
   }
 
   const addRule = (): void => {
@@ -87,6 +104,32 @@ export const useSettingsStore = defineStore('settings', () => {
 
   const removeRule = (index: number): void => {
     rules.value.splice(index, 1)
+    saveSettings()
+  }
+
+  // 评论内容相关方法
+  const addCommentText = (text: string): void => {
+    commentTexts.value.push(text)
+    saveSettings()
+  }
+
+  const removeCommentText = (index: number): void => {
+    commentTexts.value.splice(index, 1)
+    saveSettings()
+  }
+
+  const updateCommentTexts = (texts: string[]): void => {
+    commentTexts.value = [...texts]
+    saveSettings()
+  }
+
+  const updateCommentImagePath = (path: string | undefined): void => {
+    commentImagePath.value = path
+    saveSettings()
+  }
+
+  const updateCommentImageType = (type: 'folder' | 'file'): void => {
+    commentImageType.value = type
     saveSettings()
   }
 
@@ -103,11 +146,20 @@ export const useSettingsStore = defineStore('settings', () => {
     // AI视频过滤
     enableAIVideoFilter,
     customAIVideoFilterPrompt,
+    // 评论内容配置
+    commentTexts,
+    commentImagePath,
+    commentImageType,
     // 方法
     loadSettings,
     saveSettings,
     addRule,
     removeRule,
-    resetSettings
+    resetSettings,
+    addCommentText,
+    removeCommentText,
+    updateCommentTexts,
+    updateCommentImagePath,
+    updateCommentImageType
   }
 })

@@ -11,6 +11,7 @@ import TaskLogs from './components/TaskLogs.vue'
 import FormCount from './components/FormCount.vue'
 import RuntimeSettings from './components/RuntimeSettings.vue'
 import StartButton from './components/StartButton.vue'
+import CommentContent from './components/CommentContent.vue'
 
 // 使用 Pinia stores
 const taskStore = useTaskStore()
@@ -92,11 +93,14 @@ const onClearSettings = (): void => {
           <!-- 规则设置组件 -->
           <RuleSettings />
 
-          <!-- 评论次数组件 -->
-          <FormCount />
-
           <!-- 运行设置组件 -->
           <RuntimeSettings />
+
+          <!-- 评论内容配置组件 -->
+          <CommentContent />
+
+          <!-- 评论次数组件 -->
+          <FormCount />
 
           <!-- 关键词屏蔽设置组件 -->
           <KeywordBlocking />

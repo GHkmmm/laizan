@@ -11,7 +11,10 @@ export function getFeedAcDefaults(): FeedAcSettings {
     watchTimeRangeSeconds: [5, 15],
     onlyCommentActiveVideo: true,
     enableAIVideoFilter: false,
-    customAIVideoFilterPrompt: ''
+    customAIVideoFilterPrompt: '',
+    commentTexts: [],
+    commentImagePath: undefined,
+    commentImageType: 'folder'
   }
 }
 
@@ -32,7 +35,10 @@ export function getFeedAcSettings(): FeedAcSettings {
     watchTimeRangeSeconds:
       Array.isArray(saved?.watchTimeRangeSeconds) && saved!.watchTimeRangeSeconds!.length === 2
         ? (saved!.watchTimeRangeSeconds as [number, number])
-        : defaults.watchTimeRangeSeconds
+        : defaults.watchTimeRangeSeconds,
+    commentTexts: Array.isArray(saved?.commentTexts) ? saved!.commentTexts! : defaults.commentTexts,
+    commentImagePath: saved?.commentImagePath || defaults.commentImagePath,
+    commentImageType: saved?.commentImageType || defaults.commentImageType
   }
   return merged
 }
@@ -54,7 +60,10 @@ export function updateFeedAcSettings(partial: Partial<FeedAcSettings>): FeedAcSe
     watchTimeRangeSeconds:
       Array.isArray(partial.watchTimeRangeSeconds) && partial.watchTimeRangeSeconds.length === 2
         ? (partial.watchTimeRangeSeconds as [number, number])
-        : current.watchTimeRangeSeconds
+        : current.watchTimeRangeSeconds,
+    commentTexts: Array.isArray(partial.commentTexts) ? partial.commentTexts : current.commentTexts,
+    commentImagePath: partial.commentImagePath !== undefined ? partial.commentImagePath : current.commentImagePath,
+    commentImageType: partial.commentImageType || current.commentImageType
   }
   storage.set(StorageKey.feedAcSetting, next)
   return next

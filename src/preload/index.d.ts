@@ -27,6 +27,7 @@ declare global {
       onTaskEnded: (
         handler: (p: { status: 'success' | 'stopped' | 'error'; message?: string }) => void
       ) => () => void
+      selectImagePath: (type: 'folder' | 'file') => Promise<{ ok: boolean; path?: string; message?: string }>
       // removed global clearCache per new design
     }
   }
