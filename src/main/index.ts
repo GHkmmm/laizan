@@ -1,5 +1,5 @@
-import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
-import { existsSync } from 'fs'
+import { app, shell, BrowserWindow, ipcMain, dialog, OpenDialogOptions } from 'electron'
+import { existsSync, writeFileSync, readFileSync } from 'fs'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -12,6 +12,7 @@ import {
 } from './workflows/feed-ac/settings'
 import { getAiSettings, updateAiSettings, getAiDefaults } from './workflows/feed-ac/ai-settings'
 import { chromium } from '@playwright/test'
+import { FeedAcSettings } from '@shared/feed-ac-setting'
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -190,11 +191,11 @@ app.whenReady().then(() => {
   ipcMain.handle('browserExec:select', async (e) => {
     const win = BrowserWindow.fromWebContents(e.sender)
     const isMac = process.platform === 'darwin'
-    const options = {
+    const options: OpenDialogOptions = {
       title: '选择浏览器可执行文件',
-      properties: ['openFile'] as 'openFile'[],
+      properties: ['openFile'],
       defaultPath: isMac ? '/Applications' : undefined,
-      treatPackageAsDirectory: isMac,
+      // treatPackageAsDirectory: isMac,
       filters: isMac
         ? undefined
         : [
@@ -217,26 +218,73 @@ app.whenReady().then(() => {
   // 图片路径选择
   ipcMain.handle('imagePath:select', async (e, type: 'folder' | 'file') => {
     const win = BrowserWindow.fromWebContents(e.sender)
-    const options: any = {
+    const options: OpenDialogOptions = {
       title: type === 'folder' ? '选择图片文件夹' : '选择图片文件',
       properties: type === 'folder' ? ['openDirectory'] : ['openFile'],
-      filters: type === 'file' ? [
-        { name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'gif', 'webp'] },
-        { name: 'All Files', extensions: ['*'] }
-      ] : undefined
+      filters:
+        type === 'file'
+          ? [
+              { name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'gif', 'webp'] },
+              { name: 'All Files', extensions: ['*'] }
+            ]
+          : undefined
     }
-    
+
     try {
       const result = win
         ? await dialog.showOpenDialog(win, options)
         : await dialog.showOpenDialog(options)
-      
+
       if (result.canceled || !result.filePaths?.length) {
         return { ok: false, message: '用户取消了选择' }
       }
-      
+
       const selectedPath = result.filePaths[0]
       return { ok: true, path: selectedPath }
+    } catch (error) {
+      return { ok: false, message: String(error) }
+    }
+  })
+
+  // 导出 Feed AC 配置到 JSON
+  ipcMain.handle('feedAcSetting:export', async (e, payload: FeedAcSettings) => {
+    const win = BrowserWindow.fromWebContents(e.sender)
+    const options = {
+      title: '导出配置',
+      filters: [{ name: 'JSON', extensions: ['json'] }],
+      defaultPath: `feed-ac-settings-${new Date()
+        .toISOString()
+        .replace(/[:T]/g, '-')
+        .slice(0, 19)}.json`
+    }
+    const result = win
+      ? await dialog.showSaveDialog(win, options)
+      : await dialog.showSaveDialog(options)
+    if (result.canceled || !result.filePath) return { ok: false, message: '用户取消' }
+    try {
+      writeFileSync(result.filePath, JSON.stringify(payload ?? {}, null, 2), 'utf-8')
+      return { ok: true, path: result.filePath }
+    } catch (error) {
+      return { ok: false, message: String(error) }
+    }
+  })
+
+  // 选择并读取 JSON 配置文件内容
+  ipcMain.handle('feedAcSetting:pickImport', async (e) => {
+    const win = BrowserWindow.fromWebContents(e.sender)
+    const options: OpenDialogOptions = {
+      title: '导入配置',
+      properties: ['openFile'],
+      filters: [{ name: 'JSON', extensions: ['json'] }]
+    }
+    const result = win
+      ? await dialog.showOpenDialog(win, options)
+      : await dialog.showOpenDialog(options)
+    if (result.canceled || !result.filePaths?.length) return { ok: false, message: '用户取消' }
+    try {
+      const filePath = result.filePaths[0]
+      const content = readFileSync(filePath, 'utf-8')
+      return { ok: true, content, path: filePath }
     } catch (error) {
       return { ok: false, message: String(error) }
     }

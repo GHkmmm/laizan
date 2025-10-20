@@ -16,6 +16,17 @@ const api = {
   updateAiSettings: (payload: Partial<AiSettings>): Promise<AiSettings> =>
     ipcRenderer.invoke('aiSetting:update', payload),
   clearAiSettings: (): Promise<AiSettings> => ipcRenderer.invoke('aiSetting:clear'),
+  // feed-ac setting import/export
+  exportFeedAcSettings: (
+    payload: FeedAcSettings
+  ): Promise<{ ok: boolean; path?: string; message?: string }> =>
+    ipcRenderer.invoke('feedAcSetting:export', payload),
+  pickImportFeedAcSettings: (): Promise<{
+    ok: boolean
+    content?: string
+    path?: string
+    message?: string
+  }> => ipcRenderer.invoke('feedAcSetting:pickImport'),
   // browser executable path
   getBrowserExecPath: (): Promise<string | undefined> => ipcRenderer.invoke('browserExec:get'),
   updateBrowserExecPath: (payload: { path?: string }): Promise<string | undefined> =>
@@ -44,7 +55,9 @@ const api = {
     ipcRenderer.on('task:ended', listener)
     return () => ipcRenderer.removeListener('task:ended', listener)
   },
-  selectImagePath: (type: 'folder' | 'file'): Promise<{ ok: boolean; path?: string; message?: string }> =>
+  selectImagePath: (
+    type: 'folder' | 'file'
+  ): Promise<{ ok: boolean; path?: string; message?: string }> =>
     ipcRenderer.invoke('imagePath:select', type)
 }
 

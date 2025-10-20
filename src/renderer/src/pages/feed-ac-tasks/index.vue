@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount } from 'vue'
-import { NForm, NButton, useDialog, useMessage } from 'naive-ui'
+import { NForm } from 'naive-ui'
 import { useTaskStore } from './stores/task'
 import { useSettingsStore } from './stores/settings'
 import { useLogsStore } from './stores/logs'
@@ -11,6 +11,7 @@ import TaskLogs from './components/TaskLogs.vue'
 import FormCount from './components/FormCount.vue'
 import RuntimeSettings from './components/RuntimeSettings.vue'
 import StartButton from './components/StartButton.vue'
+import ConfigManager from './components/ConfigManager.vue'
 import CommentContent from './components/CommentContent.vue'
 
 // 使用 Pinia stores
@@ -26,9 +27,6 @@ const { addLog, setupAutoScroll } = logsStore
 
 let offProgress: null | (() => void) = null
 let offEnded: null | (() => void) = null
-
-const dialog = useDialog()
-const message = useMessage()
 
 onMounted(async () => {
   await loadSettings()
@@ -59,33 +57,13 @@ onBeforeUnmount(() => {
   offEnded?.()
 })
 
-const onClearSettings = (): void => {
-  dialog.warning({
-    title: '确认清空配置',
-    content: '此操作将恢复任务配置为默认值，是否继续？',
-    positiveText: '继续',
-    negativeText: '取消',
-    negativeButtonProps: {
-      ghost: false,
-      type: 'default',
-      tertiary: true
-    },
-    onPositiveClick: async () => {
-      try {
-        await settingsStore.resetSettings()
-        message.success('已清空配置')
-      } catch (e) {
-        message.error(String(e))
-      }
-    }
-  })
-}
+// 由 ConfigManager 组件承载配置管理逻辑
 </script>
 
 <template>
   <div>
     <div class="absolute right-0 top-0 m-4">
-      <n-button tertiary size="small" @click="onClearSettings">清空配置</n-button>
+      <ConfigManager />
     </div>
     <div class="flex flex-col justify-center items-center py-10 min-h-screen">
       <template v-if="!['running', 'stopping'].includes(taskStatus)">

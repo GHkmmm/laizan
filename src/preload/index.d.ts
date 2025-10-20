@@ -15,6 +15,15 @@ declare global {
       getAiSettings: () => Promise<AiSettings>
       updateAiSettings: (payload: Partial<AiSettings>) => Promise<AiSettings>
       clearAiSettings: () => Promise<AiSettings>
+      exportFeedAcSettings: (
+        payload: FeedAcSettings
+      ) => Promise<{ ok: boolean; path?: string; message?: string }>
+      pickImportFeedAcSettings: () => Promise<{
+        ok: boolean
+        content?: string
+        path?: string
+        message?: string
+      }>
       getBrowserExecPath: () => Promise<string | undefined>
       updateBrowserExecPath: (payload: { path?: string }) => Promise<string | undefined>
       testBrowserLaunch: (payload: { path?: string }) => Promise<{ ok: boolean; message?: string }>
@@ -27,7 +36,9 @@ declare global {
       onTaskEnded: (
         handler: (p: { status: 'success' | 'stopped' | 'error'; message?: string }) => void
       ) => () => void
-      selectImagePath: (type: 'folder' | 'file') => Promise<{ ok: boolean; path?: string; message?: string }>
+      selectImagePath: (
+        type: 'folder' | 'file'
+      ) => Promise<{ ok: boolean; path?: string; message?: string }>
       // removed global clearCache per new design
     }
   }
