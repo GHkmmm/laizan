@@ -191,7 +191,7 @@ export default class ACTask extends EventEmitter {
           await sleep(watchTime)
         }
 
-        await this._randomLike()
+        // await this._randomLike()
 
         // 打开评论区
         console.log('打开评论区并监听评论接口')
@@ -661,11 +661,11 @@ export default class ACTask extends EventEmitter {
   _getRandomComment(): string {
     const settings = getFeedAcSettings()
     const customTexts = settings.commentTexts || []
-    
+
     if (customTexts.length === 0) {
       throw new Error('未配置评论文案')
     }
-    
+
     const randomIndex = Math.floor(Math.random() * customTexts.length)
     return customTexts[randomIndex]
   }
@@ -804,11 +804,11 @@ export default class ACTask extends EventEmitter {
   // 选择图片路径
   _selectImagePath(): string {
     const settings = getFeedAcSettings()
-    
+
     if (!settings.commentImagePath) {
       return '' // 不配置图片
     }
-    
+
     if (settings.commentImageType === 'file') {
       // 单文件模式
       return fs.existsSync(settings.commentImagePath) ? settings.commentImagePath : ''
@@ -821,16 +821,15 @@ export default class ACTask extends EventEmitter {
   // 从文件夹随机选择图片
   _getRandomImageFromFolder(folderPath: string): string {
     try {
-      const files = fs.readdirSync(folderPath)
-        .filter(file => {
-          const ext = path.extname(file).toLowerCase()
-          return ['.png', '.jpg', '.jpeg', '.gif', '.webp'].includes(ext)
-        })
-      
+      const files = fs.readdirSync(folderPath).filter((file) => {
+        const ext = path.extname(file).toLowerCase()
+        return ['.png', '.jpg', '.jpeg', '.gif', '.webp'].includes(ext)
+      })
+
       if (files.length === 0) {
         return ''
       }
-      
+
       const randomIndex = Math.floor(Math.random() * files.length)
       return path.join(folderPath, files[randomIndex])
     } catch (error) {
