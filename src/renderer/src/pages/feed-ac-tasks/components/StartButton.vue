@@ -31,7 +31,7 @@
     </template>
     {{ taskStatus === 'stopping' ? '停止中...' : '停止任务' }}
   </n-button>
-  
+
   <!-- 抖音限制提示弹窗 -->
   <DouyinLimitDialog
     v-model:show="showDouyinLimitDialog"
@@ -109,7 +109,7 @@ const handleDouyinLimitConfirm = async (dontShowAgain: boolean): Promise<void> =
     dontShowDouyinLimitDialog.value = true
     await settingsStore.saveSettings()
   }
-  
+
   // 开始任务
   await startTask()
 }
