@@ -1,9 +1,12 @@
 <template>
   <n-form-item label="评论内容：">
-    <div class="flex flex-col gap-4 pt-2 w-full">
+    <div class="flex flex-col gap-5 py-2 w-full">
       <!-- 评论文案配置 -->
       <div>
-        <h3 class="font-medium mb-2">评论文案</h3>
+        <div class="mb-3">
+          <h3 class="font-medium mb-1"><strong class="text-red-400 mr-1">*</strong>评论文案</h3>
+          <h3 class="text-xs text-gray-400">若配置多个文案则随机抽取一个评论</h3>
+        </div>
 
         <div
           v-if="commentTexts.length === 0"
@@ -50,7 +53,10 @@
       <!-- 评论图片配置 -->
       <div>
         <div class="flex items-center justify-between mb-2">
-          <span class="font-medium">评论图片（可选）</span>
+          <div class="mb-1">
+            <span class="font-medium mb-1">评论图片（可选）</span>
+            <h3 class="text-xs text-gray-400">若选择文件夹则会从文件夹中随机抽取图片评论</h3>
+          </div>
           <n-radio-group v-model:value="imageType" size="medium">
             <n-radio value="folder">文件夹</n-radio>
             <n-radio value="file">单文件</n-radio>
@@ -59,7 +65,7 @@
         <div class="flex items-center gap-2">
           <n-input
             v-model:value="imagePath"
-            placeholder="点击右侧选择文件，不选择则不评论图片"
+            placeholder="点击右侧选择文件或文件夹，不选择则不评论图片"
             readonly
             clearable
             size="medium"

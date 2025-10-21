@@ -18,4 +18,5 @@ export interface FeedAcSettings {
   commentTexts: string[]
   commentImagePath?: string
   commentImageType: 'folder' | 'file'
+  dontShowDouyinLimitDialog?: boolean
 }

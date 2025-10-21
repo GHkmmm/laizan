@@ -9,7 +9,7 @@ declare global {
       hasAuth: () => Promise<boolean>
       login: () => Promise<void>
       logout: () => void
-      getFeedAcSettings: () => Promise<FeedAcSettings | undefined>
+      getFeedAcSettings: () => Promise<FeedAcSettings>
       updateFeedAcSettings: (payload: Partial<FeedAcSettings>) => Promise<FeedAcSettings>
       clearFeedAcSettings: () => Promise<FeedAcSettings>
       getAiSettings: () => Promise<AiSettings>

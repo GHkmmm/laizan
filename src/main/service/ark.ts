@@ -46,25 +46,26 @@ export class ArkService {
     customPrompt: string = ''
   ): Promise<{ shouldWatch: boolean }> {
     const prompt = `
-目标： 根据视频信息，判断是否需要观看这个视频，最后按照格式{"shouldWatch":true|false}返回json数据
+        目标： 根据视频信息，判断是否需要观看这个视频，最后按照格式{"shouldWatch":true|false}返回json数据
 
-规则： 
-${customPrompt}
+        规则： 
+        ${customPrompt}
 
-视频信息：
-${videoInfo}
+        视频信息：
+        ${videoInfo}
     `
-    
+
     const result = await this._request(prompt)
     if (result === null) {
       return {
         shouldWatch: false
       }
     }
-    
+
     try {
       return JSON.parse(result)
     } catch (error) {
+      console.error('解析结果失败：', error)
       // 如果解析失败，默认不观看
       return {
         shouldWatch: false

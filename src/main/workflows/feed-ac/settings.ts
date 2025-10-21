@@ -7,14 +7,15 @@ export function getFeedAcDefaults(): FeedAcSettings {
     authorBlockKeywords: [],
     ruleRelation: 'or',
     rules: [],
-    simulateWatchBeforeComment: true,
+    simulateWatchBeforeComment: false,
     watchTimeRangeSeconds: [5, 15],
-    onlyCommentActiveVideo: true,
+    onlyCommentActiveVideo: false,
     enableAIVideoFilter: false,
     customAIVideoFilterPrompt: '',
     commentTexts: [],
     commentImagePath: undefined,
-    commentImageType: 'folder'
+    commentImageType: 'folder',
+    dontShowDouyinLimitDialog: false
   }
 }
 
@@ -62,7 +63,8 @@ export function updateFeedAcSettings(partial: Partial<FeedAcSettings>): FeedAcSe
         ? (partial.watchTimeRangeSeconds as [number, number])
         : current.watchTimeRangeSeconds,
     commentTexts: Array.isArray(partial.commentTexts) ? partial.commentTexts : current.commentTexts,
-    commentImagePath: partial.commentImagePath !== undefined ? partial.commentImagePath : current.commentImagePath,
+    commentImagePath:
+      partial.commentImagePath !== undefined ? partial.commentImagePath : current.commentImagePath,
     commentImageType: partial.commentImageType || current.commentImageType
   }
   storage.set(StorageKey.feedAcSetting, next)

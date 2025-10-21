@@ -10,9 +10,9 @@ export const useSettingsStore = defineStore('settings', () => {
   // 规则设置
   const ruleRelation = ref<'and' | 'or'>('or')
   const rules = ref<Rule[]>([])
-  const simulateWatchBeforeComment = ref<boolean>(true)
+  const simulateWatchBeforeComment = ref<boolean>(false)
   const watchTimeRangeSeconds = ref<[number, number]>([5, 15])
-  const onlyCommentActiveVideo = ref<boolean>(true)
+  const onlyCommentActiveVideo = ref<boolean>(false)
 
   // 关键词屏蔽
   const authorKeywords = ref<string[]>([])
@@ -27,23 +27,24 @@ export const useSettingsStore = defineStore('settings', () => {
   const commentImagePath = ref<string | undefined>(undefined)
   const commentImageType = ref<'folder' | 'file'>('folder')
 
+  // 弹窗设置
+  const dontShowDouyinLimitDialog = ref<boolean>(false)
+
   const loadSettings = async (): Promise<void> => {
     const s = await window.api.getFeedAcSettings()
-    authorKeywords.value = s?.authorBlockKeywords || []
-    descKeywords.value = s?.blockKeywords || []
-    ruleRelation.value = (s?.ruleRelation as 'and' | 'or') ?? 'or'
-    rules.value = Array.isArray(s?.rules) ? s!.rules : []
-    simulateWatchBeforeComment.value = s?.simulateWatchBeforeComment ?? true
-    watchTimeRangeSeconds.value =
-      Array.isArray(s?.watchTimeRangeSeconds) && s!.watchTimeRangeSeconds.length === 2
-        ? (s!.watchTimeRangeSeconds as [number, number])
-        : [5, 15]
-    onlyCommentActiveVideo.value = s?.onlyCommentActiveVideo ?? true
-    enableAIVideoFilter.value = s?.enableAIVideoFilter ?? false
-    customAIVideoFilterPrompt.value = s?.customAIVideoFilterPrompt ?? ''
-    commentTexts.value = Array.isArray(s?.commentTexts) ? s!.commentTexts : []
-    commentImagePath.value = s?.commentImagePath
-    commentImageType.value = s?.commentImageType || 'folder'
+    authorKeywords.value = s.authorBlockKeywords
+    descKeywords.value = s.blockKeywords
+    ruleRelation.value = s.ruleRelation
+    rules.value = s.rules
+    simulateWatchBeforeComment.value = s.simulateWatchBeforeComment
+    watchTimeRangeSeconds.value = s.watchTimeRangeSeconds
+    onlyCommentActiveVideo.value = s.onlyCommentActiveVideo
+    enableAIVideoFilter.value = s.enableAIVideoFilter
+    customAIVideoFilterPrompt.value = s.customAIVideoFilterPrompt
+    commentTexts.value = s.commentTexts
+    commentImagePath.value = s.commentImagePath
+    commentImageType.value = s.commentImageType
+    dontShowDouyinLimitDialog.value = s.dontShowDouyinLimitDialog ?? false
   }
 
   const saveSettings = async (): Promise<void> => {
@@ -59,7 +60,8 @@ export const useSettingsStore = defineStore('settings', () => {
       customAIVideoFilterPrompt: customAIVideoFilterPrompt.value,
       commentTexts: [...commentTexts.value],
       commentImagePath: commentImagePath.value,
-      commentImageType: commentImageType.value
+      commentImageType: commentImageType.value,
+      dontShowDouyinLimitDialog: dontShowDouyinLimitDialog.value
     })
     authorKeywords.value = next.authorBlockKeywords || []
     descKeywords.value = next.blockKeywords || []
@@ -76,6 +78,7 @@ export const useSettingsStore = defineStore('settings', () => {
     commentTexts.value = Array.isArray(next.commentTexts) ? next.commentTexts : []
     commentImagePath.value = next.commentImagePath
     commentImageType.value = next.commentImageType || 'folder'
+    dontShowDouyinLimitDialog.value = next.dontShowDouyinLimitDialog ?? false
   }
 
   const resetSettings = async (): Promise<void> => {
@@ -95,6 +98,7 @@ export const useSettingsStore = defineStore('settings', () => {
     commentTexts.value = Array.isArray(next.commentTexts) ? next.commentTexts : []
     commentImagePath.value = next.commentImagePath
     commentImageType.value = next.commentImageType || 'folder'
+    dontShowDouyinLimitDialog.value = next.dontShowDouyinLimitDialog ?? false
   }
 
   const addRule = (): void => {
@@ -150,6 +154,8 @@ export const useSettingsStore = defineStore('settings', () => {
     commentTexts,
     commentImagePath,
     commentImageType,
+    // 弹窗设置
+    dontShowDouyinLimitDialog,
     // 方法
     loadSettings,
     saveSettings,

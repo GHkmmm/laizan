@@ -49,6 +49,7 @@ export async function loginAndStorageState(): Promise<void> {
   const douyinOrigin = state.origins.find((o) => o.origin === 'https://www.douyin.com')
   if (douyinOrigin == null) {
     await context.close()
+    await browser.close()
     return
   }
   const isLogin = douyinOrigin.localStorage.some(
@@ -60,6 +61,7 @@ export async function loginAndStorageState(): Promise<void> {
     storage.delete(StorageKey.auth)
   }
   await context.close()
+  await browser.close()
 }
 
 export default class ACTask extends EventEmitter {
