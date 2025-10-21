@@ -1,13 +1,13 @@
 <p align="center"><img width="150" height="150" src="./resources/icon.png" alt="Logo"></p>
 
 <h1 align="center">来赞</h1>
-<p align="center">一款抖音自动营销工具，目前支持抖音首页自动浏览视频，自动评论引流获客，增加主页访问量、粉丝等</p>
+<p align="center">一款抖音自动营销工具，目前支持抖音首页自动浏览视频，自动评论引流获客，增加主页访问量、粉丝等。</p>
 <p align="center">
   <a href="https://github.com/GHkmmm/laizan/releases">
-    <img src="https://img.shields.io/github/downloads/GHkmmm/laizan/latest/total?style=flat&label=%E6%9C%80%E6%96%B0%E7%89%88%E4%B8%8B%E8%BD%BD&labelColor=red&color=2332f08c
-" />
+   最新版下载
   </a>
 </p>
+<br/>
 
 
 ## 📋 目录
@@ -18,7 +18,7 @@
 - [请求功能与建议](#-请求功能与建议)
 - [联系我们](#-联系我们)
 
-
+<br/>
 
 ## 🚀 功能总览
 
@@ -35,7 +35,7 @@
 | 🔄 开发中 | AI自动评论   | 根据视频内容智能生成相关评论                           |
 | 🔄 开发中 | 多平台支持   | 扩展支持更多社交媒体平台                               |
 
-
+<br/>
 
 ## ✨ 项目特点
 
@@ -46,27 +46,28 @@
 - **跨平台**：支持Windows、macOS
 - **安全可靠**：本地运行，数据安全有保障
 
-
+<br/>
 
 ## 🎬 功能演示
 
 ![演示](./assets/feed-ac.gif)
 
-
+<br/>
 
 ## 💡 请求功能与建议
 
 我们非常重视用户的反馈和建议！如果您有新的功能需求或改进建议，欢迎通过 [GitHub Issues](https://github.com/GHkmmm/laizan/issues) 提交
 
-
+<br/>
 
 ## 📞 联系我们
 
 如有问题或建议，欢迎通过以下方式联系：
 
-- **微信**：
-  <img src="./assets/wechat_qr_code.JPG" alt="微信二维码" style="zoom: 25%;" />
+- **微信**：<br />
+  <img src="./assets/wechat_qr_code.JPG" alt="微信二维码" width="300px" />
 - **GitHub**：https://github.com/GHkmmm/laizan
+<br/>
 
 ---
 
