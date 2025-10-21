@@ -648,7 +648,16 @@ export default class ACTask extends EventEmitter {
 
       if (!commentResult.success) {
         console.log(`评论发送失败: ${commentResult.reason}`)
-        return false
+
+        // 评论发送失败时检查是否出现验证码弹窗
+        const verifyDialogResult = await this._handleVerifyDialog()
+        if (!verifyDialogResult.success) {
+          console.log(`验证码处理失败: ${verifyDialogResult.reason}`)
+          throw new Error(`评论验证码处理失败: ${verifyDialogResult.reason}`)
+        }
+
+        // 验证码处理完成后，重新尝试发送评论
+        console.log('无需处理验证码或验证码处理完成')
       }
 
       console.log('评论已发送成功')
@@ -837,6 +846,51 @@ export default class ACTask extends EventEmitter {
     } catch (error) {
       console.log(`读取文件夹 ${folderPath} 出错:`, error)
       return ''
+    }
+  }
+
+  // 处理验证码弹窗
+  private async _handleVerifyDialog(): Promise<{ success: boolean; reason: string }> {
+    try {
+      console.log('检查是否出现验证码弹窗...')
+
+      // 使用waitForSelector等待验证码弹窗出现，设置3秒超时
+      const verifyDialog = await this._page
+        ?.waitForSelector('.second-verify-panel', {
+          state: 'visible',
+          timeout: 3000
+        })
+        .catch(() => null)
+
+      if (!verifyDialog) {
+        console.log('未检测到验证码弹窗，继续执行')
+        return { success: true, reason: '未检测到验证码弹窗' }
+      }
+
+      console.log('检测到验证码弹窗，等待用户输入验证码...')
+      this._emitProgress('verify-dialog', '检测到验证码弹窗，请到浏览器中输入验证码')
+
+      // 等待验证码弹窗消失，最多等待60秒
+      try {
+        await this._page?.waitForSelector('.second-verify-panel', {
+          state: 'detached',
+          timeout: 60000
+        })
+
+        console.log('验证码弹窗已消失，用户已完成验证码输入')
+        this._emitProgress('verify-success', '验证码输入完成，继续执行任务')
+        return { success: true, reason: '验证码输入完成' }
+      } catch (error) {
+        console.error(error)
+        const reason = '验证码弹窗等待超时（60秒），请检查验证码输入'
+        this._emitProgress('verify-timeout', reason)
+        return { success: false, reason }
+      }
+    } catch (error) {
+      const reason = `处理验证码弹窗时出错: ${error}`
+      console.log(reason)
+      this._emitProgress('verify-error', reason)
+      return { success: false, reason }
     }
   }
 }
