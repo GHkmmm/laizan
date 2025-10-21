@@ -51,8 +51,14 @@
 
       <!-- AI视频过滤配置 -->
       <div class="flex flex-col gap-3 pt-3">
-        <div class="flex items-center gap-2">
-          <span class="text-nowrap">启用AI判断（后续开放）：</span>
+        <div class="flex flex-col justify-start items-start gap-2">
+          <div class="opacity-50">
+            <n-gradient-text
+              gradient="linear-gradient(to right, rgb(245, 65, 128), rgb(51, 142, 247))"
+            >
+              启用AI判断（敬请期待）：
+            </n-gradient-text>
+          </div>
           <n-switch
             v-model:value="enableAIVideoFilter"
             size="medium"
@@ -82,7 +88,16 @@
 
 <script setup lang="ts">
 import { h } from 'vue'
-import { NFormItem, NSelect, NInput, NButton, NTooltip, NSwitch, SelectOption } from 'naive-ui'
+import {
+  NFormItem,
+  NSelect,
+  NInput,
+  NButton,
+  NTooltip,
+  NSwitch,
+  SelectOption,
+  NGradientText
+} from 'naive-ui'
 import { useSettingsStore } from '../stores/settings'
 import { storeToRefs } from 'pinia'
 
@@ -117,7 +132,8 @@ const acRuleOptions: SelectOption[] = [
     render: ({ node }) => {
       return h(NTooltip, null, {
         trigger: () => node,
-        default: () => '请注意区分视频话题和视频标签，标签为抖音系统自动生成'
+        default: () =>
+          '请注意区分视频话题和视频标签，标签为抖音系统自动生成的视频分类，例如旅游类视频可以填写：旅游'
       })
     }
   }

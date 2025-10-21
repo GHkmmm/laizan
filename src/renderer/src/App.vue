@@ -18,8 +18,8 @@ const themeOverrides: GlobalThemeOverrides = {
   common: {
     primaryColor: '#32f08c'
   },
-  Drawer: {
-    // color: '#101014'
+  Layout: {
+    siderColor: '#101014'
   }
 }
 </script>

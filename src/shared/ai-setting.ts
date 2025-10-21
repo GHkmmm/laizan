@@ -11,5 +11,3 @@ export const PLATFORM_MODELS: Record<AiPlatform, string[]> = {
   bailian: [],
   openai: []
 }
-
-

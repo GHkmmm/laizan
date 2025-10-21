@@ -7,12 +7,18 @@ const routes: RouteRecordRaw[] = [
     name: 'index',
     component: () => import('@renderer/pages/index/index.vue'),
     meta: { requiresAuth: true },
-    redirect: '/feed-ac-tasks',
+    redirect: '/tools/feed-ac-tasks',
     children: [
       {
-        path: 'feed-ac-tasks',
-        name: 'feedAcTasks',
-        component: () => import('@renderer/pages/feed-ac-tasks/index.vue')
+        path: 'tools',
+        name: 'tools',
+        children: [
+          {
+            path: 'feed-ac-tasks',
+            name: 'feedAcTasks',
+            component: () => import('@renderer/pages/feed-ac-tasks/index.vue')
+          }
+        ]
       },
       {
         path: 'settings',

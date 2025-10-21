@@ -9,7 +9,7 @@
   >
     <template #icon>
       <NIcon>
-        <PlayerPlay />
+        <PlayOutline />
       </NIcon>
     </template>
     {{ taskStatus === 'starting' ? '启动中...' : '开始任务' }}
@@ -26,7 +26,7 @@
   >
     <template #icon>
       <NIcon>
-        <PlayerPause />
+        <PauseOutline />
       </NIcon>
     </template>
     {{ taskStatus === 'stopping' ? '停止中...' : '停止任务' }}
@@ -39,7 +39,7 @@ import { useTaskStore } from '../stores/task'
 import { useSettingsStore } from '../stores/settings'
 import { useLogsStore } from '../stores/logs'
 import { storeToRefs } from 'pinia'
-import { PlayerPlay, PlayerPause } from '@vicons/tabler'
+import { PlayOutline, PauseOutline } from '@vicons/ionicons5'
 
 const taskStore = useTaskStore()
 const settingsStore = useSettingsStore()

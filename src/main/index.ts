@@ -192,7 +192,7 @@ app.whenReady().then(() => {
     const win = BrowserWindow.fromWebContents(e.sender)
     const isMac = process.platform === 'darwin'
     const options: OpenDialogOptions = {
-      title: '选择浏览器可执行文件',
+      title: '选择Chrome可执行文件',
       properties: ['openFile'],
       defaultPath: isMac ? '/Applications' : undefined,
       // treatPackageAsDirectory: isMac,

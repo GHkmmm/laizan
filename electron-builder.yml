@@ -1,5 +1,5 @@
 appId: com.electron.app
-productName: ac-electron
+productName: 来赞
 directories:
   buildResources: build
 files:
@@ -12,7 +12,7 @@ files:
 asarUnpack:
   - resources/**
 win:
-  executableName: ac-electron
+  executableName: laizan
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}

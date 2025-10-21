@@ -39,7 +39,7 @@
     </div>
     <div class="flex flex-col gap-3">
       <div class="flex items-center justify-between">
-        <h2 class="text-lg font-bold">浏览器路径</h2>
+        <h2 class="text-lg font-bold">Chrome浏览器路径</h2>
         <div class="flex items-center gap-2">
           <n-button
             type="primary"
@@ -73,6 +73,7 @@
 <script setup lang="ts">
 import { ref, watch, computed, onMounted } from 'vue'
 import { useMessage, useDialog, NForm, NFormItem, NInput, NSelect, NButton, NCard } from 'naive-ui'
+import { AiPlatform } from '@shared/ai-setting'
 
 const props = defineProps<{ modelValue: boolean }>()
 const emit = defineEmits<{ (e: 'update:modelValue', v: boolean): void }>()
@@ -86,7 +87,7 @@ watch(
 )
 watch(show, (v) => emit('update:modelValue', v))
 
-const platform = ref<'volcengine' | 'bailian' | 'openai'>('volcengine')
+const platform = ref<AiPlatform>('volcengine')
 const model = ref<string>('')
 const apiKey = ref<string>('')
 
@@ -141,9 +142,11 @@ const onSave = async (): Promise<void> => {
     const next = await window.api.updateAiSettings({
       platform: platform.value,
       model: model.value,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       apiKeys: { [platform.value]: apiKey.value }
     })
-    platform.value = next.platform as 'volcengine' | 'bailian' | 'openai'
+    platform.value = next.platform
     model.value = next.model
     apiKey.value = next.apiKeys[platform.value] || ''
     message.success('已保存')
@@ -195,7 +198,7 @@ const onSaveBrowser = async (): Promise<void> => {
       return
     }
     await window.api.updateBrowserExecPath({ path: browserPath.value.trim() })
-    message.success('已保存浏览器路径')
+    message.success('已保存Chrome浏览器路径')
   } catch (e) {
     message.error(`路径检测异常：${String(e)}`)
   } finally {

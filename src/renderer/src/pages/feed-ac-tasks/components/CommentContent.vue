@@ -5,10 +5,32 @@
       <div>
         <h3 class="font-medium mb-2">评论文案</h3>
 
-        <div v-if="commentTexts.length === 0" class="flex flex-col justify-center items-center">
+        <div
+          v-if="commentTexts.length === 0"
+          class="flex flex-col justify-center items-center my-2"
+        >
           <n-empty description="暂无评论文案">
             <template #extra>
-              <n-button size="small" @click="addCommentText">添加文案</n-button>
+              <div class="flex gap-2">
+                <n-button size="small" secondary type="primary" @click="addCommentText"
+                  >添加文案</n-button
+                >
+                <n-button
+                  size="small"
+                  tertiary
+                  style="
+                    border: 1px solid transparent;
+                    background-image:
+                      linear-gradient(rgb(5, 7, 19), rgb(5, 7, 19)),
+                      linear-gradient(to right, rgb(245, 65, 128), rgb(51, 142, 247));
+                    background-origin: border-box;
+                    background-clip: padding-box, border-box;
+                  "
+                  disabled
+                >
+                  AI自动评论（敬请期待）
+                </n-button>
+              </div>
             </template>
           </n-empty>
         </div>
@@ -29,7 +51,7 @@
       <div>
         <div class="flex items-center justify-between mb-2">
           <span class="font-medium">评论图片（可选）</span>
-          <n-radio-group v-model:value="imageType">
+          <n-radio-group v-model:value="imageType" size="medium">
             <n-radio value="folder">文件夹</n-radio>
             <n-radio value="file">单文件</n-radio>
           </n-radio-group>
