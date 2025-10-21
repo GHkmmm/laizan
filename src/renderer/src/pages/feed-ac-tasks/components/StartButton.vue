@@ -19,7 +19,6 @@
     type="error"
     strong
     secondary
-    size="large"
     :loading="taskStatus === 'stopping'"
     :disabled="taskStatus === 'stopping'"
     @click="handleStop"
