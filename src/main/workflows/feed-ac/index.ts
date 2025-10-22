@@ -32,7 +32,7 @@ export async function loginAndStorageState(): Promise<void> {
   await page
     .waitForSelector('#login-panel-new', {
       state: 'visible',
-      timeout: 3000
+      timeout: 6000
     })
     .catch(() => null)
 
@@ -40,7 +40,7 @@ export async function loginAndStorageState(): Promise<void> {
   await page
     .waitForSelector('#login-panel-new', {
       state: 'hidden',
-      timeout: 1000 * 60 * 2
+      timeout: 1000 * 60 * 3
     })
     .catch(() => null)
   // 等待登录数据存入缓存

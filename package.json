@@ -1,10 +1,10 @@
 {
   "name": "laizan",
   "version": "1.0.0",
-  "description": "An Electron application with Vue and TypeScript",
+  "description": "抖音自动营销工具，支持抖音首页自动浏览视频，自动评论引流获客",
   "main": "./out/main/index.js",
-  "author": "example.com",
-  "homepage": "https://electron-vite.org",
+  "author": "ira.huang",
+  "homepage": "https://github.com/GHkmmm/laizan",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint --cache .",
