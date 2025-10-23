@@ -1,6 +1,6 @@
 {
   "name": "laizan",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "抖音自动营销工具，支持抖音首页自动浏览视频，自动评论引流获客",
   "main": "./out/main/index.js",
   "author": "ira.huang",

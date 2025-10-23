@@ -1,4 +1,4 @@
-appId: com.electron.app
+appId: com.wubianji.laizan
 productName: 来赞
 directories:
   buildResources: build
@@ -20,6 +20,9 @@ nsis:
   createDesktopShortcut: always
   installerIcon: 'build/icon.ico'
   uninstallerIcon: 'build/icon.ico'
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  include: 'build/installer.nsh'
 mac:
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
