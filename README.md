@@ -100,7 +100,6 @@
 - **微信**：<br />
   <img src="./assets/wechat_qr_code.JPG" alt="微信二维码" width="300px" />
 - **GitHub**：https://github.com/GHkmmm/laizan  
-- **官方网站**（可选）：https://ghkmmm.github.io/laizan  
 
 ---
 
