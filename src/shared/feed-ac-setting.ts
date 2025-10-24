@@ -20,3 +20,21 @@ export interface FeedAcSettings {
   commentImageType: 'folder' | 'file'
   dontShowDouyinLimitDialog?: boolean
 }
+
+export function getDefaultFeedAcSettings(): FeedAcSettings {
+  return {
+    blockKeywords: [],
+    authorBlockKeywords: [],
+    ruleRelation: 'or',
+    rules: [],
+    simulateWatchBeforeComment: false,
+    watchTimeRangeSeconds: [5, 15],
+    onlyCommentActiveVideo: false,
+    enableAIVideoFilter: false,
+    customAIVideoFilterPrompt: '',
+    commentTexts: [],
+    commentImagePath: undefined,
+    commentImageType: 'folder',
+    dontShowDouyinLimitDialog: false
+  }
+}

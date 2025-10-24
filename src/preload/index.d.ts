@@ -1,6 +1,6 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
-import type { FeedAcSettings } from '@shared/feed-ac-setting'
-import type { AiSettings } from '@shared/ai-setting'
+import type { FeedAcSettings } from '@/shared/feed-ac-setting'
+import type { AISettings } from '@/shared/ai-setting'
 
 declare global {
   interface Window {
@@ -12,9 +12,9 @@ declare global {
       getFeedAcSettings: () => Promise<FeedAcSettings>
       updateFeedAcSettings: (payload: Partial<FeedAcSettings>) => Promise<FeedAcSettings>
       clearFeedAcSettings: () => Promise<FeedAcSettings>
-      getAiSettings: () => Promise<AiSettings>
-      updateAiSettings: (payload: Partial<AiSettings>) => Promise<AiSettings>
-      clearAiSettings: () => Promise<AiSettings>
+      getAISettings: () => Promise<AISettings>
+      updateAISettings: (payload: Partial<AISettings>) => Promise<AISettings>
+      clearAISettings: () => Promise<AISettings>
       exportFeedAcSettings: (
         payload: FeedAcSettings
       ) => Promise<{ ok: boolean; path?: string; message?: string }>

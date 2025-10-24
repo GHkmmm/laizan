@@ -1,5 +1,5 @@
 import { Browser, chromium, Page } from '@playwright/test'
-import { random, sleep } from '@utils/common'
+import { random, sleep } from '@/utils/common'
 import { storage, StorageKey } from '../../utils/storage'
 import { CommentResponse, FeedItem, FeedListResponse } from './types'
 import * as fs from 'fs'

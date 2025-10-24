@@ -1,7 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
-import { FeedAcSettings } from '@shared/feed-ac-setting'
-import { AiSettings } from '@shared/ai-setting'
+import { FeedAcSettings } from '@/shared/feed-ac-setting'
+import { AISettings } from '@/shared/ai-setting'
 
 // Custom APIs for renderer
 const api = {
@@ -12,10 +12,10 @@ const api = {
   updateFeedAcSettings: (payload: Partial<FeedAcSettings>): Promise<FeedAcSettings> =>
     ipcRenderer.invoke('feedAcSetting:update', payload),
   clearFeedAcSettings: (): Promise<FeedAcSettings> => ipcRenderer.invoke('feedAcSetting:clear'),
-  getAiSettings: (): Promise<AiSettings> => ipcRenderer.invoke('aiSetting:get'),
-  updateAiSettings: (payload: Partial<AiSettings>): Promise<AiSettings> =>
+  getAISettings: (): Promise<AISettings> => ipcRenderer.invoke('aiSetting:get'),
+  updateAISettings: (payload: Partial<AISettings>): Promise<AISettings> =>
     ipcRenderer.invoke('aiSetting:update', payload),
-  clearAiSettings: (): Promise<AiSettings> => ipcRenderer.invoke('aiSetting:clear'),
+  clearAISettings: (): Promise<AISettings> => ipcRenderer.invoke('aiSetting:clear'),
   // feed-ac setting import/export
   exportFeedAcSettings: (
     payload: FeedAcSettings

@@ -1,30 +1,18 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { FeedAcSettings } from '@shared/feed-ac-setting'
+import { FeedAcSettings, getDefaultFeedAcSettings } from '@/shared/feed-ac-setting'
 
 export const useSettingsStore = defineStore('settings', () => {
-  const settings = ref<FeedAcSettings>({
-    blockKeywords: [],
-    authorBlockKeywords: [],
-    ruleRelation: 'or',
-    rules: [],
-    simulateWatchBeforeComment: false,
-    watchTimeRangeSeconds: [5, 15],
-    onlyCommentActiveVideo: false,
-    enableAIVideoFilter: false,
-    customAIVideoFilterPrompt: '',
-    commentTexts: [],
-    commentImagePath: undefined,
-    commentImageType: 'folder',
-    dontShowDouyinLimitDialog: false
-  })
+  const settings = ref<FeedAcSettings>(getDefaultFeedAcSettings())
 
   const loadSettings = async (): Promise<void> => {
     settings.value = await window.api.getFeedAcSettings()
   }
 
   const saveSettings = async (): Promise<void> => {
-    settings.value = await window.api.updateFeedAcSettings(settings.value)
+    settings.value = await window.api.updateFeedAcSettings(
+      JSON.parse(JSON.stringify(settings.value))
+    )
   }
 
   const resetSettings = async (): Promise<void> => {

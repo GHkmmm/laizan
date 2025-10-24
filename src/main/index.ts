@@ -10,9 +10,10 @@ import {
   updateFeedAcSettings,
   clearFeedAcSettings
 } from './workflows/feed-ac/settings'
-import { getAiSettings, updateAiSettings, getAiDefaults } from './workflows/feed-ac/ai-settings'
+import { getAiSettings, updateAiSettings } from './workflows/feed-ac/ai-settings'
 import { chromium } from '@playwright/test'
-import { FeedAcSettings } from '@shared/feed-ac-setting'
+import { FeedAcSettings } from '@/shared/feed-ac-setting'
+import { getDefaultAISetting } from '@/shared/ai-setting'
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -146,7 +147,7 @@ app.whenReady().then(() => {
   ipcMain.handle('aiSetting:clear', () => {
     // clear ai settings by deleting and returning defaults
     storage.delete(StorageKey.aiSettings)
-    return getAiDefaults()
+    return getDefaultAISetting()
   })
 
   // browser executable path ipc

@@ -1,27 +1,13 @@
 import { storage, StorageKey } from '../../utils/storage'
-import type { FeedAcSettings, FeedAcRule } from '@shared/feed-ac-setting'
-
-export function getFeedAcDefaults(): FeedAcSettings {
-  return {
-    blockKeywords: [],
-    authorBlockKeywords: [],
-    ruleRelation: 'or',
-    rules: [],
-    simulateWatchBeforeComment: false,
-    watchTimeRangeSeconds: [5, 15],
-    onlyCommentActiveVideo: false,
-    enableAIVideoFilter: false,
-    customAIVideoFilterPrompt: '',
-    commentTexts: [],
-    commentImagePath: undefined,
-    commentImageType: 'folder',
-    dontShowDouyinLimitDialog: false
-  }
-}
+import {
+  type FeedAcSettings,
+  type FeedAcRule,
+  getDefaultFeedAcSettings
+} from '@/shared/feed-ac-setting'
 
 export function getFeedAcSettings(): FeedAcSettings {
   const saved = storage.get(StorageKey.feedAcSetting) as Partial<FeedAcSettings> | undefined
-  const defaults = getFeedAcDefaults()
+  const defaults = getDefaultFeedAcSettings()
   const merged: FeedAcSettings = {
     ...defaults,
     ...(saved || {}),
@@ -73,5 +59,5 @@ export function updateFeedAcSettings(partial: Partial<FeedAcSettings>): FeedAcSe
 
 export function clearFeedAcSettings(): FeedAcSettings {
   storage.delete(StorageKey.feedAcSetting)
-  return getFeedAcDefaults()
+  return getDefaultFeedAcSettings()
 }

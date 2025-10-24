@@ -1,7 +1,7 @@
 import type { BrowserContext } from '@playwright/test'
 import __Store from 'electron-store'
-import type { FeedAcSettings } from '@shared/feed-ac-setting'
-import type { AiSettings } from '@shared/ai-setting'
+import type { FeedAcSettings } from '@/shared/feed-ac-setting'
+import type { AISettings } from '@/shared/ai-setting'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Store = ((__Store as any).default || __Store) as typeof __Store
 
@@ -16,7 +16,7 @@ type AuthState = Awaited<ReturnType<BrowserContext['storageState']>>
 
 type StorageSchema = Record<typeof StorageKey.auth, AuthState> &
   Record<typeof StorageKey.feedAcSetting, FeedAcSettings> &
-  Record<typeof StorageKey.aiSettings, AiSettings> &
+  Record<typeof StorageKey.aiSettings, AISettings> &
   Record<typeof StorageKey.browserExecPath, string>
 
 class Storage {

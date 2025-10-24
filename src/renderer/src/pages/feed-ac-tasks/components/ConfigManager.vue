@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { NButton, NDropdown, useDialog, useMessage } from 'naive-ui'
 import { useTaskStore } from '../stores/task'
 import { useSettingsStore } from '../stores/settings'
-import { FeedAcSettings } from '@shared/feed-ac-setting'
+import { FeedAcSettings } from '@/shared/feed-ac-setting'
 
 const message = useMessage()
 const dialog = useDialog()
