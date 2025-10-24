@@ -5,7 +5,7 @@
       <div class="flex items-center gap-1">
         <span class="text-nowrap">规则关系：</span>
         <n-select
-          v-model:value="ruleRelation"
+          v-model:value="settings.ruleRelation"
           placeholder="规则关系"
           :options="acRuleRelationOptions"
           size="medium"
@@ -15,7 +15,7 @@
       <div class="flex gap-1">
         <span class="text-nowrap pt-1">规则列表：</span>
         <div class="flex flex-col gap-3 flex-1">
-          <div v-for="(r, idx) in rules" :key="idx" class="flex items-center gap-2">
+          <div v-for="(r, idx) in settings.rules" :key="idx" class="flex items-center gap-2">
             <n-select
               v-model:value="r.field"
               placeholder="选择类型"
@@ -32,7 +32,7 @@
               @update:value="saveSettings"
             />
             <n-button
-              v-if="rules.length > 1"
+              v-if="settings.rules.length > 1"
               size="small"
               type="error"
               tertiary
@@ -60,18 +60,18 @@
             </n-gradient-text>
           </div>
           <n-switch
-            v-model:value="enableAIVideoFilter"
+            v-model:value="settings.enableAIVideoFilter"
             size="medium"
             disabled
             @update:value="saveSettings"
           />
         </div>
-        <div v-if="enableAIVideoFilter" class="flex flex-col gap-2">
+        <div v-if="settings.enableAIVideoFilter" class="flex flex-col gap-2">
           <span class="text-xs font-medium text-gray-400"
             >请描述您希望AI以什么规则判断是否观看视频：</span
           >
           <n-input
-            v-model:value="customAIVideoFilterPrompt"
+            v-model:value="settings.customAIVideoFilterPrompt"
             type="textarea"
             placeholder="请输入提示词"
             :maxlength="1000"
@@ -103,8 +103,7 @@ import { storeToRefs } from 'pinia'
 
 const settingsStore = useSettingsStore()
 const { saveSettings, addRule, removeRule } = settingsStore
-const { ruleRelation, rules, enableAIVideoFilter, customAIVideoFilterPrompt } =
-  storeToRefs(settingsStore)
+const { settings } = storeToRefs(settingsStore)
 
 const acRuleRelationOptions = [
   {

@@ -12,7 +12,7 @@
           <div class="flex flex-col gap-2">
             <div class="mb-1 text-sm">作者昵称</div>
             <n-dynamic-input
-              v-model:value="authorKeywords"
+              v-model:value="settings.authorBlockKeywords"
               placeholder="输入关键词"
               @update:value="saveSettings"
             />
@@ -20,7 +20,7 @@
           <div class="flex flex-col gap-2">
             <div class="mb-1 text-sm">视频描述</div>
             <n-dynamic-input
-              v-model:value="descKeywords"
+              v-model:value="settings.blockKeywords"
               placeholder="输入关键词"
               @update:value="saveSettings"
             />
@@ -38,5 +38,5 @@ import { storeToRefs } from 'pinia'
 
 const settingsStore = useSettingsStore()
 const { saveSettings } = settingsStore
-const { authorKeywords, descKeywords } = storeToRefs(settingsStore)
+const { settings } = storeToRefs(settingsStore)
 </script>

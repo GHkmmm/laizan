@@ -9,7 +9,7 @@
         </div>
 
         <div
-          v-if="commentTexts.length === 0"
+          v-if="settings.commentTexts.length === 0"
           class="flex flex-col justify-center items-center my-2"
         >
           <n-empty description="暂无评论文案">
@@ -38,8 +38,16 @@
           </n-empty>
         </div>
         <div v-else>
-          <div v-for="(_, index) in commentTexts" :key="index" class="flex items-center gap-2 mb-2">
-            <n-input v-model:value="commentTexts[index]" placeholder="输入评论文案" size="medium" />
+          <div
+            v-for="(_, index) in settings.commentTexts"
+            :key="index"
+            class="flex items-center gap-2 mb-2"
+          >
+            <n-input
+              v-model:value="settings.commentTexts[index]"
+              placeholder="输入评论文案"
+              size="medium"
+            />
             <n-button size="medium" tertiary type="error" @click="removeCommentText(index)">
               删除
             </n-button>
@@ -84,17 +92,17 @@ import { useSettingsStore } from '../stores/settings'
 import { storeToRefs } from 'pinia'
 
 const settingsStore = useSettingsStore()
-const { commentTexts, commentImagePath, commentImageType } = storeToRefs(settingsStore)
+const { settings } = storeToRefs(settingsStore)
 
 const imageType = computed({
-  get: () => commentImageType.value,
+  get: () => settings.value.commentImageType,
   set: (value: 'folder' | 'file') => {
     settingsStore.updateCommentImageType(value)
   }
 })
 
 const imagePath = computed({
-  get: () => commentImagePath.value || '',
+  get: () => settings.value.commentImagePath || '',
   set: (value: string) => {
     settingsStore.updateCommentImagePath(value)
   }

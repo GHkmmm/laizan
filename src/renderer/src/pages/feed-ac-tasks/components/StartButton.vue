@@ -55,7 +55,7 @@ const logsStore = useLogsStore()
 const message = useMessage()
 
 const { taskStatus } = storeToRefs(taskStore)
-const { commentTexts, dontShowDouyinLimitDialog } = storeToRefs(settingsStore)
+const { settings } = storeToRefs(settingsStore)
 const { start, stop } = taskStore
 
 // 弹窗状态
@@ -63,7 +63,10 @@ const showDouyinLimitDialog = ref(false)
 
 const validateForm = (): boolean => {
   // 检查评论文案
-  if (commentTexts.value.length === 0 || commentTexts.value.some((text) => !text.trim())) {
+  if (
+    settings.value.commentTexts.length === 0 ||
+    settings.value.commentTexts.some((text) => !text.trim())
+  ) {
     message.error('请至少配置一个有效的评论文案')
     return false
   }
@@ -79,7 +82,7 @@ const handleStart = async (): Promise<void> => {
     }
 
     // 检查是否需要显示抖音限制提示
-    if (!dontShowDouyinLimitDialog.value) {
+    if (!settings.value.dontShowDouyinLimitDialog) {
       showDouyinLimitDialog.value = true
       return
     }
@@ -105,7 +108,7 @@ const startTask = async (): Promise<void> => {
 const handleDouyinLimitConfirm = async (dontShowAgain: boolean): Promise<void> => {
   // 如果用户选择了"不再提示"，更新设置
   if (dontShowAgain) {
-    dontShowDouyinLimitDialog.value = true
+    settings.value.dontShowDouyinLimitDialog = true
     await settingsStore.saveSettings()
   }
 

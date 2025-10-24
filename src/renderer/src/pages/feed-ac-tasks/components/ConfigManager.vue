@@ -21,20 +21,7 @@ const options = [
 ]
 
 const getCurrentSettingsPayload = (): FeedAcSettings => {
-  return {
-    authorBlockKeywords: [...settingsStore.authorKeywords],
-    blockKeywords: [...settingsStore.descKeywords],
-    ruleRelation: settingsStore.ruleRelation,
-    rules: JSON.parse(JSON.stringify(settingsStore.rules)),
-    simulateWatchBeforeComment: settingsStore.simulateWatchBeforeComment,
-    watchTimeRangeSeconds: [...settingsStore.watchTimeRangeSeconds],
-    onlyCommentActiveVideo: settingsStore.onlyCommentActiveVideo,
-    enableAIVideoFilter: settingsStore.enableAIVideoFilter,
-    customAIVideoFilterPrompt: settingsStore.customAIVideoFilterPrompt,
-    commentTexts: [...settingsStore.commentTexts],
-    commentImagePath: settingsStore.commentImagePath,
-    commentImageType: settingsStore.commentImageType
-  }
+  return { ...settingsStore.settings }
 }
 
 const validateImported = (
