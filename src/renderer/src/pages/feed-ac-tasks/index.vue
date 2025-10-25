@@ -5,14 +5,14 @@ import { useTaskStore } from './stores/task'
 import { useSettingsStore } from './stores/settings'
 import { useLogsStore } from './stores/logs'
 import { storeToRefs } from 'pinia'
-import RuleSettings from './components/RuleSettings.vue'
+import RulesConfig from './components/RulesConfig/index.vue'
 import KeywordBlocking from './components/KeywordBlocking.vue'
 import TaskLogs from './components/TaskLogs.vue'
 import FormCount from './components/FormCount.vue'
 import RuntimeSettings from './components/RuntimeSettings.vue'
 import StartButton from './components/StartButton.vue'
 import ConfigManager from './components/ConfigManager.vue'
-import CommentContent from './components/CommentContent.vue'
+// import CommentContent from './components/CommentContent.vue'
 
 // 使用 Pinia stores
 const taskStore = useTaskStore()
@@ -70,10 +70,7 @@ onBeforeUnmount(() => {
       <template v-if="!['running', 'stopping'].includes(taskStatus)">
         <n-form size="large" label-placement="left" class="w-full px-10">
           <!-- 规则设置组件 -->
-          <RuleSettings />
-
-          <!-- 评论内容配置组件 -->
-          <CommentContent />
+          <RulesConfig />
 
           <!-- 评论次数组件 -->
           <FormCount />

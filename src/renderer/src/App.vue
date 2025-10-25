@@ -9,7 +9,8 @@ import {
   darkTheme,
   zhCN,
   NMessageProvider,
-  NDialogProvider
+  NDialogProvider,
+  NModalProvider
 } from 'naive-ui'
 
 hljs.registerLanguage('javascript', javascript)
@@ -32,11 +33,13 @@ const themeOverrides: GlobalThemeOverrides = {
     :hljs="hljs"
   >
     <main>
-      <n-dialog-provider>
-        <n-message-provider>
-          <RouterView />
-        </n-message-provider>
-      </n-dialog-provider>
+      <n-modal-provider>
+        <n-dialog-provider>
+          <n-message-provider>
+            <RouterView />
+          </n-message-provider>
+        </n-dialog-provider>
+      </n-modal-provider>
     </main>
     <n-global-style />
   </n-config-provider>
