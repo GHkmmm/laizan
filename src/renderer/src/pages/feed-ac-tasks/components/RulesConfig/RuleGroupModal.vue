@@ -63,10 +63,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { NForm, NFormItem, NRadioGroup, NRadio, NSpace, NInput, NSelect, NButton } from 'naive-ui'
 import type { FeedAcRule, FeedAcRuleGroups } from '@/shared/feed-ac-setting'
 import { customAlphabet } from 'nanoid'
+
+// 定义 props
+const props = defineProps<{
+  ruleGroup?: FeedAcRuleGroups
+}>()
 
 // 定义 emits
 interface ModalEmits {
@@ -98,6 +103,28 @@ const ruleOptions = [
   { label: '视频标签', value: 'videoTag' }
 ]
 
+// 监听 ruleGroup 的变化，用于编辑模式
+watch(
+  () => props.ruleGroup,
+  (newRuleGroup) => {
+    if (newRuleGroup) {
+      groupName.value = newRuleGroup.name
+      ruleType.value = newRuleGroup.type
+
+      if (newRuleGroup.type === 'ai' && newRuleGroup.aiPrompt) {
+        aiPrompt.value = newRuleGroup.aiPrompt
+      } else if (newRuleGroup.type === 'manual') {
+        relation.value = newRuleGroup.relation || 'or'
+        rules.value =
+          newRuleGroup.rules && newRuleGroup.rules.length > 0
+            ? [...newRuleGroup.rules]
+            : [{ field: 'nickName', keyword: '' }]
+      }
+    }
+  },
+  { immediate: true }
+)
+
 // 规则操作方法
 const addRule = (): void => {
   rules.value.push({ field: 'nickName', keyword: '' })
@@ -122,7 +149,8 @@ const handleConfirm = (): void => {
   }
 
   const result: FeedAcRuleGroups = {
-    id: nanoid(),
+    // 如果是编辑模式，保留原有的ID，否则生成新的ID
+    id: props.ruleGroup?.id || nanoid(),
     type: ruleType.value,
     name: groupName.value,
     ...(ruleType.value === 'ai'

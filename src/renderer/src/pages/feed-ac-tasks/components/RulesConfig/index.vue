@@ -50,6 +50,22 @@ const data = ref<FeedAcRuleGroups[]>([
   // }
 ])
 
+// 创建一个映射来存储每个规则组的父级ID
+const parentMap = new Map<string, string>()
+
+// 递归构建父级映射
+const buildParentMap = (groups: FeedAcRuleGroups[], parentId?: string): void => {
+  groups.forEach((group) => {
+    if (parentId) {
+      parentMap.set(group.id, parentId)
+    }
+
+    if (group.children && group.children.length > 0) {
+      buildParentMap(group.children, group.id)
+    }
+  })
+}
+
 const columns: DataTableColumns<FeedAcRuleGroups> = [
   {
     title: '规则组名称',
@@ -66,13 +82,128 @@ const columns: DataTableColumns<FeedAcRuleGroups> = [
     title: '操作',
     key: 'actions',
     render(row) {
-      return h(Actions, { row })
+      // 构建当前的父级映射
+      parentMap.clear()
+      buildParentMap(data.value)
+
+      return h(Actions, {
+        row,
+        parentId: parentMap.get(row.id),
+        onEdit: (id: string, ruleGroupData: FeedAcRuleGroups) => {
+          handleEditRuleGroup(id, ruleGroupData)
+        },
+        onCopy: (ruleGroupData: FeedAcRuleGroups, parentId?: string) => {
+          handleCopyRuleGroup(ruleGroupData, parentId)
+        },
+        onDelete: (id: string) => {
+          handleDeleteRuleGroup(id)
+        },
+        onAddChildRuleGroup: (parentId: string, ruleGroupData: FeedAcRuleGroups) => {
+          addChildRuleGroup(parentId, ruleGroupData)
+        }
+      })
     }
   }
 ]
 
 function rowKey(row: FeedAcRuleGroups): string {
   return row.id
+}
+
+// 编辑规则组
+function handleEditRuleGroup(id: string, ruleGroupData: FeedAcRuleGroups): void {
+  const updateRuleGroup = (groups: FeedAcRuleGroups[]): boolean => {
+    for (let i = 0; i < groups.length; i++) {
+      if (groups[i].id === id) {
+        groups[i] = ruleGroupData
+        return true
+      }
+
+      if (groups[i].children && groups[i].children!.length > 0) {
+        if (updateRuleGroup(groups[i].children!)) {
+          return true
+        }
+      }
+    }
+    return false
+  }
+
+  updateRuleGroup(data.value)
+}
+
+// 复制规则组
+function handleCopyRuleGroup(ruleGroupData: FeedAcRuleGroups, parentId?: string): void {
+  // 如果有父级ID，则将复制的规则组添加到对应的父级下
+  if (parentId) {
+    const findAndAddToParent = (groups: FeedAcRuleGroups[]): boolean => {
+      for (const group of groups) {
+        if (group.id === parentId) {
+          if (!group.children) {
+            group.children = []
+          }
+          group.children.push(ruleGroupData)
+          return true
+        }
+
+        if (group.children && group.children.length > 0) {
+          if (findAndAddToParent(group.children)) {
+            return true
+          }
+        }
+      }
+      return false
+    }
+
+    findAndAddToParent(data.value)
+  } else {
+    // 如果没有父级ID，则将复制的规则组添加到根级别
+    data.value.push(ruleGroupData)
+  }
+}
+
+// 删除规则组
+function handleDeleteRuleGroup(id: string): void {
+  const deleteRuleGroup = (groups: FeedAcRuleGroups[]): boolean => {
+    for (let i = 0; i < groups.length; i++) {
+      if (groups[i].id === id) {
+        groups.splice(i, 1)
+        return true
+      }
+
+      if (groups[i].children && groups[i].children!.length > 0) {
+        if (deleteRuleGroup(groups[i].children!)) {
+          return true
+        }
+      }
+    }
+    return false
+  }
+
+  deleteRuleGroup(data.value)
+}
+
+// 添加子规则组的函数
+function addChildRuleGroup(parentId: string, ruleGroupData: FeedAcRuleGroups): void {
+  const findAndAddChild = (groups: FeedAcRuleGroups[]): boolean => {
+    for (const group of groups) {
+      if (group.id === parentId) {
+        if (!group.children) {
+          group.children = []
+        }
+        group.children.push(ruleGroupData)
+        return true
+      }
+
+      if (group.children && group.children.length > 0) {
+        if (findAndAddChild(group.children)) {
+          return true
+        }
+      }
+    }
+    return false
+  }
+
+  findAndAddChild(data.value)
 }
 
 function handleAddRuleGroup(): void {
