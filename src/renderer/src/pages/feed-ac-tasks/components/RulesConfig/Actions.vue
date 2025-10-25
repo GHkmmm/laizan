@@ -3,14 +3,20 @@
     <n-button tertiary size="small" @click="handleEdit">编辑</n-button>
     <n-button tertiary size="small" @click="handleCopy">复制</n-button>
     <n-button tertiary size="small" @click="handleDelete">删除</n-button>
-    <n-button tertiary size="small" @click="handleAddChildRuleGroup">新增子规则组</n-button>
+    <!-- 配置评论内容按钮只在最后一级显示 -->
+    <n-button v-if="!hasChildren" tertiary size="small" @click="handleConfigureComment">
+      配置评论内容
+    </n-button>
+    <n-button tertiary size="small" @click="handleAddChildRuleGroup"> 新增子规则组 </n-button>
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { NButton, useModal, useMessage, useDialog } from 'naive-ui'
 import { h } from 'vue'
 import RuleGroupModal from './RuleGroupModal.vue'
+import CommentContentModal from './CommentContentModal.vue'
 import type { FeedAcRuleGroups } from '@/shared/feed-ac-setting'
 import { customAlphabet } from 'nanoid'
 
@@ -20,12 +26,18 @@ const props = defineProps<{
   parentId?: string
 }>()
 
+// 计算是否有子规则组（使用 computed 使其响应式）
+const hasChildren = computed(() => {
+  return props.row.children && props.row.children.length > 0
+})
+
 // 定义 emits
 const emit = defineEmits<{
   (e: 'edit', id: string, ruleGroupData: FeedAcRuleGroups): void
   (e: 'copy', ruleGroupData: FeedAcRuleGroups, parentId?: string): void
   (e: 'delete', id: string): void
   (e: 'addChildRuleGroup', parentId: string, ruleGroupData: FeedAcRuleGroups): void
+  (e: 'configureComment', ruleGroupData: FeedAcRuleGroups): void
 }>()
 
 // 获取父组件的 modal、消息提示和对话框
@@ -99,7 +111,51 @@ const handleDelete = (): void => {
   })
 }
 
+const handleConfigureComment = (): void => {
+  const m = modal.create({
+    title: '配置评论内容',
+    preset: 'card',
+    style: {
+      width: '600px'
+    },
+    content: () =>
+      h(CommentContentModal, {
+        ruleGroup: props.row,
+        onCancel: () => {
+          m.destroy()
+        },
+        onConfirm: (ruleGroupData) => {
+          // 通过事件将配置后的规则组传递给父组件处理
+          emit('configureComment', ruleGroupData)
+          m.destroy()
+        }
+      })
+  })
+}
+
 const handleAddChildRuleGroup = (): void => {
+  // 检查当前规则组是否已配置评论内容
+  const hasCommentConfig =
+    (props.row.commentTexts && props.row.commentTexts.length > 0) ||
+    (props.row.commentImagePath && props.row.commentImagePath.length > 0)
+
+  // 如果已配置评论内容，显示确认提示
+  if (hasCommentConfig) {
+    dialog.warning({
+      title: '确认操作',
+      content: '新增子规则组将会清空当前规则组配置的评论内容，是否继续？',
+      positiveText: '确认',
+      negativeText: '取消',
+      onPositiveClick: () => {
+        openAddChildRuleGroupModal()
+      }
+    })
+  } else {
+    openAddChildRuleGroupModal()
+  }
+}
+
+const openAddChildRuleGroupModal = (): void => {
   const m = modal.create({
     title: '新增子规则组',
     preset: 'card',

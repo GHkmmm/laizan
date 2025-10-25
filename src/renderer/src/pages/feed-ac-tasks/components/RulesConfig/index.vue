@@ -98,6 +98,9 @@ const columns: DataTableColumns<FeedAcRuleGroups> = [
         onDelete: (id: string) => {
           handleDeleteRuleGroup(id)
         },
+        onConfigureComment: (ruleGroupData: FeedAcRuleGroups) => {
+          handleConfigureComment(ruleGroupData)
+        },
         onAddChildRuleGroup: (parentId: string, ruleGroupData: FeedAcRuleGroups) => {
           addChildRuleGroup(parentId, ruleGroupData)
         }
@@ -161,6 +164,30 @@ function handleCopyRuleGroup(ruleGroupData: FeedAcRuleGroups, parentId?: string)
   }
 }
 
+// 配置评论内容
+function handleConfigureComment(ruleGroupData: FeedAcRuleGroups): void {
+  const updateRuleGroup = (groups: FeedAcRuleGroups[]): boolean => {
+    for (let i = 0; i < groups.length; i++) {
+      if (groups[i].id === ruleGroupData.id) {
+        // 更新评论相关字段
+        groups[i].commentTexts = ruleGroupData.commentTexts
+        groups[i].commentImagePath = ruleGroupData.commentImagePath
+        groups[i].commentImageType = ruleGroupData.commentImageType
+        return true
+      }
+
+      if (groups[i].children && groups[i].children!.length > 0) {
+        if (updateRuleGroup(groups[i].children!)) {
+          return true
+        }
+      }
+    }
+    return false
+  }
+
+  updateRuleGroup(data.value)
+}
+
 // 删除规则组
 function handleDeleteRuleGroup(id: string): void {
   const deleteRuleGroup = (groups: FeedAcRuleGroups[]): boolean => {
@@ -187,6 +214,11 @@ function addChildRuleGroup(parentId: string, ruleGroupData: FeedAcRuleGroups): v
   const findAndAddChild = (groups: FeedAcRuleGroups[]): boolean => {
     for (const group of groups) {
       if (group.id === parentId) {
+        // 清空当前规则组的评论内容
+        delete group.commentTexts
+        delete group.commentImagePath
+        delete group.commentImageType
+
         if (!group.children) {
           group.children = []
         }
