@@ -8,7 +8,7 @@
 </template>
 
 <script setup lang="ts">
-import { NButton, useModal, useMessage } from 'naive-ui'
+import { NButton, useModal, useMessage, useDialog } from 'naive-ui'
 import { h } from 'vue'
 import RuleGroupModal from './RuleGroupModal.vue'
 import type { FeedAcRuleGroups } from '@/shared/feed-ac-setting'
@@ -28,9 +28,10 @@ const emit = defineEmits<{
   (e: 'addChildRuleGroup', parentId: string, ruleGroupData: FeedAcRuleGroups): void
 }>()
 
-// 获取父组件的 modal 和消息提示
+// 获取父组件的 modal、消息提示和对话框
 const modal = useModal()
 const message = useMessage()
+const dialog = useDialog()
 const nanoid = customAlphabet('1234567890abcdef', 16)
 
 const handleEdit = (): void => {
@@ -79,9 +80,23 @@ const handleCopy = (): void => {
 }
 
 const handleDelete = (): void => {
-  // 通过事件将要删除的规则组ID传递给父组件处理
-  emit('delete', props.row.id)
-  message.success('规则组删除成功')
+  // 根据是否有子规则组显示不同的确认提示
+  const hasChildren = props.row.children && props.row.children.length > 0
+  const content = hasChildren
+    ? '确认删除后子规则组将会一起移除并且不可恢复，是否继续？'
+    : '删除后不可恢复，是否继续？'
+
+  dialog.warning({
+    title: '确认删除',
+    content,
+    positiveText: '确认',
+    negativeText: '取消',
+    onPositiveClick: () => {
+      // 通过事件将要删除的规则组ID传递给父组件处理
+      emit('delete', props.row.id)
+      message.success('规则组删除成功')
+    }
+  })
 }
 
 const handleAddChildRuleGroup = (): void => {
