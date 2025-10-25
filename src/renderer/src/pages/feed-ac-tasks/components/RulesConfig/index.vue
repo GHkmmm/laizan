@@ -7,7 +7,14 @@
           >新增规则组</n-button
         >
       </div>
-      <n-data-table bordered :columns="columns" :data="data" :row-key="rowKey" default-expand-all />
+      <n-data-table
+        bordered
+        :columns="columns"
+        :data="data"
+        :row-key="rowKey"
+        :expanded-row-keys="expandedRowKeys"
+        @update:expanded-row-keys="handleUpdateExpandedRowKeys"
+      />
     </div>
   </n-form-item>
 </template>
@@ -16,7 +23,7 @@
 import { ref } from 'vue'
 import { FeedAcRuleGroups } from '@/shared/feed-ac-setting'
 import { NFormItem, NDataTable, NButton, useModal } from 'naive-ui'
-import type { DataTableColumns } from 'naive-ui'
+import type { DataTableColumns, DataTableRowKey } from 'naive-ui'
 import { h } from 'vue'
 import ActionsColumn from './ActionsColumn.vue'
 import CommentColumn from './CommentColumn.vue'
@@ -51,20 +58,12 @@ const data = ref<FeedAcRuleGroups[]>([
   // }
 ])
 
-// 创建一个映射来存储每个规则组的父级ID
-const parentMap = new Map<string, string>()
+// 控制展开的行键值
+const expandedRowKeys = ref<DataTableRowKey[]>([])
 
-// 递归构建父级映射
-const buildParentMap = (groups: FeedAcRuleGroups[], parentId?: string): void => {
-  groups.forEach((group) => {
-    if (parentId) {
-      parentMap.set(group.id, parentId)
-    }
-
-    if (group.children && group.children.length > 0) {
-      buildParentMap(group.children, group.id)
-    }
-  })
+// 处理展开行键值更新
+const handleUpdateExpandedRowKeys = (keys: DataTableRowKey[]): void => {
+  expandedRowKeys.value = keys
 }
 
 const columns: DataTableColumns<FeedAcRuleGroups> = [
@@ -95,8 +94,23 @@ const columns: DataTableColumns<FeedAcRuleGroups> = [
     title: '操作',
     key: 'actions',
     render(row) {
+      // 创建一个映射来存储每个规则组的父级ID
+      const parentMap = new Map<string, string>()
+
+      // 递归构建父级映射
+      const buildParentMap = (groups: FeedAcRuleGroups[], parentId?: string): void => {
+        groups.forEach((group) => {
+          if (parentId) {
+            parentMap.set(group.id, parentId)
+          }
+
+          if (group.children && group.children.length > 0) {
+            buildParentMap(group.children, group.id)
+          }
+        })
+      }
+
       // 构建当前的父级映射
-      parentMap.clear()
       buildParentMap(data.value)
 
       return h(ActionsColumn, {
@@ -233,6 +247,12 @@ function addChildRuleGroup(parentId: string, ruleGroupData: FeedAcRuleGroups): v
           group.children = []
         }
         group.children.push(ruleGroupData)
+
+        // 展开父级规则组
+        if (!expandedRowKeys.value.includes(parentId)) {
+          expandedRowKeys.value = [...expandedRowKeys.value, parentId]
+        }
+
         return true
       }
 
