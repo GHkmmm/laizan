@@ -309,7 +309,11 @@ app.on('window-all-closed', () => {
   }
 })
 
-Menu.setApplicationMenu(null)
+// 是否为开发环境
+export const isDev = !app.isPackaged
+if (isDev) {
+  Menu.setApplicationMenu(null)
+}
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.

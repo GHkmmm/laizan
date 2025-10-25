@@ -1,24 +1,23 @@
 <template>
-  <div class="flex items-center gap-2">
-    <n-button tertiary size="small" @click="handleEdit">编辑</n-button>
-    <n-button tertiary size="small" @click="handleCopy">复制</n-button>
-    <n-button tertiary size="small" @click="handleDelete">删除</n-button>
-    <!-- 配置评论内容按钮只在最后一级显示 -->
-    <n-button v-if="!hasChildren" tertiary size="small" @click="handleConfigureComment">
-      配置评论内容
+  <n-button-group size="small" class="items-center">
+    <n-button ghost type="primary" tertiary @click="handleEdit">编辑</n-button>
+    <n-divider vertical />
+    <n-button ghost type="primary" tertiary @click="handleCopy">复制</n-button>
+    <n-divider vertical />
+    <n-button ghost type="primary" tertiary @click="handleDelete">删除</n-button>
+    <n-divider vertical />
+    <n-button ghost type="primary" tertiary @click="handleAddChildRuleGroup">
+      新增子规则组
     </n-button>
-    <n-button tertiary size="small" @click="handleAddChildRuleGroup"> 新增子规则组 </n-button>
-  </div>
+  </n-button-group>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { NButton, useModal, useMessage, useDialog } from 'naive-ui'
+import { NButtonGroup, NButton, NDivider, useModal, useMessage, useDialog } from 'naive-ui'
 import { h } from 'vue'
 import RuleGroupModal from './RuleGroupModal.vue'
-import CommentContentModal from './CommentContentModal.vue'
-import type { FeedAcRuleGroups } from '@/shared/feed-ac-setting'
 import { customAlphabet } from 'nanoid'
+import type { FeedAcRuleGroups } from '@/shared/feed-ac-setting'
 
 // 定义 props
 const props = defineProps<{
@@ -26,18 +25,12 @@ const props = defineProps<{
   parentId?: string
 }>()
 
-// 计算是否有子规则组（使用 computed 使其响应式）
-const hasChildren = computed(() => {
-  return props.row.children && props.row.children.length > 0
-})
-
 // 定义 emits
 const emit = defineEmits<{
   (e: 'edit', id: string, ruleGroupData: FeedAcRuleGroups): void
   (e: 'copy', ruleGroupData: FeedAcRuleGroups, parentId?: string): void
   (e: 'delete', id: string): void
   (e: 'addChildRuleGroup', parentId: string, ruleGroupData: FeedAcRuleGroups): void
-  (e: 'configureComment', ruleGroupData: FeedAcRuleGroups): void
 }>()
 
 // 获取父组件的 modal、消息提示和对话框
@@ -108,28 +101,6 @@ const handleDelete = (): void => {
       emit('delete', props.row.id)
       message.success('规则组删除成功')
     }
-  })
-}
-
-const handleConfigureComment = (): void => {
-  const m = modal.create({
-    title: '配置评论内容',
-    preset: 'card',
-    style: {
-      width: '600px'
-    },
-    content: () =>
-      h(CommentContentModal, {
-        ruleGroup: props.row,
-        onCancel: () => {
-          m.destroy()
-        },
-        onConfirm: (ruleGroupData) => {
-          // 通过事件将配置后的规则组传递给父组件处理
-          emit('configureComment', ruleGroupData)
-          m.destroy()
-        }
-      })
   })
 }
 

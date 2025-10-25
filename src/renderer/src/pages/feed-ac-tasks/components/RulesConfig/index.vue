@@ -4,7 +4,7 @@
       <div class="flex justify-between items-center">
         <h4 class="text-xs font-bold text-gray-400">当视频满足以下规则配置 系统会自动评论</h4>
         <n-button secondary type="primary" size="medium" @click="handleAddRuleGroup"
-          >添加规则组</n-button
+          >新增规则组</n-button
         >
       </div>
       <n-data-table bordered :columns="columns" :data="data" :row-key="rowKey" default-expand-all />
@@ -18,7 +18,8 @@ import { FeedAcRuleGroups } from '@/shared/feed-ac-setting'
 import { NFormItem, NDataTable, NButton, useModal } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
 import { h } from 'vue'
-import Actions from './Actions.vue'
+import ActionsColumn from './ActionsColumn.vue'
+import CommentColumn from './CommentColumn.vue'
 import RuleGroupModal from './RuleGroupModal.vue'
 
 const modal = useModal()
@@ -79,6 +80,18 @@ const columns: DataTableColumns<FeedAcRuleGroups> = [
     }
   },
   {
+    title: '评论内容',
+    key: 'comment',
+    render(row) {
+      return h(CommentColumn, {
+        row,
+        onConfigureComment: (ruleGroupData: FeedAcRuleGroups) => {
+          handleConfigureComment(ruleGroupData)
+        }
+      })
+    }
+  },
+  {
     title: '操作',
     key: 'actions',
     render(row) {
@@ -86,7 +99,7 @@ const columns: DataTableColumns<FeedAcRuleGroups> = [
       parentMap.clear()
       buildParentMap(data.value)
 
-      return h(Actions, {
+      return h(ActionsColumn, {
         row,
         parentId: parentMap.get(row.id),
         onEdit: (id: string, ruleGroupData: FeedAcRuleGroups) => {
@@ -97,9 +110,6 @@ const columns: DataTableColumns<FeedAcRuleGroups> = [
         },
         onDelete: (id: string) => {
           handleDeleteRuleGroup(id)
-        },
-        onConfigureComment: (ruleGroupData: FeedAcRuleGroups) => {
-          handleConfigureComment(ruleGroupData)
         },
         onAddChildRuleGroup: (parentId: string, ruleGroupData: FeedAcRuleGroups) => {
           addChildRuleGroup(parentId, ruleGroupData)
