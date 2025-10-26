@@ -12,7 +12,7 @@ import {
 } from './workflows/feed-ac/settings'
 import { getAiSettings, updateAiSettings } from './workflows/feed-ac/ai-settings'
 import { chromium } from '@playwright/test'
-import { FeedAcSettings } from '@/shared/feed-ac-setting'
+import { FeedAcSettings, FeedAcSettingsV2 } from '@/shared/feed-ac-setting'
 import { getDefaultAISetting } from '@/shared/ai-setting'
 function createWindow(): void {
   // Create the browser window.
@@ -121,12 +121,6 @@ app.whenReady().then(() => {
     storage.delete(StorageKey.auth)
   })
 
-  // settings clear ipc
-  ipcMain.handle('feedAcSetting:clear', () => {
-    return clearFeedAcSettings()
-  })
-
-  // settings ipc
   ipcMain.handle('feedAcSetting:get', () => {
     return getFeedAcSettings()
   })
@@ -136,6 +130,9 @@ app.whenReady().then(() => {
       return updateFeedAcSettings(payload)
     }
   )
+  ipcMain.handle('feedAcSetting:clear', () => {
+    return clearFeedAcSettings()
+  })
 
   // ai setting ipc
   ipcMain.handle('aiSetting:get', () => {
@@ -247,13 +244,36 @@ app.whenReady().then(() => {
     }
   })
 
-  // 导出 Feed AC 配置到 JSON
+  // 导出 v2 Feed AC 配置到 JSON
+  ipcMain.handle('feedAcSetting:exportV2', async (e, payload: FeedAcSettingsV2) => {
+    const win = BrowserWindow.fromWebContents(e.sender)
+    const options = {
+      title: '导出配置',
+      filters: [{ name: 'JSON', extensions: ['json'] }],
+      defaultPath: `feed-ac-settings-v2-${new Date()
+        .toISOString()
+        .replace(/[:T]/g, '-')
+        .slice(0, 19)}.json`
+    }
+    const result = win
+      ? await dialog.showSaveDialog(win, options)
+      : await dialog.showSaveDialog(options)
+    if (result.canceled || !result.filePath) return { ok: false, message: '用户取消' }
+    try {
+      writeFileSync(result.filePath, JSON.stringify(payload ?? {}, null, 2), 'utf-8')
+      return { ok: true, path: result.filePath }
+    } catch (error) {
+      return { ok: false, message: String(error) }
+    }
+  })
+
+  // 保持向后兼容的 v1 导出
   ipcMain.handle('feedAcSetting:export', async (e, payload: FeedAcSettings) => {
     const win = BrowserWindow.fromWebContents(e.sender)
     const options = {
       title: '导出配置',
       filters: [{ name: 'JSON', extensions: ['json'] }],
-      defaultPath: `feed-ac-settings-${new Date()
+      defaultPath: `feed-ac-settings-v1-${new Date()
         .toISOString()
         .replace(/[:T]/g, '-')
         .slice(0, 19)}.json`
@@ -311,7 +331,7 @@ app.on('window-all-closed', () => {
 
 // 是否为开发环境
 export const isDev = !app.isPackaged
-if (isDev) {
+if (!isDev) {
   Menu.setApplicationMenu(null)
 }
 

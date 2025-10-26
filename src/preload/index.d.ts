@@ -1,5 +1,5 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
-import type { FeedAcSettings } from '@/shared/feed-ac-setting'
+import type { FeedAcSettingsV2 } from '@/shared/feed-ac-setting'
 import type { AISettings } from '@/shared/ai-setting'
 
 declare global {
@@ -9,14 +9,14 @@ declare global {
       hasAuth: () => Promise<boolean>
       login: () => Promise<void>
       logout: () => void
-      getFeedAcSettings: () => Promise<FeedAcSettings>
-      updateFeedAcSettings: (payload: Partial<FeedAcSettings>) => Promise<FeedAcSettings>
-      clearFeedAcSettings: () => Promise<FeedAcSettings>
+      getFeedAcSettings: () => Promise<FeedAcSettingsV2>
+      updateFeedAcSettings: (payload: Partial<FeedAcSettingsV2>) => Promise<FeedAcSettingsV2>
+      clearFeedAcSettings: () => Promise<FeedAcSettingsV2>
       getAISettings: () => Promise<AISettings>
       updateAISettings: (payload: Partial<AISettings>) => Promise<AISettings>
       clearAISettings: () => Promise<AISettings>
       exportFeedAcSettings: (
-        payload: FeedAcSettings
+        payload: FeedAcSettingsV2
       ) => Promise<{ ok: boolean; path?: string; message?: string }>
       pickImportFeedAcSettings: () => Promise<{
         ok: boolean

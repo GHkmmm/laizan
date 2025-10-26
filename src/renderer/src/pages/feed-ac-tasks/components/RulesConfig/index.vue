@@ -10,7 +10,7 @@
       <n-data-table
         bordered
         :columns="columns"
-        :data="data"
+        :data="settings.ruleGroups"
         :row-key="rowKey"
         :expanded-row-keys="expandedRowKeys"
         @update:expanded-row-keys="handleUpdateExpandedRowKeys"
@@ -20,7 +20,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { FeedAcRuleGroups } from '@/shared/feed-ac-setting'
 import { NFormItem, NDataTable, NButton, useModal } from 'naive-ui'
 import type { DataTableColumns, DataTableRowKey } from 'naive-ui'
@@ -28,35 +28,36 @@ import { h } from 'vue'
 import ActionsColumn from './ActionsColumn.vue'
 import CommentColumn from './CommentColumn.vue'
 import RuleGroupModal from './RuleGroupModal.vue'
+import { useSettingsStore } from '../../stores/settings'
+import { storeToRefs } from 'pinia'
 
 const modal = useModal()
+const settingsStore = useSettingsStore()
+const { settings } = storeToRefs(settingsStore)
+const { saveSettings } = settingsStore
 
-const data = ref<FeedAcRuleGroups[]>([
-  // {
-  //   id: '1',
-  //   name: '07akioni',
-  //   type: 'manual',
-  //   children: [
-  //     {
-  //       id: 'f2034b0f-6436-48ab-9f44-a332abca2d2e',
-  //       name: '08akioni',
-  //       type: 'ai',
-  //       children: [
-  //         {
-  //           id: 'f2034b0f-6436-48ab-9f44-a332abca2d2e',
-  //           name: '09akioni',
-  //           type: 'manual'
-  //         },
-  //         {
-  //           id: 'd878588b-58e2-42d2-b60d-928a6e05351e',
-  //           name: '10akioni',
-  //           type: 'manual'
-  //         }
-  //       ]
-  //     }
-  //   ]
-  // }
-])
+// 组件挂载时加载配置
+onMounted(async () => {
+  await settingsStore.loadSettings()
+
+  // 递归获取所有包含子规则的规则组ID
+  const getAllParentIds = (groups: FeedAcRuleGroups[]): DataTableRowKey[] => {
+    const ids: DataTableRowKey[] = []
+
+    groups.forEach((group) => {
+      if (group.children && group.children.length > 0) {
+        ids.push(group.id)
+        // 递归获取子规则组中的父级ID
+        ids.push(...getAllParentIds(group.children))
+      }
+    })
+
+    return ids
+  }
+
+  // 默认展开所有包含子规则的规则组
+  expandedRowKeys.value = getAllParentIds(settings.value.ruleGroups)
+})
 
 // 控制展开的行键值
 const expandedRowKeys = ref<DataTableRowKey[]>([])
@@ -111,7 +112,7 @@ const columns: DataTableColumns<FeedAcRuleGroups> = [
       }
 
       // 构建当前的父级映射
-      buildParentMap(data.value)
+      buildParentMap(settings.value.ruleGroups)
 
       return h(ActionsColumn, {
         row,
@@ -155,7 +156,9 @@ function handleEditRuleGroup(id: string, ruleGroupData: FeedAcRuleGroups): void 
     return false
   }
 
-  updateRuleGroup(data.value)
+  updateRuleGroup(settings.value.ruleGroups)
+
+  saveSettings()
 }
 
 // 复制规则组
@@ -181,11 +184,12 @@ function handleCopyRuleGroup(ruleGroupData: FeedAcRuleGroups, parentId?: string)
       return false
     }
 
-    findAndAddToParent(data.value)
+    findAndAddToParent(settings.value.ruleGroups)
   } else {
     // 如果没有父级ID，则将复制的规则组添加到根级别
-    data.value.push(ruleGroupData)
+    settings.value.ruleGroups.push(ruleGroupData)
   }
+  saveSettings()
 }
 
 // 配置评论内容
@@ -209,7 +213,8 @@ function handleConfigureComment(ruleGroupData: FeedAcRuleGroups): void {
     return false
   }
 
-  updateRuleGroup(data.value)
+  updateRuleGroup(settings.value.ruleGroups)
+  saveSettings()
 }
 
 // 删除规则组
@@ -230,7 +235,9 @@ function handleDeleteRuleGroup(id: string): void {
     return false
   }
 
-  deleteRuleGroup(data.value)
+  deleteRuleGroup(settings.value.ruleGroups)
+
+  saveSettings()
 }
 
 // 添加子规则组的函数
@@ -265,7 +272,8 @@ function addChildRuleGroup(parentId: string, ruleGroupData: FeedAcRuleGroups): v
     return false
   }
 
-  findAndAddChild(data.value)
+  findAndAddChild(settings.value.ruleGroups)
+  saveSettings()
 }
 
 function handleAddRuleGroup(): void {
@@ -282,7 +290,9 @@ function handleAddRuleGroup(): void {
         },
         onConfirm: (ruleGroupData) => {
           // 将新规则组添加到数据中
-          data.value.push(ruleGroupData)
+          console.log('settings.value', settings.value)
+          settings.value.ruleGroups.push(ruleGroupData)
+          saveSettings()
           m.destroy()
         }
       })

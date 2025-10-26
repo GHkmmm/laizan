@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
-import { FeedAcSettings } from '@/shared/feed-ac-setting'
+import { FeedAcSettings, FeedAcSettingsV2 } from '@/shared/feed-ac-setting'
 import { AISettings } from '@/shared/ai-setting'
 
 // Custom APIs for renderer
@@ -8,15 +8,14 @@ const api = {
   hasAuth: (): Promise<boolean> => ipcRenderer.invoke('hasAuth'),
   login: (): Promise<void> => ipcRenderer.invoke('login'),
   logout: (): void => ipcRenderer.send('logout'),
-  getFeedAcSettings: (): Promise<FeedAcSettings> => ipcRenderer.invoke('feedAcSetting:get'),
-  updateFeedAcSettings: (payload: Partial<FeedAcSettings>): Promise<FeedAcSettings> =>
+  getFeedAcSettings: (): Promise<FeedAcSettingsV2> => ipcRenderer.invoke('feedAcSetting:get'),
+  updateFeedAcSettings: (payload: Partial<FeedAcSettingsV2>): Promise<FeedAcSettingsV2> =>
     ipcRenderer.invoke('feedAcSetting:update', payload),
-  clearFeedAcSettings: (): Promise<FeedAcSettings> => ipcRenderer.invoke('feedAcSetting:clear'),
+  clearFeedAcSettings: (): Promise<FeedAcSettingsV2> => ipcRenderer.invoke('feedAcSetting:clear'),
   getAISettings: (): Promise<AISettings> => ipcRenderer.invoke('aiSetting:get'),
   updateAISettings: (payload: Partial<AISettings>): Promise<AISettings> =>
     ipcRenderer.invoke('aiSetting:update', payload),
   clearAISettings: (): Promise<AISettings> => ipcRenderer.invoke('aiSetting:clear'),
-  // feed-ac setting import/export
   exportFeedAcSettings: (
     payload: FeedAcSettings
   ): Promise<{ ok: boolean; path?: string; message?: string }> =>

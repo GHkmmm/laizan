@@ -62,12 +62,24 @@ const { start, stop } = taskStore
 const showDouyinLimitDialog = ref(false)
 
 const validateForm = (): boolean => {
-  // 检查评论文案
-  if (
-    settings.value.commentTexts.length === 0 ||
-    settings.value.commentTexts.some((text) => !text.trim())
-  ) {
-    message.error('请至少配置一个有效的评论文案')
+  // 检查是否有规则组
+  if (settings.value.ruleGroups.length === 0) {
+    message.error('请至少配置一个规则组')
+    return false
+  }
+
+  // 检查规则组是否有评论内容
+  const hasValidComment = settings.value.ruleGroups.some((group) => {
+    const hasCommentTexts =
+      group.commentTexts &&
+      group.commentTexts.length > 0 &&
+      group.commentTexts.some((text) => text.trim())
+    const hasCommentImage = group.commentImagePath && group.commentImagePath.trim()
+    return hasCommentTexts || hasCommentImage
+  })
+
+  if (!hasValidComment) {
+    message.error('请至少在一个规则组中配置评论内容')
     return false
   }
 
