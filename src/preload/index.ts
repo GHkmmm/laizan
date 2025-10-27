@@ -34,8 +34,7 @@ const api = {
     ipcRenderer.invoke('browserExec:testLaunch', payload),
   selectBrowserExecPath: (): Promise<string | undefined> =>
     ipcRenderer.invoke('browserExec:select'),
-  startTask: (): Promise<{ ok: boolean; message?: string }> =>
-    ipcRenderer.invoke('task:start'),
+  startTask: (): Promise<{ ok: boolean; message?: string }> => ipcRenderer.invoke('task:start'),
   stopTask: (): Promise<{ ok: boolean; message?: string }> => ipcRenderer.invoke('task:stop'),
   onTaskProgress: (
     handler: (p: { type: string; message: string; timestamp: number }) => void
