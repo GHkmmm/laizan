@@ -1,0 +1,139 @@
+{
+  "version": "v2",
+  "ruleGroups": [
+    {
+      "id": "beauty_makeup_001",
+      "type": "manual",
+      "name": "美妆教程",
+      "relation": "or",
+      "rules": [
+        {
+          "field": "videoDesc",
+          "keyword": "妆容"
+        },
+        {
+          "field": "videoDesc",
+          "keyword": "化妆"
+        },
+        {
+          "field": "videoTag",
+          "keyword": "美妆教程"
+        }
+      ],
+      "children": [
+        {
+          "id": "beauty_makeup_001_1",
+          "type": "manual",
+          "name": "日常淡妆",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "日常"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "淡妆"
+            }
+          ],
+          "commentTexts": [
+            "这个淡妆太自然了！💄适合上班吗？",
+            "手法好轻！新手也能学会吗？",
+            "收藏了！明天就这样画✨"
+          ]
+        },
+        {
+          "id": "beauty_makeup_001_2",
+          "type": "manual",
+          "name": "特殊场合",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "婚礼"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "派对"
+            }
+          ],
+          "commentTexts": [
+            "这个妆容好惊艳！😍持久度怎么样？",
+            "参加婚礼就画这个！太适合了💕",
+            "请问用了什么定妆产品？"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "beauty_skincare_002",
+      "type": "manual",
+      "name": "护肤分享",
+      "relation": "or",
+      "rules": [
+        {
+          "field": "videoDesc",
+          "keyword": "护肤"
+        },
+        {
+          "field": "videoDesc",
+          "keyword": "精华"
+        },
+        {
+          "field": "videoTag",
+          "keyword": "护肤"
+        }
+      ],
+      "children": [
+        {
+          "id": "beauty_skincare_002_1",
+          "type": "manual",
+          "name": "基础护肤",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "水乳"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "精华"
+            }
+          ],
+          "commentTexts": [
+            "这个产品我也在用！效果确实不错👍",
+            "敏感肌可以用吗？会不会刺激？",
+            "种草了！这个价位真的很良心💕"
+          ]
+        },
+        {
+          "id": "beauty_skincare_002_2",
+          "type": "manual",
+          "name": "功效护肤",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "美白"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "抗衰"
+            }
+          ],
+          "commentTexts": [
+            "用了多久看到效果的？想入手试试✨",
+            "请问干皮适合吗？会不会太油腻？",
+            "效果怎么样？值得入手吗？"
+          ]
+        }
+      ]
+    }
+  ],
+  "blockKeywords": ["代购", "假货", "三无"],
+  "authorBlockKeywords": [],
+  "simulateWatchBeforeComment": false,
+  "watchTimeRangeSeconds": [5, 15],
+  "onlyCommentActiveVideo": false,
+  "maxCount": 10
+}

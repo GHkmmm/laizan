@@ -1,55 +1,42 @@
 import { storage, StorageKey } from '../../utils/storage'
-import type { FeedAcSettings, FeedAcRule } from '@shared/feed-ac-setting'
+import {
+  type FeedAcSettingsV2,
+  getDefaultFeedAcSettingsV2,
+  getUnifiedFeedAcSettings,
+  detectConfigVersion
+} from '@/shared/feed-ac-setting'
 
-export function getFeedAcDefaults(): FeedAcSettings {
-  return {
-    blockKeywords: [],
-    authorBlockKeywords: [],
-    ruleRelation: 'or',
-    rules: [],
-    simulateWatchBeforeComment: false,
-    watchTimeRangeSeconds: [5, 15],
-    onlyCommentActiveVideo: false,
-    enableAIVideoFilter: false,
-    customAIVideoFilterPrompt: '',
-    commentTexts: [],
-    commentImagePath: undefined,
-    commentImageType: 'folder',
-    dontShowDouyinLimitDialog: false
+export function getFeedAcSettings(): FeedAcSettingsV2 {
+  const saved = storage.get(StorageKey.feedAcSetting)
+  if (!saved) {
+    return getDefaultFeedAcSettingsV2()
   }
+
+  // 检测版本并自动迁移
+  const version = detectConfigVersion(saved)
+  if (version === 'v1') {
+    console.log('检测到 v1 配置，正在自动迁移到 v2...')
+    const migrated = getUnifiedFeedAcSettings(saved)
+    // 自动保存迁移后的配置
+    storage.set(StorageKey.feedAcSetting, migrated)
+    return migrated
+  }
+
+  if (version === 'v2') {
+    return saved as FeedAcSettingsV2
+  }
+
+  // 未知版本，返回默认配置
+  return getDefaultFeedAcSettingsV2()
 }
 
-export function getFeedAcSettings(): FeedAcSettings {
-  const saved = storage.get(StorageKey.feedAcSetting) as Partial<FeedAcSettings> | undefined
-  const defaults = getFeedAcDefaults()
-  const merged: FeedAcSettings = {
-    ...defaults,
-    ...(saved || {}),
-    // normalize arrays
-    blockKeywords: Array.isArray(saved?.blockKeywords)
-      ? saved!.blockKeywords!
-      : defaults.blockKeywords,
-    authorBlockKeywords: Array.isArray(saved?.authorBlockKeywords)
-      ? saved!.authorBlockKeywords!
-      : defaults.authorBlockKeywords,
-    rules: Array.isArray(saved?.rules) ? (saved!.rules as FeedAcRule[]) : defaults.rules,
-    watchTimeRangeSeconds:
-      Array.isArray(saved?.watchTimeRangeSeconds) && saved!.watchTimeRangeSeconds!.length === 2
-        ? (saved!.watchTimeRangeSeconds as [number, number])
-        : defaults.watchTimeRangeSeconds,
-    commentTexts: Array.isArray(saved?.commentTexts) ? saved!.commentTexts! : defaults.commentTexts,
-    commentImagePath: saved?.commentImagePath || defaults.commentImagePath,
-    commentImageType: saved?.commentImageType || defaults.commentImageType
-  }
-  return merged
-}
-
-export function updateFeedAcSettings(partial: Partial<FeedAcSettings>): FeedAcSettings {
-  console.log('更新设置：', partial)
+export function updateFeedAcSettings(partial: Partial<FeedAcSettingsV2>): FeedAcSettingsV2 {
+  console.log('更新 v2 设置：', partial)
   const current = getFeedAcSettings()
-  const next: FeedAcSettings = {
+  const next: FeedAcSettingsV2 = {
     ...current,
     ...partial,
+    version: 'v2', // 确保版本标识
     // normalize arrays if provided
     blockKeywords: Array.isArray(partial.blockKeywords)
       ? partial.blockKeywords
@@ -57,21 +44,17 @@ export function updateFeedAcSettings(partial: Partial<FeedAcSettings>): FeedAcSe
     authorBlockKeywords: Array.isArray(partial.authorBlockKeywords)
       ? partial.authorBlockKeywords
       : current.authorBlockKeywords,
-    rules: Array.isArray(partial.rules) ? (partial.rules as FeedAcRule[]) : current.rules,
+    ruleGroups: Array.isArray(partial.ruleGroups) ? partial.ruleGroups : current.ruleGroups,
     watchTimeRangeSeconds:
       Array.isArray(partial.watchTimeRangeSeconds) && partial.watchTimeRangeSeconds.length === 2
         ? (partial.watchTimeRangeSeconds as [number, number])
-        : current.watchTimeRangeSeconds,
-    commentTexts: Array.isArray(partial.commentTexts) ? partial.commentTexts : current.commentTexts,
-    commentImagePath:
-      partial.commentImagePath !== undefined ? partial.commentImagePath : current.commentImagePath,
-    commentImageType: partial.commentImageType || current.commentImageType
+        : current.watchTimeRangeSeconds
   }
   storage.set(StorageKey.feedAcSetting, next)
   return next
 }
 
-export function clearFeedAcSettings(): FeedAcSettings {
+export function clearFeedAcSettings(): FeedAcSettingsV2 {
   storage.delete(StorageKey.feedAcSetting)
-  return getFeedAcDefaults()
+  return getDefaultFeedAcSettingsV2()
 }

@@ -1,32 +1,34 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
-import { FeedAcSettings } from '@shared/feed-ac-setting'
-import { AiSettings } from '@shared/ai-setting'
+import { FeedAcSettings, FeedAcSettingsV2 } from '@/shared/feed-ac-setting'
+import { AISettings } from '@/shared/ai-setting'
 
 // Custom APIs for renderer
 const api = {
   hasAuth: (): Promise<boolean> => ipcRenderer.invoke('hasAuth'),
   login: (): Promise<void> => ipcRenderer.invoke('login'),
   logout: (): void => ipcRenderer.send('logout'),
-  getFeedAcSettings: (): Promise<FeedAcSettings> => ipcRenderer.invoke('feedAcSetting:get'),
-  updateFeedAcSettings: (payload: Partial<FeedAcSettings>): Promise<FeedAcSettings> =>
+  getFeedAcSettings: (): Promise<FeedAcSettingsV2> => ipcRenderer.invoke('feedAcSetting:get'),
+  updateFeedAcSettings: (payload: Partial<FeedAcSettingsV2>): Promise<FeedAcSettingsV2> =>
     ipcRenderer.invoke('feedAcSetting:update', payload),
-  clearFeedAcSettings: (): Promise<FeedAcSettings> => ipcRenderer.invoke('feedAcSetting:clear'),
-  getAiSettings: (): Promise<AiSettings> => ipcRenderer.invoke('aiSetting:get'),
-  updateAiSettings: (payload: Partial<AiSettings>): Promise<AiSettings> =>
+  clearFeedAcSettings: (): Promise<FeedAcSettingsV2> => ipcRenderer.invoke('feedAcSetting:clear'),
+  getAISettings: (): Promise<AISettings> => ipcRenderer.invoke('aiSetting:get'),
+  updateAISettings: (payload: Partial<AISettings>): Promise<AISettings> =>
     ipcRenderer.invoke('aiSetting:update', payload),
-  clearAiSettings: (): Promise<AiSettings> => ipcRenderer.invoke('aiSetting:clear'),
-  // feed-ac setting import/export
+  clearAISettings: (): Promise<AISettings> => ipcRenderer.invoke('aiSetting:clear'),
   exportFeedAcSettings: (
     payload: FeedAcSettings
   ): Promise<{ ok: boolean; path?: string; message?: string }> =>
     ipcRenderer.invoke('feedAcSetting:export', payload),
-  pickImportFeedAcSettings: (): Promise<{
+  getTemplateList: (): Promise<string[]> => ipcRenderer.invoke('feedAcSetting:getTemplateList'),
+  pickImportFeedAcSettings: (
+    templateFileName?: string
+  ): Promise<{
     ok: boolean
-    content?: string
-    path?: string
+    data?: FeedAcSettingsV2
+    needMigration?: boolean
     message?: string
-  }> => ipcRenderer.invoke('feedAcSetting:pickImport'),
+  }> => ipcRenderer.invoke('feedAcSetting:pickImport', templateFileName),
   // browser executable path
   getBrowserExecPath: (): Promise<string | undefined> => ipcRenderer.invoke('browserExec:get'),
   updateBrowserExecPath: (payload: { path?: string }): Promise<string | undefined> =>
@@ -35,8 +37,7 @@ const api = {
     ipcRenderer.invoke('browserExec:testLaunch', payload),
   selectBrowserExecPath: (): Promise<string | undefined> =>
     ipcRenderer.invoke('browserExec:select'),
-  startTask: (payload: { maxCount?: number }): Promise<{ ok: boolean; message?: string }> =>
-    ipcRenderer.invoke('task:start', payload),
+  startTask: (): Promise<{ ok: boolean; message?: string }> => ipcRenderer.invoke('task:start'),
   stopTask: (): Promise<{ ok: boolean; message?: string }> => ipcRenderer.invoke('task:stop'),
   onTaskProgress: (
     handler: (p: { type: string; message: string; timestamp: number }) => void

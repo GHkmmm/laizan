@@ -2,35 +2,31 @@
 import { onMounted, onBeforeUnmount } from 'vue'
 import { NForm } from 'naive-ui'
 import { useTaskStore } from './stores/task'
-import { useSettingsStore } from './stores/settings'
 import { useLogsStore } from './stores/logs'
 import { storeToRefs } from 'pinia'
-import RuleSettings from './components/RuleSettings.vue'
+import RulesConfig from './components/RulesConfig/index.vue'
 import KeywordBlocking from './components/KeywordBlocking.vue'
 import TaskLogs from './components/TaskLogs.vue'
 import FormCount from './components/FormCount.vue'
 import RuntimeSettings from './components/RuntimeSettings.vue'
 import StartButton from './components/StartButton.vue'
 import ConfigManager from './components/ConfigManager.vue'
-import CommentContent from './components/CommentContent.vue'
+import TemplateQuickStart from './components/TemplateQuickStart.vue'
+// import CommentContent from './components/CommentContent.vue'
 
 // 使用 Pinia stores
 const taskStore = useTaskStore()
-const settingsStore = useSettingsStore()
 const logsStore = useLogsStore()
 
 // 解构需要的响应式数据（无需在此检查登录态，进入本页即已登录）
 const { taskStatus } = storeToRefs(taskStore)
 const { resetTaskStatus } = taskStore
-const { loadSettings } = settingsStore
 const { addLog, setupAutoScroll } = logsStore
 
 let offProgress: null | (() => void) = null
 let offEnded: null | (() => void) = null
 
 onMounted(async () => {
-  await loadSettings()
-
   // 设置自动滚动
   setupAutoScroll()
 
@@ -69,11 +65,11 @@ onBeforeUnmount(() => {
     <div class="flex flex-col justify-center items-center pb-10 min-h-screen">
       <template v-if="!['running', 'stopping'].includes(taskStatus)">
         <n-form size="large" label-placement="left" class="w-full px-10">
-          <!-- 规则设置组件 -->
-          <RuleSettings />
+          <!-- 快速导入模板组件 -->
+          <TemplateQuickStart />
 
-          <!-- 评论内容配置组件 -->
-          <CommentContent />
+          <!-- 规则设置组件 -->
+          <RulesConfig />
 
           <!-- 评论次数组件 -->
           <FormCount />

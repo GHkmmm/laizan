@@ -1,0 +1,139 @@
+{
+  "version": "v2",
+  "ruleGroups": [
+    {
+      "id": "education_learning_001",
+      "type": "manual",
+      "name": "学习方法",
+      "relation": "or",
+      "rules": [
+        {
+          "field": "videoDesc",
+          "keyword": "学习"
+        },
+        {
+          "field": "videoDesc",
+          "keyword": "方法"
+        },
+        {
+          "field": "videoTag",
+          "keyword": "学习方法"
+        }
+      ],
+      "children": [
+        {
+          "id": "education_learning_001_1",
+          "type": "manual",
+          "name": "考试备考",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "考试"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "备考"
+            }
+          ],
+          "commentTexts": [
+            "这个方法太实用了！📚收藏了马上试试！",
+            "讲得太清楚了！终于找到适合我的方法了👍",
+            "请问适合高中生吗？备考阶段能用吗？"
+          ]
+        },
+        {
+          "id": "education_learning_001_2",
+          "type": "manual",
+          "name": "日常学习",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "效率"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "专注"
+            }
+          ],
+          "commentTexts": [
+            "感谢分享！这个技巧我一定要试试✨",
+            "已经分享给孩子了！希望对他有帮助💪",
+            "收藏了！这个方法很科学💕"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "education_skills_002",
+      "type": "manual",
+      "name": "技能提升",
+      "relation": "or",
+      "rules": [
+        {
+          "field": "videoDesc",
+          "keyword": "技能"
+        },
+        {
+          "field": "videoDesc",
+          "keyword": "教程"
+        },
+        {
+          "field": "videoTag",
+          "keyword": "职场"
+        }
+      ],
+      "children": [
+        {
+          "id": "education_skills_002_1",
+          "type": "manual",
+          "name": "Office技能",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "Excel"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "PPT"
+            }
+          ],
+          "commentTexts": [
+            "干货满满！这个技能正是我需要的💼",
+            "零基础能学会吗？大概需要多久？",
+            "学到了！对工作真的很有帮助👏"
+          ]
+        },
+        {
+          "id": "education_skills_002_2",
+          "type": "manual",
+          "name": "职业技能",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "设计"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "编程"
+            }
+          ],
+          "commentTexts": [
+            "讲解很专业！请问有完整课程吗？",
+            "收藏了！准备好好学习一下🎯",
+            "这个技能很有用！谢谢分享✨"
+          ]
+        }
+      ]
+    }
+  ],
+  "blockKeywords": ["骗子", "交钱", "割韭菜"],
+  "authorBlockKeywords": [],
+  "simulateWatchBeforeComment": false,
+  "watchTimeRangeSeconds": [5, 15],
+  "onlyCommentActiveVideo": false,
+  "maxCount": 10
+}

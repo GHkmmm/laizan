@@ -1,0 +1,139 @@
+{
+  "version": "v2",
+  "ruleGroups": [
+    {
+      "id": "ecommerce_clothing_001",
+      "type": "manual",
+      "name": "服装穿搭",
+      "relation": "or",
+      "rules": [
+        {
+          "field": "videoDesc",
+          "keyword": "穿搭"
+        },
+        {
+          "field": "videoDesc",
+          "keyword": "outfit"
+        },
+        {
+          "field": "videoTag",
+          "keyword": "穿搭"
+        }
+      ],
+      "children": [
+        {
+          "id": "ecommerce_clothing_001_1",
+          "type": "manual",
+          "name": "日常通勤",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "通勤"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "上班"
+            }
+          ],
+          "commentTexts": [
+            "这套穿搭太好看了！👗请问链接能分享吗？",
+            "好会穿！适合上班族👍",
+            "收藏了！这个风格太适合我了😍"
+          ]
+        },
+        {
+          "id": "ecommerce_clothing_001_2",
+          "type": "manual",
+          "name": "特殊场合",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "约会"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "聚会"
+            }
+          ],
+          "commentTexts": [
+            "这个配色我太爱了💕周末就这么穿！",
+            "身材比例也太好了吧！请问多高多重？",
+            "适合学生党吗？价格大概多少？"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ecommerce_haul_002",
+      "type": "manual",
+      "name": "好物分享",
+      "relation": "or",
+      "rules": [
+        {
+          "field": "videoDesc",
+          "keyword": "好物"
+        },
+        {
+          "field": "videoDesc",
+          "keyword": "推荐"
+        },
+        {
+          "field": "videoTag",
+          "keyword": "好物推荐"
+        }
+      ],
+      "children": [
+        {
+          "id": "ecommerce_haul_002_1",
+          "type": "manual",
+          "name": "生活用品",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "生活"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "日用"
+            }
+          ],
+          "commentTexts": [
+            "第三个真的太实用了！已下单✨",
+            "质量怎么样？用了多久了？",
+            "价格美丽！性价比超高👍"
+          ]
+        },
+        {
+          "id": "ecommerce_haul_002_2",
+          "type": "manual",
+          "name": "美妆数码",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "美妆"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "数码"
+            }
+          ],
+          "commentTexts": [
+            "种草了好几个！钱包要捂不住了💸",
+            "求购买链接🙏真的太需要了！",
+            "这个真的好用！我也买了💕"
+          ]
+        }
+      ]
+    }
+  ],
+  "blockKeywords": ["假货", "退货", "质量差"],
+  "authorBlockKeywords": [],
+  "simulateWatchBeforeComment": false,
+  "watchTimeRangeSeconds": [5, 15],
+  "onlyCommentActiveVideo": false,
+  "maxCount": 10
+}

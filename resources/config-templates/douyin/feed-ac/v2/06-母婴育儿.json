@@ -1,0 +1,139 @@
+{
+  "version": "v2",
+  "ruleGroups": [
+    {
+      "id": "parenting_baby_001",
+      "type": "manual",
+      "name": "育儿知识",
+      "relation": "or",
+      "rules": [
+        {
+          "field": "videoDesc",
+          "keyword": "育儿"
+        },
+        {
+          "field": "videoDesc",
+          "keyword": "宝宝"
+        },
+        {
+          "field": "videoTag",
+          "keyword": "育儿"
+        }
+      ],
+      "children": [
+        {
+          "id": "parenting_baby_001_1",
+          "type": "manual",
+          "name": "婴儿护理",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "护理"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "婴儿"
+            }
+          ],
+          "commentTexts": [
+            "这个方法太实用了！👶我家宝宝也是这样！",
+            "请问宝宝多大适合？我家刚6个月",
+            "学到了！之前一直不知道该怎么做"
+          ]
+        },
+        {
+          "id": "parenting_baby_001_2",
+          "type": "manual",
+          "name": "儿童教育",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "教育"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "儿童"
+            }
+          ],
+          "commentTexts": [
+            "太感谢了！正好遇到这个问题💕",
+            "收藏了！新手妈妈真的太需要这些知识了",
+            "这个方法很科学！马上尝试✨"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "parenting_products_002",
+      "type": "manual",
+      "name": "母婴好物",
+      "relation": "or",
+      "rules": [
+        {
+          "field": "videoDesc",
+          "keyword": "好物"
+        },
+        {
+          "field": "videoDesc",
+          "keyword": "推荐"
+        },
+        {
+          "field": "videoTag",
+          "keyword": "母婴"
+        }
+      ],
+      "children": [
+        {
+          "id": "parenting_products_002_1",
+          "type": "manual",
+          "name": "宝宝用品",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "尿裤"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "奶瓶"
+            }
+          ],
+          "commentTexts": [
+            "这个太实用了！请问在哪买的？🛒",
+            "质量怎么样？安全吗？宝宝能用吗？",
+            "种草了！价格大概多少？"
+          ]
+        },
+        {
+          "id": "parenting_products_002_2",
+          "type": "manual",
+          "name": "妈妈用品",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "妈妈"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "孕妇"
+            }
+          ],
+          "commentTexts": [
+            "我也买了！确实很好用👍",
+            "已加购物车！看着就很不错✨",
+            "请问孕期可以用吗？有没有副作用？"
+          ]
+        }
+      ]
+    }
+  ],
+  "blockKeywords": ["三无", "不合格", "有毒"],
+  "authorBlockKeywords": [],
+  "simulateWatchBeforeComment": false,
+  "watchTimeRangeSeconds": [5, 15],
+  "onlyCommentActiveVideo": false,
+  "maxCount": 10
+}

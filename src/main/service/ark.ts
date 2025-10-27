@@ -11,7 +11,7 @@ export class ArkService {
     const response = await fetch('https://ark.cn-beijing.volces.com/api/v3/chat/completions', {
       method: 'POST',
       headers: {
-        Authorization: this.apiKey,
+        Authorization: `Bearer ${this.apiKey}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
@@ -35,6 +35,7 @@ export class ArkService {
 
     if (!response.ok) {
       // throw new Error(`HTTP error! status: ${response.status}`)
+      console.error('🛜 请求失败:', response.status, response.statusText)
       return null
     }
 

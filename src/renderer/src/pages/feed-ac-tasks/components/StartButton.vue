@@ -48,6 +48,7 @@ import { useLogsStore } from '../stores/logs'
 import { storeToRefs } from 'pinia'
 import { PlayOutline, PauseOutline } from '@vicons/ionicons5'
 import DouyinLimitDialog from './DouyinLimitDialog.vue'
+import { LocalStorageManager, STORAGE_KEYS } from '@renderer/utils/storage-keys'
 
 const taskStore = useTaskStore()
 const settingsStore = useSettingsStore()
@@ -55,16 +56,45 @@ const logsStore = useLogsStore()
 const message = useMessage()
 
 const { taskStatus } = storeToRefs(taskStore)
-const { commentTexts, dontShowDouyinLimitDialog } = storeToRefs(settingsStore)
+const { settings } = storeToRefs(settingsStore)
 const { start, stop } = taskStore
 
 // 弹窗状态
 const showDouyinLimitDialog = ref(false)
 
 const validateForm = (): boolean => {
-  // 检查评论文案
-  if (commentTexts.value.length === 0 || commentTexts.value.some((text) => !text.trim())) {
-    message.error('请至少配置一个有效的评论文案')
+  // 检查是否有规则组
+  if (settings.value.ruleGroups.length === 0) {
+    message.error('请至少配置一个规则组')
+    return false
+  }
+
+  // 递归检查所有最深层规则组是否配置了评论内容
+  const checkLeafRuleGroups = (groups: typeof settings.value.ruleGroups): boolean => {
+    for (const group of groups) {
+      // 如果有子规则组，递归检查子规则组
+      if (group.children && group.children.length > 0) {
+        if (!checkLeafRuleGroups(group.children)) {
+          return false
+        }
+      } else {
+        // 最深层规则组，检查是否配置了评论内容
+        const hasCommentTexts =
+          group.commentTexts &&
+          group.commentTexts.length > 0 &&
+          group.commentTexts.some((text) => text.trim())
+        const hasCommentImage = group.commentImagePath && group.commentImagePath.trim()
+
+        if (!hasCommentTexts && !hasCommentImage) {
+          return false
+        }
+      }
+    }
+    return true
+  }
+
+  if (!checkLeafRuleGroups(settings.value.ruleGroups)) {
+    message.error('还有未配置评论内容的规则组，请完善配置')
     return false
   }
 
@@ -79,7 +109,8 @@ const handleStart = async (): Promise<void> => {
     }
 
     // 检查是否需要显示抖音限制提示
-    if (!dontShowDouyinLimitDialog.value) {
+    const dismissed = LocalStorageManager.get(STORAGE_KEYS['laizan-douyin-limit-dialog-dismissed'])
+    if (!dismissed) {
       showDouyinLimitDialog.value = true
       return
     }
@@ -103,10 +134,9 @@ const startTask = async (): Promise<void> => {
 }
 
 const handleDouyinLimitConfirm = async (dontShowAgain: boolean): Promise<void> => {
-  // 如果用户选择了"不再提示"，更新设置
+  // 如果用户选择了"不再提示"，保存到 localStorage
   if (dontShowAgain) {
-    dontShowDouyinLimitDialog.value = true
-    await settingsStore.saveSettings()
+    LocalStorageManager.set(STORAGE_KEYS['laizan-douyin-limit-dialog-dismissed'], true)
   }
 
   // 开始任务

@@ -1,0 +1,139 @@
+{
+  "version": "v2",
+  "ruleGroups": [
+    {
+      "id": "fitness_workout_001",
+      "type": "manual",
+      "name": "健身教学",
+      "relation": "or",
+      "rules": [
+        {
+          "field": "videoDesc",
+          "keyword": "健身"
+        },
+        {
+          "field": "videoDesc",
+          "keyword": "练"
+        },
+        {
+          "field": "videoTag",
+          "keyword": "健身"
+        }
+      ],
+      "children": [
+        {
+          "id": "fitness_workout_001_1",
+          "type": "manual",
+          "name": "力量训练",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "力量"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "胸肌"
+            }
+          ],
+          "commentTexts": [
+            "这个动作标准！💪跟着练了一周效果明显",
+            "请问每天要练多久才能看到效果？",
+            "动作讲解很详细👍收藏了每天打卡！"
+          ]
+        },
+        {
+          "id": "fitness_workout_001_2",
+          "type": "manual",
+          "name": "有氧运动",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "跑步"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "有氧"
+            }
+          ],
+          "commentTexts": [
+            "这组动作太实用了！在家也能练🔥",
+            "新手能跟上吗？强度会不会太大？",
+            "收藏了！每天坚持一小时✨"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fitness_weightloss_002",
+      "type": "manual",
+      "name": "减肥瘦身",
+      "relation": "or",
+      "rules": [
+        {
+          "field": "videoDesc",
+          "keyword": "减肥"
+        },
+        {
+          "field": "videoDesc",
+          "keyword": "瘦"
+        },
+        {
+          "field": "videoTag",
+          "keyword": "减肥"
+        }
+      ],
+      "children": [
+        {
+          "id": "fitness_weightloss_002_1",
+          "type": "manual",
+          "name": "饮食管理",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "饮食"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "食谱"
+            }
+          ],
+          "commentTexts": [
+            "饮食也要控制吗？能分享一下食谱吗？🥗",
+            "这个食谱好健康！热量大概多少？",
+            "收藏了！明天就按这个吃💕"
+          ]
+        },
+        {
+          "id": "fitness_weightloss_002_2",
+          "type": "manual",
+          "name": "成功案例",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "成功"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "前后对比"
+            }
+          ],
+          "commentTexts": [
+            "太励志了！请问瘦了多少斤？用了多久？",
+            "看到你的变化真的很受鼓舞！我也要加油💪",
+            "瘦下来真的太美了✨能详细说说方法吗？"
+          ]
+        }
+      ]
+    }
+  ],
+  "blockKeywords": ["减肥药", "代餐", "节食"],
+  "authorBlockKeywords": [],
+  "simulateWatchBeforeComment": false,
+  "watchTimeRangeSeconds": [5, 15],
+  "onlyCommentActiveVideo": false,
+  "maxCount": 10
+}

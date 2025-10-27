@@ -1,5 +1,5 @@
 import { app, shell, BrowserWindow, ipcMain, dialog, OpenDialogOptions, Menu } from 'electron'
-import { existsSync, writeFileSync, readFileSync } from 'fs'
+import { existsSync, writeFileSync, readFileSync, readdirSync } from 'fs'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -10,9 +10,14 @@ import {
   updateFeedAcSettings,
   clearFeedAcSettings
 } from './workflows/feed-ac/settings'
-import { getAiSettings, updateAiSettings, getAiDefaults } from './workflows/feed-ac/ai-settings'
+import { getAiSettings, updateAiSettings } from './workflows/feed-ac/ai-settings'
 import { chromium } from '@playwright/test'
-import { FeedAcSettings } from '@shared/feed-ac-setting'
+import {
+  FeedAcSettingsV2,
+  detectConfigVersion,
+  getUnifiedFeedAcSettings
+} from '@/shared/feed-ac-setting'
+import { getDefaultAISetting } from '@/shared/ai-setting'
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -62,12 +67,12 @@ app.whenReady().then(() => {
   let currentTask: ACTask | null = null
   let running = false
 
-  ipcMain.handle('task:start', async (event, payload: { maxCount?: number } = {}) => {
+  ipcMain.handle('task:start', async (event) => {
     if (running) {
       return { ok: false, message: 'Task already running' }
     }
     const win = BrowserWindow.fromWebContents(event.sender)
-    currentTask = new ACTask({ maxCount: payload?.maxCount })
+    currentTask = new ACTask()
     running = true
 
     // 订阅进度
@@ -120,12 +125,6 @@ app.whenReady().then(() => {
     storage.delete(StorageKey.auth)
   })
 
-  // settings clear ipc
-  ipcMain.handle('feedAcSetting:clear', () => {
-    return clearFeedAcSettings()
-  })
-
-  // settings ipc
   ipcMain.handle('feedAcSetting:get', () => {
     return getFeedAcSettings()
   })
@@ -135,6 +134,9 @@ app.whenReady().then(() => {
       return updateFeedAcSettings(payload)
     }
   )
+  ipcMain.handle('feedAcSetting:clear', () => {
+    return clearFeedAcSettings()
+  })
 
   // ai setting ipc
   ipcMain.handle('aiSetting:get', () => {
@@ -146,7 +148,7 @@ app.whenReady().then(() => {
   ipcMain.handle('aiSetting:clear', () => {
     // clear ai settings by deleting and returning defaults
     storage.delete(StorageKey.aiSettings)
-    return getAiDefaults()
+    return getDefaultAISetting()
   })
 
   // browser executable path ipc
@@ -246,13 +248,12 @@ app.whenReady().then(() => {
     }
   })
 
-  // 导出 Feed AC 配置到 JSON
-  ipcMain.handle('feedAcSetting:export', async (e, payload: FeedAcSettings) => {
+  ipcMain.handle('feedAcSetting:export', async (e, payload: FeedAcSettingsV2) => {
     const win = BrowserWindow.fromWebContents(e.sender)
     const options = {
       title: '导出配置',
       filters: [{ name: 'JSON', extensions: ['json'] }],
-      defaultPath: `feed-ac-settings-${new Date()
+      defaultPath: `feed-ac-settings-v2-${new Date()
         .toISOString()
         .replace(/[:T]/g, '-')
         .slice(0, 19)}.json`
@@ -269,22 +270,105 @@ app.whenReady().then(() => {
     }
   })
 
-  // 选择并读取 JSON 配置文件内容
-  ipcMain.handle('feedAcSetting:pickImport', async (e) => {
-    const win = BrowserWindow.fromWebContents(e.sender)
-    const options: OpenDialogOptions = {
-      title: '导入配置',
-      properties: ['openFile'],
-      filters: [{ name: 'JSON', extensions: ['json'] }]
-    }
-    const result = win
-      ? await dialog.showOpenDialog(win, options)
-      : await dialog.showOpenDialog(options)
-    if (result.canceled || !result.filePaths?.length) return { ok: false, message: '用户取消' }
+  // 获取模板列表
+  ipcMain.handle('feedAcSetting:getTemplateList', async () => {
     try {
-      const filePath = result.filePaths[0]
-      const content = readFileSync(filePath, 'utf-8')
-      return { ok: true, content, path: filePath }
+      const templatesDir = join(app.getAppPath(), 'resources/config-templates/douyin/feed-ac/v2')
+      if (!existsSync(templatesDir)) {
+        return []
+      }
+      const files = readdirSync(templatesDir).filter((f) => f.endsWith('.json'))
+      return files.sort() // 按文件名排序
+    } catch (error) {
+      console.error('获取模板列表失败:', error)
+      return []
+    }
+  })
+
+  // 选择并读取 JSON 配置文件内容（支持模板导入）
+  ipcMain.handle('feedAcSetting:pickImport', async (e, templateFileName?: string) => {
+    let content: string
+    let filePath: string
+
+    try {
+      if (templateFileName) {
+        // 导入模板文件
+        filePath = join(
+          app.getAppPath(),
+          'resources/config-templates/douyin/feed-ac/v2',
+          templateFileName
+        )
+        if (!existsSync(filePath)) {
+          return { ok: false, message: '模板文件不存在' }
+        }
+        content = readFileSync(filePath, 'utf-8')
+      } else {
+        // 用户选择文件
+        const win = BrowserWindow.fromWebContents(e.sender)
+        const options: OpenDialogOptions = {
+          title: '导入配置',
+          properties: ['openFile'],
+          filters: [{ name: 'JSON', extensions: ['json'] }]
+        }
+        const result = win
+          ? await dialog.showOpenDialog(win, options)
+          : await dialog.showOpenDialog(options)
+        if (result.canceled || !result.filePaths?.length) {
+          return { ok: false, message: '用户取消' }
+        }
+        filePath = result.filePaths[0]
+        content = readFileSync(filePath, 'utf-8')
+      }
+
+      // 验证导入的配置
+      let setting: FeedAcSettingsV2
+      try {
+        setting = JSON.parse(content)
+      } catch {
+        return { ok: false, message: 'JSON 解析失败' }
+      }
+
+      if (typeof setting !== 'object' || setting === null || Object.keys(setting).length === 0) {
+        return { ok: false, message: '文件结构异常' }
+      }
+
+      // 检测配置版本
+      const version = detectConfigVersion(setting)
+
+      if (version === 'v2') {
+        // v2 配置验证
+        if (!Array.isArray(setting.authorBlockKeywords)) {
+          return { ok: false, message: '作者屏蔽词配置错误' }
+        }
+        if (!Array.isArray(setting.blockKeywords)) {
+          return { ok: false, message: '屏蔽词配置错误' }
+        }
+        if (!Array.isArray(setting.ruleGroups)) {
+          return { ok: false, message: '规则组配置错误' }
+        }
+        if (typeof setting.simulateWatchBeforeComment !== 'boolean') {
+          return { ok: false, message: '模拟观看项配置错误' }
+        }
+        if (
+          !Array.isArray(setting.watchTimeRangeSeconds) ||
+          setting.watchTimeRangeSeconds.length !== 2
+        ) {
+          return { ok: false, message: '观看时长配置错误' }
+        }
+        if (typeof setting.onlyCommentActiveVideo !== 'boolean') {
+          return { ok: false, message: '只观看活跃视频配置错误' }
+        }
+        return { ok: true, data: setting as FeedAcSettingsV2 }
+      } else if (version === 'v1') {
+        // v1 配置需要迁移
+        return {
+          ok: true,
+          data: getUnifiedFeedAcSettings(setting),
+          needMigration: true
+        }
+      } else {
+        return { ok: false, message: '不支持的配置文件格式' }
+      }
     } catch (error) {
       return { ok: false, message: String(error) }
     }
@@ -308,7 +392,11 @@ app.on('window-all-closed', () => {
   }
 })
 
-Menu.setApplicationMenu(null)
+// 是否为开发环境
+export const isDev = !app.isPackaged
+if (!isDev) {
+  Menu.setApplicationMenu(null)
+}
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.

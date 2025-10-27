@@ -1,0 +1,139 @@
+{
+  "version": "v2",
+  "ruleGroups": [
+    {
+      "id": "food_restaurant_001",
+      "type": "manual",
+      "name": "餐厅探店",
+      "relation": "or",
+      "rules": [
+        {
+          "field": "videoDesc",
+          "keyword": "探店"
+        },
+        {
+          "field": "videoDesc",
+          "keyword": "餐厅"
+        },
+        {
+          "field": "videoTag",
+          "keyword": "美食探店"
+        }
+      ],
+      "children": [
+        {
+          "id": "food_restaurant_001_1",
+          "type": "manual",
+          "name": "火锅烧烤",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "火锅"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "烧烤"
+            }
+          ],
+          "commentTexts": [
+            "这个火锅看着太诱人了🍲请问锅底是什么口味的？",
+            "烧烤看着就很香！这家店排队吗？",
+            "收藏了！下次聚餐就来这家💕"
+          ]
+        },
+        {
+          "id": "food_restaurant_001_2",
+          "type": "manual",
+          "name": "日料西餐",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "日料"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "西餐"
+            }
+          ],
+          "commentTexts": [
+            "这个摆盘太精致了✨人均多少？",
+            "环境看着很高级，适合商务宴请吗？",
+            "食材新鲜吗？值得专程去吗？"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "food_cooking_002",
+      "type": "manual",
+      "name": "烹饪教学",
+      "relation": "or",
+      "rules": [
+        {
+          "field": "videoDesc",
+          "keyword": "教程"
+        },
+        {
+          "field": "videoDesc",
+          "keyword": "做法"
+        },
+        {
+          "field": "videoTag",
+          "keyword": "美食教程"
+        }
+      ],
+      "children": [
+        {
+          "id": "food_cooking_002_1",
+          "type": "manual",
+          "name": "家常菜",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "家常"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "简单"
+            }
+          ],
+          "commentTexts": [
+            "这个太简单了！今晚就试试👨‍🍳",
+            "家常菜就该这样，实用！",
+            "收藏了！每天换着花样做给家人吃❤️"
+          ]
+        },
+        {
+          "id": "food_cooking_002_2",
+          "type": "manual",
+          "name": "烘焙甜品",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "烘焙"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "甜品"
+            }
+          ],
+          "commentTexts": [
+            "太治愈了😍烤箱温度和时间能再说一下吗？",
+            "这个造型好可爱！新手能做吗？",
+            "看着就很好吃！请问用的什么牌子的面粉？"
+          ]
+        }
+      ]
+    }
+  ],
+  "blockKeywords": ["广告", "推广", "加微信"],
+  "authorBlockKeywords": [],
+  "simulateWatchBeforeComment": false,
+  "watchTimeRangeSeconds": [5, 15],
+  "onlyCommentActiveVideo": false,
+  "maxCount": 10
+}

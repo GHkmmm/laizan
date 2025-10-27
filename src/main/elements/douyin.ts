@@ -1,5 +1,5 @@
 import { Page } from '@playwright/test'
-import { sleep } from '@utils/common'
+import { sleep } from '@/utils/common'
 
 export default class DYElementHandler {
   private _page?: Page

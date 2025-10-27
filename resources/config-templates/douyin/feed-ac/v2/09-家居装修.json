@@ -1,0 +1,139 @@
+{
+  "version": "v2",
+  "ruleGroups": [
+    {
+      "id": "home_decoration_001",
+      "type": "manual",
+      "name": "装修设计",
+      "relation": "or",
+      "rules": [
+        {
+          "field": "videoDesc",
+          "keyword": "装修"
+        },
+        {
+          "field": "videoDesc",
+          "keyword": "设计"
+        },
+        {
+          "field": "videoTag",
+          "keyword": "装修"
+        }
+      ],
+      "children": [
+        {
+          "id": "home_decoration_001_1",
+          "type": "manual",
+          "name": "现代简约",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "现代"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "简约"
+            }
+          ],
+          "commentTexts": [
+            "这个设计太赞了！🏠请问预算大概多少？",
+            "收藏了！我家也准备这样装✨",
+            "请问这是什么风格？太喜欢了💕"
+          ]
+        },
+        {
+          "id": "home_decoration_001_2",
+          "type": "manual",
+          "name": "其他风格",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "北欧"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "中式"
+            }
+          ],
+          "commentTexts": [
+            "施工周期大概多久？有什么注意事项吗？",
+            "设计师太专业了👍能分享联系方式吗？",
+            "这个风格太有特色了！喜欢😍"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "home_products_002",
+      "type": "manual",
+      "name": "家居好物",
+      "relation": "or",
+      "rules": [
+        {
+          "field": "videoDesc",
+          "keyword": "好物"
+        },
+        {
+          "field": "videoDesc",
+          "keyword": "收纳"
+        },
+        {
+          "field": "videoTag",
+          "keyword": "家居"
+        }
+      ],
+      "children": [
+        {
+          "id": "home_products_002_1",
+          "type": "manual",
+          "name": "收纳整理",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "收纳"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "整理"
+            }
+          ],
+          "commentTexts": [
+            "这个太实用了！🛋️请问哪里买的？",
+            "质量怎么样？耐用吗？",
+            "收纳效果太好了！小户型必备💡"
+          ]
+        },
+        {
+          "id": "home_products_002_2",
+          "type": "manual",
+          "name": "家具家电",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "家具"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "家电"
+            }
+          ],
+          "commentTexts": [
+            "种草了！这个价格很划算👍",
+            "我也买了！确实很好用✨",
+            "性价比不错！准备入手💕"
+          ]
+        }
+      ]
+    }
+  ],
+  "blockKeywords": ["甲醛", "质量差", "不环保"],
+  "authorBlockKeywords": [],
+  "simulateWatchBeforeComment": false,
+  "watchTimeRangeSeconds": [5, 15],
+  "onlyCommentActiveVideo": false,
+  "maxCount": 10
+}

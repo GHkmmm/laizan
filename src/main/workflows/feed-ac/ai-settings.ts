@@ -1,22 +1,9 @@
 import { storage, StorageKey } from '../../utils/storage'
-import { AiSettings, AiPlatform, PLATFORM_MODELS } from '@shared/ai-setting'
-
-export function getAiDefaults(): AiSettings {
-  return {
-    platform: 'volcengine',
-    model: 'doubao-seed-1.6-250615',
-    apiKeys: {
-      volcengine: '',
-      bailian: '',
-      openai: ''
-    }
-  }
-}
-
-export function getAiSettings(): AiSettings {
-  const saved = storage.get(StorageKey.aiSettings) as Partial<AiSettings> | undefined
-  const defaults = getAiDefaults()
-  const platform = (saved?.platform as AiPlatform) || defaults.platform
+import { AISettings, AIPlatform, PLATFORM_MODELS, getDefaultAISetting } from '@/shared/ai-setting'
+export function getAiSettings(): AISettings {
+  const saved = storage.get(StorageKey.aiSettings) as Partial<AISettings> | undefined
+  const defaults = getDefaultAISetting()
+  const platform = (saved?.platform as AIPlatform) || defaults.platform
   const candidates = PLATFORM_MODELS[platform]
   const model = candidates.includes(saved?.model || '') ? (saved!.model as string) : defaults.model
   const apiKeys = {
@@ -26,16 +13,16 @@ export function getAiSettings(): AiSettings {
   return { platform, model, apiKeys }
 }
 
-export function updateAiSettings(partial: Partial<AiSettings>): AiSettings {
+export function updateAiSettings(partial: Partial<AISettings>): AISettings {
   const current = getAiSettings()
-  const nextPlatform = (partial.platform as AiPlatform) || current.platform
+  const nextPlatform = (partial.platform as AIPlatform) || current.platform
   const candidates = PLATFORM_MODELS[nextPlatform]
   const nextModel = partial.model ?? current.model
   if (!candidates.includes(nextModel)) {
     throw new Error('所选模型与平台不匹配')
   }
 
-  const next: AiSettings = {
+  const next: AISettings = {
     platform: nextPlatform,
     model: nextModel,
     apiKeys: {
@@ -47,8 +34,8 @@ export function updateAiSettings(partial: Partial<AiSettings>): AiSettings {
   return next
 }
 
-export function resetAiSettings(): AiSettings {
-  const defaults = getAiDefaults()
+export function resetAiSettings(): AISettings {
+  const defaults = getDefaultAISetting()
   storage.set(StorageKey.aiSettings, defaults)
   return defaults
 }

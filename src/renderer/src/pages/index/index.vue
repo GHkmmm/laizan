@@ -2,12 +2,18 @@
   <n-layout has-sider class="w-screen h-screen">
     <n-layout-sider :native-scrollbar="false" bordered>
       <div class="w-full h-full flex items-center justify-start gap-4 px-4 py-4">
-        <img
-          :src="logo"
-          alt="logo"
-          class="w-[40px] h-[40px] drop-shadow-2xl/20 drop-shadow-[0_10px_20px_rgba(0,0,0,0)] drop-shadow-green-300"
-        />
-        <span class="font-bold text-lg">来赞</span>
+        <a
+          href="https://github.com/GHkmmm/laizan"
+          target="_blank"
+          class="flex items-center justify-start gap-4"
+        >
+          <img
+            :src="logo"
+            alt="logo"
+            class="w-[40px] h-[40px] drop-shadow-2xl/20 drop-shadow-[0_10px_20px_rgba(0,0,0,0)] drop-shadow-green-300"
+          />
+          <span class="font-bold text-lg">来赞</span>
+        </a>
       </div>
       <n-menu
         default-value="feed-ac-tasks"
@@ -37,7 +43,13 @@ import type { MenuOption } from 'naive-ui'
 import { NMenu, NLayout, NLayoutSider, NButton, NIcon } from 'naive-ui'
 import { Component, h, VNode } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
-import { LogOutOutline, SettingsOutline, AppsOutline, LogoTiktok } from '@vicons/ionicons5'
+import {
+  LogOutOutline,
+  SettingsOutline,
+  AppsOutline,
+  LogoTiktok,
+  ChatboxEllipsesOutline
+} from '@vicons/ionicons5'
 import logo from '../../../../../resources/icon.png'
 
 const menuOptions: MenuOption[] = [
@@ -72,6 +84,13 @@ const menuOptions: MenuOption[] = [
   },
 
   {
+    label: '建议与反馈',
+    key: 'feedback',
+    href: 'https://github.com/GHkmmm/laizan/issues/new',
+    icon: renderIcon(ChatboxEllipsesOutline)
+  },
+
+  {
     label: '全局设置',
     key: 'settings',
     routeName: 'settings',
@@ -84,6 +103,17 @@ function renderIcon(icon: Component) {
 }
 
 function renderMenuLabel(option: MenuOption): VNode {
+  if (option.href) {
+    return h(
+      'a',
+      {
+        href: option.href,
+        target: '_blank'
+      },
+      option.label as string
+    )
+  }
+
   return h(
     RouterLink,
     {

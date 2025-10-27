@@ -1,6 +1,6 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
-import type { FeedAcSettings } from '@shared/feed-ac-setting'
-import type { AiSettings } from '@shared/ai-setting'
+import type { FeedAcSettingsV2 } from '@/shared/feed-ac-setting'
+import type { AISettings } from '@/shared/ai-setting'
 
 declare global {
   interface Window {
@@ -9,26 +9,27 @@ declare global {
       hasAuth: () => Promise<boolean>
       login: () => Promise<void>
       logout: () => void
-      getFeedAcSettings: () => Promise<FeedAcSettings>
-      updateFeedAcSettings: (payload: Partial<FeedAcSettings>) => Promise<FeedAcSettings>
-      clearFeedAcSettings: () => Promise<FeedAcSettings>
-      getAiSettings: () => Promise<AiSettings>
-      updateAiSettings: (payload: Partial<AiSettings>) => Promise<AiSettings>
-      clearAiSettings: () => Promise<AiSettings>
+      getFeedAcSettings: () => Promise<FeedAcSettingsV2>
+      updateFeedAcSettings: (payload: Partial<FeedAcSettingsV2>) => Promise<FeedAcSettingsV2>
+      clearFeedAcSettings: () => Promise<FeedAcSettingsV2>
+      getAISettings: () => Promise<AISettings>
+      updateAISettings: (payload: Partial<AISettings>) => Promise<AISettings>
+      clearAISettings: () => Promise<AISettings>
       exportFeedAcSettings: (
-        payload: FeedAcSettings
+        payload: FeedAcSettingsV2
       ) => Promise<{ ok: boolean; path?: string; message?: string }>
-      pickImportFeedAcSettings: () => Promise<{
+      getTemplateList: () => Promise<string[]>
+      pickImportFeedAcSettings: (templateFileName?: string) => Promise<{
         ok: boolean
-        content?: string
-        path?: string
+        data?: FeedAcSettingsV2
+        needMigration?: boolean
         message?: string
       }>
       getBrowserExecPath: () => Promise<string | undefined>
       updateBrowserExecPath: (payload: { path?: string }) => Promise<string | undefined>
       testBrowserLaunch: (payload: { path?: string }) => Promise<{ ok: boolean; message?: string }>
       selectBrowserExecPath: () => Promise<string | undefined>
-      startTask: (payload: { maxCount?: number }) => Promise<{ ok: boolean; message?: string }>
+      startTask: () => Promise<{ ok: boolean; message?: string }>
       stopTask: () => Promise<{ ok: boolean; message?: string }>
       onTaskProgress: (
         handler: (p: { type: string; message: string; timestamp: number }) => void

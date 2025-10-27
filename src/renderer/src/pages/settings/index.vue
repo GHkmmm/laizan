@@ -12,7 +12,7 @@
         <n-form label-width="auto">
           <n-form-item label="平台">
             <n-select
-              v-model:value="platform"
+              v-model:value="aiSetting.platform"
               :options="platformOptions"
               placeholder="选择平台"
               @update:value="onPlatformChange"
@@ -20,7 +20,7 @@
           </n-form-item>
           <n-form-item label="选择模型">
             <n-select
-              v-model:value="model"
+              v-model:value="aiSetting.model"
               :options="modelOptionsForPlatform"
               :disabled="modelOptionsForPlatform.length === 0"
               placeholder="选择模型"
@@ -28,7 +28,7 @@
           </n-form-item>
           <n-form-item label="API Key">
             <n-input
-              v-model:value="apiKey"
+              v-model:value="aiSetting.apiKeys[aiSetting.platform]"
               type="password"
               show-password-on="click"
               placeholder="请输入当前平台的 API Key"
@@ -73,7 +73,8 @@
 <script setup lang="ts">
 import { ref, watch, computed, onMounted } from 'vue'
 import { useMessage, useDialog, NForm, NFormItem, NInput, NSelect, NButton, NCard } from 'naive-ui'
-import { AiPlatform } from '@shared/ai-setting'
+import { AISettings, getDefaultAISetting } from '@/shared/ai-setting'
+import { structuredClone } from '@/utils/common'
 
 const props = defineProps<{ modelValue: boolean }>()
 const emit = defineEmits<{ (e: 'update:modelValue', v: boolean): void }>()
@@ -87,9 +88,7 @@ watch(
 )
 watch(show, (v) => emit('update:modelValue', v))
 
-const platform = ref<AiPlatform>('volcengine')
-const model = ref<string>('')
-const apiKey = ref<string>('')
+const aiSetting = ref<AISettings>(getDefaultAISetting())
 
 const platformOptions = [
   { label: '火山引擎', value: 'volcengine' },
@@ -106,17 +105,14 @@ const PLATFORM_MODELS: Record<
   openai: []
 }
 
-const modelOptionsForPlatform = computed(() => PLATFORM_MODELS[platform.value])
+const modelOptionsForPlatform = computed(() => PLATFORM_MODELS[aiSetting.value.platform])
 
 const message = useMessage()
 const dialog = useDialog()
 
 onMounted(async () => {
   try {
-    const ai = await window.api.getAiSettings()
-    platform.value = ai.platform as 'volcengine' | 'bailian' | 'openai'
-    model.value = ai.model
-    apiKey.value = ai.apiKeys[platform.value] || ''
+    aiSetting.value = await window.api.getAISettings()
     browserPath.value = (await window.api.getBrowserExecPath()) || ''
   } catch (e) {
     // ignore
@@ -126,29 +122,20 @@ onMounted(async () => {
 
 const onPlatformChange = (p: 'volcengine' | 'bailian' | 'openai'): void => {
   const options = PLATFORM_MODELS[p].map((o) => o.value)
-  if (!options.includes(model.value)) {
-    model.value = options[0] || ''
+  if (!options.includes(aiSetting.value.model)) {
+    aiSetting.value.model = options[0] || ''
   }
-  apiKey.value = ''
+  aiSetting.value.apiKeys[p] = ''
 }
 
 const onSave = async (): Promise<void> => {
   try {
-    const options = PLATFORM_MODELS[platform.value].map((o) => o.value)
-    if (!options.includes(model.value)) {
+    const options = PLATFORM_MODELS[aiSetting.value.platform].map((o) => o.value)
+    if (!options.includes(aiSetting.value.model)) {
       message.error('所选模型与平台不匹配')
       return
     }
-    const next = await window.api.updateAiSettings({
-      platform: platform.value,
-      model: model.value,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      apiKeys: { [platform.value]: apiKey.value }
-    })
-    platform.value = next.platform
-    model.value = next.model
-    apiKey.value = next.apiKeys[platform.value] || ''
+    aiSetting.value = await window.api.updateAISettings(structuredClone(aiSetting.value))
     message.success('已保存')
   } catch (e) {
     message.error(String(e))
@@ -168,10 +155,7 @@ const onClearAiSettings = (): void => {
     },
     onPositiveClick: async () => {
       try {
-        const next = await window.api.clearAiSettings()
-        platform.value = next.platform as 'volcengine' | 'bailian' | 'openai'
-        model.value = next.model
-        apiKey.value = next.apiKeys[platform.value] || ''
+        aiSetting.value = await window.api.clearAISettings()
         message.success('已清空模型配置')
       } catch (e) {
         message.error(String(e))

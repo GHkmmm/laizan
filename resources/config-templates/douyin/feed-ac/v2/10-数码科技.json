@@ -1,0 +1,139 @@
+{
+  "version": "v2",
+  "ruleGroups": [
+    {
+      "id": "tech_review_001",
+      "type": "manual",
+      "name": "数码评测",
+      "relation": "or",
+      "rules": [
+        {
+          "field": "videoDesc",
+          "keyword": "评测"
+        },
+        {
+          "field": "videoDesc",
+          "keyword": "开箱"
+        },
+        {
+          "field": "videoTag",
+          "keyword": "数码"
+        }
+      ],
+      "children": [
+        {
+          "id": "tech_review_001_1",
+          "type": "manual",
+          "name": "手机平板",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "手机"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "平板"
+            }
+          ],
+          "commentTexts": [
+            "评测很专业！📱正在纠结要不要买",
+            "请问续航实际表现怎么样？",
+            "这个价位性价比确实高👍"
+          ]
+        },
+        {
+          "id": "tech_review_001_2",
+          "type": "manual",
+          "name": "电脑配件",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "电脑"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "显卡"
+            }
+          ],
+          "commentTexts": [
+            "和上一代比进步大吗？值得升级吗？",
+            "收藏了！准备618入手✨",
+            "性能提升明显吗？玩游戏流畅吗？"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tech_tips_002",
+      "type": "manual",
+      "name": "科技资讯",
+      "relation": "or",
+      "rules": [
+        {
+          "field": "videoDesc",
+          "keyword": "技巧"
+        },
+        {
+          "field": "videoDesc",
+          "keyword": "教程"
+        },
+        {
+          "field": "videoTag",
+          "keyword": "科技"
+        }
+      ],
+      "children": [
+        {
+          "id": "tech_tips_002_1",
+          "type": "manual",
+          "name": "使用技巧",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "技巧"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "小技巧"
+            }
+          ],
+          "commentTexts": [
+            "学到了！这个功能我都不知道💡",
+            "太实用了！马上去试试👍",
+            "讲解很清楚！新手也能看懂"
+          ]
+        },
+        {
+          "id": "tech_tips_002_2",
+          "type": "manual",
+          "name": "软件教程",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "软件"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "APP"
+            }
+          ],
+          "commentTexts": [
+            "收藏了！这些技巧太有用了✨",
+            "感谢分享！手机还能这么玩🔥",
+            "这个APP真的好用！已下载👍"
+          ]
+        }
+      ]
+    }
+  ],
+  "blockKeywords": ["翻车", "不推荐", "智商税"],
+  "authorBlockKeywords": [],
+  "simulateWatchBeforeComment": false,
+  "watchTimeRangeSeconds": [5, 15],
+  "onlyCommentActiveVideo": false,
+  "maxCount": 10
+}
