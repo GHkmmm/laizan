@@ -12,7 +12,7 @@ import {
 } from './workflows/feed-ac/settings'
 import { getAiSettings, updateAiSettings } from './workflows/feed-ac/ai-settings'
 import { chromium } from '@playwright/test'
-import { FeedAcSettings, FeedAcSettingsV2 } from '@/shared/feed-ac-setting'
+import { FeedAcSettingsV2 } from '@/shared/feed-ac-setting'
 import { getDefaultAISetting } from '@/shared/ai-setting'
 function createWindow(): void {
   // Create the browser window.
@@ -244,36 +244,12 @@ app.whenReady().then(() => {
     }
   })
 
-  // 导出 v2 Feed AC 配置到 JSON
-  ipcMain.handle('feedAcSetting:exportV2', async (e, payload: FeedAcSettingsV2) => {
+  ipcMain.handle('feedAcSetting:export', async (e, payload: FeedAcSettingsV2) => {
     const win = BrowserWindow.fromWebContents(e.sender)
     const options = {
       title: '导出配置',
       filters: [{ name: 'JSON', extensions: ['json'] }],
       defaultPath: `feed-ac-settings-v2-${new Date()
-        .toISOString()
-        .replace(/[:T]/g, '-')
-        .slice(0, 19)}.json`
-    }
-    const result = win
-      ? await dialog.showSaveDialog(win, options)
-      : await dialog.showSaveDialog(options)
-    if (result.canceled || !result.filePath) return { ok: false, message: '用户取消' }
-    try {
-      writeFileSync(result.filePath, JSON.stringify(payload ?? {}, null, 2), 'utf-8')
-      return { ok: true, path: result.filePath }
-    } catch (error) {
-      return { ok: false, message: String(error) }
-    }
-  })
-
-  // 保持向后兼容的 v1 导出
-  ipcMain.handle('feedAcSetting:export', async (e, payload: FeedAcSettings) => {
-    const win = BrowserWindow.fromWebContents(e.sender)
-    const options = {
-      title: '导出配置',
-      filters: [{ name: 'JSON', extensions: ['json'] }],
-      defaultPath: `feed-ac-settings-v1-${new Date()
         .toISOString()
         .replace(/[:T]/g, '-')
         .slice(0, 19)}.json`

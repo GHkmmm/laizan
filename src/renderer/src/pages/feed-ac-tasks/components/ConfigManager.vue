@@ -8,6 +8,7 @@ import {
   detectConfigVersion,
   getUnifiedFeedAcSettings
 } from '@/shared/feed-ac-setting'
+import { structuredClone } from '@/utils/common'
 
 const message = useMessage()
 const dialog = useDialog()
@@ -23,10 +24,6 @@ const options = [
   { label: '导出配置', key: 'export' as Key },
   { label: '清空配置', key: 'clear' as Key }
 ]
-
-const getCurrentSettingsPayload = (): FeedAcSettingsV2 => {
-  return { ...settingsStore.settings }
-}
 
 const validateImported = (
   content: string | undefined
@@ -44,6 +41,7 @@ const validateImported = (
   try {
     // 检测配置版本
     const version = detectConfigVersion(setting)
+    console.log('配置版本：', version)
 
     if (version === 'v2') {
       // v2 配置验证
@@ -83,8 +81,7 @@ const handleSelect = async (key: Key): Promise<void> => {
   switch (key) {
     case 'export': {
       try {
-        const payload = getCurrentSettingsPayload()
-        const res = await window.api.exportFeedAcSettings(payload)
+        const res = await window.api.exportFeedAcSettings(structuredClone(settingsStore.settings))
         if (res.ok) {
           message.success(`已导出到：${res.path}`)
         } else {

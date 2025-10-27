@@ -9,6 +9,7 @@ import { ArkService } from '../../service/ark'
 import { EventEmitter } from 'events'
 import { getFeedAcSettings } from './settings'
 import { getAiSettings } from './ai-settings'
+import { FeedAcRuleGroups, FeedAcSettingsV2 } from '@/shared/feed-ac-setting'
 
 // 检查视频活跃度的接口
 interface VideoActivityResult {
@@ -217,7 +218,7 @@ export default class ACTask extends EventEmitter {
         if (activityCheck.shouldComment) {
           console.log('尝试发布评论')
           this._emitProgress('try-comment', '尝试发布评论')
-          const commentSuccess = await this._postComment()
+          const commentSuccess = await this._postComment(videoAnalysis.matchedRuleGroup)
           if (commentSuccess) {
             commentCount++
             console.log(`评论发送成功，已评论次数：${commentCount}/${this._maxCount}`)
@@ -367,49 +368,29 @@ export default class ACTask extends EventEmitter {
     }
   }
 
-  // 根据用户配置的规则判断是否需要评论及是否需要模拟观看
-  async _analyzeVideoType(
-    videoInfo: FeedItem,
-    settings: ReturnType<typeof getFeedAcSettings>
-  ): Promise<{
-    shouldSimulateWatch: boolean
-    shouldViewComment: boolean
-  }> {
-    const rules = Array.isArray(settings.rules) ? settings.rules : []
-    const relation = settings.ruleRelation || 'or'
-
-    // 第一步：规则列表过滤
-    const matches = rules.map((rule) => {
-      if (!rule || !rule.keyword) return false
-      if (rule.field === 'nickName') {
-        return videoInfo.author.nickname.includes(rule.keyword)
-      }
-      if (rule.field === 'videoDesc') {
-        return (videoInfo.desc || '').includes(rule.keyword)
-      }
-      if (rule.field === 'videoTag') {
-        return (videoInfo.video_tag || []).some((t) => t.tag_name.includes(rule.keyword))
-      }
-      return false
-    })
-
-    const rulesMatched =
-      matches.length === 0
-        ? false
-        : relation === 'and'
-          ? matches.every(Boolean)
-          : matches.some(Boolean)
-
-    // 如果规则不匹配，直接返回不观看
-    if (!rulesMatched) {
-      return {
-        shouldSimulateWatch: false,
-        shouldViewComment: false
+  // 递归匹配规则组 - 同级规则组只要有一个匹配成功就停止
+  async _matchRuleGroups(
+    ruleGroups: FeedAcRuleGroups[],
+    videoInfo: FeedItem
+  ): Promise<FeedAcRuleGroups | null> {
+    for (const ruleGroup of ruleGroups) {
+      const matched = await this._matchRuleGroup(ruleGroup, videoInfo)
+      if (matched) {
+        return matched
       }
     }
+    return null
+  }
 
-    // 第二步：如果启用AI过滤，进行AI判断
-    if (settings.enableAIVideoFilter && settings.customAIVideoFilterPrompt) {
+  // 匹配单个规则组 - 如果匹配成功且有子规则组，必须继续匹配子规则组
+  async _matchRuleGroup(
+    ruleGroup: FeedAcRuleGroups,
+    videoInfo: FeedItem
+  ): Promise<FeedAcRuleGroups | null> {
+    let currentRuleGroupMatched = false
+
+    // 如果是AI判断类型
+    if (ruleGroup.type === 'ai' && ruleGroup.aiPrompt) {
       try {
         const aiSettings = getAiSettings()
         const arkService = new ArkService({
@@ -423,34 +404,87 @@ export default class ACTask extends EventEmitter {
           videoTag: videoInfo.video_tag
         })
 
-        const aiResult = await arkService.analyzeVideoType(
-          videoInfoStr,
-          settings.customAIVideoFilterPrompt
-        )
+        const aiResult = await arkService.analyzeVideoType(videoInfoStr, ruleGroup.aiPrompt)
+        console.log(`AI规则组 "${ruleGroup.name}" 判断结果:`, aiResult)
 
-        console.log('AI视频过滤结果:', aiResult)
-
-        // AI判断不观看，则最终不观看
-        if (!aiResult.shouldWatch) {
-          return {
-            shouldSimulateWatch: false,
-            shouldViewComment: false
-          }
-        }
+        currentRuleGroupMatched = aiResult.shouldWatch
       } catch (error) {
-        console.error('AI视频过滤失败:', error)
-        // AI判断失败等同于AI认为不需要观看
-        return {
-          shouldSimulateWatch: false,
-          shouldViewComment: false
-        }
+        console.error(`AI规则组 "${ruleGroup.name}" 判断失败:`, error)
+        currentRuleGroupMatched = false
       }
     }
 
-    // 规则匹配且AI判断通过（如果启用），返回观看
+    // 如果是手动配置类型
+    if (ruleGroup.type === 'manual' && ruleGroup.rules && ruleGroup.rules.length > 0) {
+      const relation = ruleGroup.relation || 'or'
+      const matches = ruleGroup.rules.map((rule) => {
+        if (!rule || !rule.keyword) return false
+        if (rule.field === 'nickName') {
+          return videoInfo.author.nickname.includes(rule.keyword)
+        }
+        if (rule.field === 'videoDesc') {
+          return (videoInfo.desc || '').includes(rule.keyword)
+        }
+        if (rule.field === 'videoTag') {
+          return (videoInfo.video_tag || []).some((t) => t.tag_name.includes(rule.keyword))
+        }
+        return false
+      })
+
+      currentRuleGroupMatched = relation === 'and' ? matches.every(Boolean) : matches.some(Boolean)
+
+      if (currentRuleGroupMatched) {
+        console.log(`手动规则组 "${ruleGroup.name}" 匹配成功`)
+      }
+    }
+
+    // 如果当前规则组匹配成功
+    if (currentRuleGroupMatched) {
+      // 如果有子规则组，必须继续匹配子规则组
+      if (ruleGroup.children && ruleGroup.children.length > 0) {
+        const matchedChild = await this._matchRuleGroups(ruleGroup.children, videoInfo)
+        if (matchedChild) {
+          return matchedChild
+        } else {
+          // 子规则组没有匹配成功，当前规则组也不算匹配成功
+          return null
+        }
+      } else {
+        // 没有子规则组，当前规则组就是最终匹配的规则组
+        return ruleGroup
+      }
+    }
+
+    return null
+  }
+
+  // 根据用户配置的规则判断是否需要评论及是否需要模拟观看
+  async _analyzeVideoType(
+    videoInfo: FeedItem,
+    settings: FeedAcSettingsV2
+  ): Promise<{
+    shouldSimulateWatch: boolean
+    shouldViewComment: boolean
+    matchedRuleGroup?: FeedAcRuleGroups
+  }> {
+    // 使用V2规则组匹配
+    const matchedRuleGroup = await this._matchRuleGroups(settings.ruleGroups, videoInfo)
+
+    // 如果没有匹配的规则组，直接返回不观看
+    if (!matchedRuleGroup) {
+      return {
+        shouldSimulateWatch: false,
+        shouldViewComment: false
+      }
+    }
+
+    console.log(`匹配到规则组: ${matchedRuleGroup.name}`)
+
+    // 规则匹配成功，返回观看
     return {
       shouldSimulateWatch: Boolean(settings.simulateWatchBeforeComment),
-      shouldViewComment: true
+      shouldViewComment: true,
+      matchedRuleGroup
     }
   }
 
@@ -490,10 +524,10 @@ export default class ACTask extends EventEmitter {
     }
   }
 
-  async _postComment(): Promise<boolean> {
+  async _postComment(matchedRuleGroup?: FeedAcRuleGroups): Promise<boolean> {
     try {
       // 从用户配置中获取随机评论内容
-      const randomComment = this._getRandomComment()
+      const randomComment = this._getRandomComment(matchedRuleGroup)
       console.log(`随机选择评论内容: ${randomComment}`)
 
       // 查找评论输入框容器
@@ -539,7 +573,7 @@ export default class ACTask extends EventEmitter {
       // 尝试添加图片
       try {
         // 从用户配置中获取图片路径
-        const imagePath = this._selectImagePath()
+        const imagePath = this._selectImagePath(matchedRuleGroup)
         console.log(`选择图片路径: ${imagePath}`)
 
         // 如果配置了图片路径，则上传图片
@@ -669,16 +703,19 @@ export default class ACTask extends EventEmitter {
   }
 
   // 随机选择评论内容
-  _getRandomComment(): string {
-    const settings = getFeedAcSettings()
-    const customTexts = settings.commentTexts || []
-
-    if (customTexts.length === 0) {
-      throw new Error('未配置评论文案')
+  _getRandomComment(matchedRuleGroup?: FeedAcRuleGroups): string {
+    // 优先从匹配的规则组中获取评论内容
+    if (
+      matchedRuleGroup &&
+      matchedRuleGroup.commentTexts &&
+      matchedRuleGroup.commentTexts.length > 0
+    ) {
+      const randomIndex = Math.floor(Math.random() * matchedRuleGroup.commentTexts.length)
+      return matchedRuleGroup.commentTexts[randomIndex]
     }
 
-    const randomIndex = Math.floor(Math.random() * customTexts.length)
-    return customTexts[randomIndex]
+    // 如果没有匹配的规则组或规则组没有配置评论内容，抛出错误
+    throw new Error('未配置评论文案，请在规则组中配置评论内容')
   }
 
   // 使用快捷键开启评论区并监听评论接口数据
@@ -813,20 +850,22 @@ export default class ACTask extends EventEmitter {
 
   // 根据视频描述选择合适的图片路径
   // 选择图片路径
-  _selectImagePath(): string {
-    const settings = getFeedAcSettings()
-
-    if (!settings.commentImagePath) {
-      return '' // 不配置图片
+  _selectImagePath(matchedRuleGroup?: FeedAcRuleGroups): string {
+    // 优先从匹配的规则组中获取图片配置
+    if (matchedRuleGroup && matchedRuleGroup.commentImagePath) {
+      if (matchedRuleGroup.commentImageType === 'file') {
+        // 单文件模式
+        return fs.existsSync(matchedRuleGroup.commentImagePath)
+          ? matchedRuleGroup.commentImagePath
+          : ''
+      } else {
+        // 文件夹模式
+        return this._getRandomImageFromFolder(matchedRuleGroup.commentImagePath)
+      }
     }
 
-    if (settings.commentImageType === 'file') {
-      // 单文件模式
-      return fs.existsSync(settings.commentImagePath) ? settings.commentImagePath : ''
-    } else {
-      // 文件夹模式
-      return this._getRandomImageFromFolder(settings.commentImagePath)
-    }
+    // 如果没有匹配的规则组或规则组没有配置图片，返回空字符串（不配置图片）
+    return ''
   }
 
   // 从文件夹随机选择图片

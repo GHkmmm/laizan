@@ -87,9 +87,10 @@ export function getDefaultFeedAcSettingsV2(): FeedAcSettingsV2 {
 
 // 检测配置版本
 export function detectConfigVersion(config?: FeedAcSettingsUnion): 'v1' | 'v2' | 'unknown' {
+  console.log('detectConfigVersion', config)
   if (config && typeof config === 'object') {
     // v1 配置的特征：有 rules 数组但没有 version 字段
-    if (!('rules' in config) && 'rules' in config && Array.isArray(config.rules)) {
+    if (!('version' in config) && 'rules' in config && Array.isArray(config.rules)) {
       return 'v1'
     }
     if ('version' in config && config.version === 'v2') {

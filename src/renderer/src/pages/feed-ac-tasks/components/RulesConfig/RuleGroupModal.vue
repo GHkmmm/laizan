@@ -8,7 +8,15 @@
       <n-radio-group v-model:value="ruleType" name="ruleType">
         <n-space>
           <n-radio :value="'manual'">手动配置规则</n-radio>
-          <n-radio :value="'ai'" :disabled="!isAiConfigured || loading">AI判断</n-radio>
+          <n-popover trigger="hover" :disabled="isAiConfigured">
+            <template #trigger>
+              <n-radio :value="'ai'" :disabled="!isAiConfigured || loading">AI判断</n-radio>
+            </template>
+            <div>
+              请前往<strong class="px-1 text-green-300">全局设置-模型设置</strong
+              >，完成AI相关配置后启用
+            </div>
+          </n-popover>
         </n-space>
       </n-radio-group>
     </n-form-item>
@@ -64,7 +72,17 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { NForm, NFormItem, NRadioGroup, NRadio, NSpace, NInput, NSelect, NButton } from 'naive-ui'
+import {
+  NForm,
+  NFormItem,
+  NRadioGroup,
+  NRadio,
+  NSpace,
+  NInput,
+  NSelect,
+  NButton,
+  NPopover
+} from 'naive-ui'
 import type { FeedAcRule, FeedAcRuleGroups } from '@/shared/feed-ac-setting'
 import { customAlphabet } from 'nanoid'
 import { useAiSettings } from '../../hooks/useAiSettings'
