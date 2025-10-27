@@ -143,7 +143,7 @@ function handleEditRuleGroup(id: string, ruleGroupData: FeedAcRuleGroups): void 
   const updateRuleGroup = (groups: FeedAcRuleGroups[]): boolean => {
     for (let i = 0; i < groups.length; i++) {
       if (groups[i].id === id) {
-        groups[i] = ruleGroupData
+        groups[i] = Object.assign({}, groups[i], ruleGroupData)
         return true
       }
 
