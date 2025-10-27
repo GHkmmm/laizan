@@ -7,8 +7,8 @@
     <n-form-item label="规则类型" required>
       <n-radio-group v-model:value="ruleType" name="ruleType">
         <n-space>
-          <n-radio value="ai">AI判断</n-radio>
-          <n-radio value="manual">手动配置规则</n-radio>
+          <n-radio :value="'manual'">手动配置规则</n-radio>
+          <n-radio :value="'ai'" :disabled="!isAiConfigured || loading">AI判断</n-radio>
         </n-space>
       </n-radio-group>
     </n-form-item>
@@ -67,6 +67,7 @@ import { ref, watch } from 'vue'
 import { NForm, NFormItem, NRadioGroup, NRadio, NSpace, NInput, NSelect, NButton } from 'naive-ui'
 import type { FeedAcRule, FeedAcRuleGroups } from '@/shared/feed-ac-setting'
 import { customAlphabet } from 'nanoid'
+import { useAiSettings } from '../../hooks/useAiSettings'
 
 // 定义 props
 const props = defineProps<{
@@ -80,6 +81,9 @@ interface ModalEmits {
 }
 
 const emit = defineEmits<ModalEmits>()
+
+// 使用自定义hooks获取AI设置
+const { isAiConfigured, loading } = useAiSettings()
 
 // 生成唯一ID的函数
 const nanoid = customAlphabet('1234567890abcdef', 16)
