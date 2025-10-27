@@ -48,6 +48,7 @@ import { useLogsStore } from '../stores/logs'
 import { storeToRefs } from 'pinia'
 import { PlayOutline, PauseOutline } from '@vicons/ionicons5'
 import DouyinLimitDialog from './DouyinLimitDialog.vue'
+import { LocalStorageManager, STORAGE_KEYS } from '@renderer/utils/storage-keys'
 
 const taskStore = useTaskStore()
 const settingsStore = useSettingsStore()
@@ -108,7 +109,8 @@ const handleStart = async (): Promise<void> => {
     }
 
     // 检查是否需要显示抖音限制提示
-    if (!settings.value.dontShowDouyinLimitDialog) {
+    const dismissed = LocalStorageManager.get(STORAGE_KEYS['laizan-douyin-limit-dialog-dismissed'])
+    if (!dismissed) {
       showDouyinLimitDialog.value = true
       return
     }
@@ -132,10 +134,9 @@ const startTask = async (): Promise<void> => {
 }
 
 const handleDouyinLimitConfirm = async (dontShowAgain: boolean): Promise<void> => {
-  // 如果用户选择了"不再提示"，更新设置
+  // 如果用户选择了"不再提示"，保存到 localStorage
   if (dontShowAgain) {
-    settings.value.dontShowDouyinLimitDialog = true
-    await settingsStore.saveSettings()
+    LocalStorageManager.set(STORAGE_KEYS['laizan-douyin-limit-dialog-dismissed'], true)
   }
 
   // 开始任务

@@ -4,6 +4,7 @@ import { NButton, NDropdown, useDialog, useMessage } from 'naive-ui'
 import { useTaskStore } from '../stores/task'
 import { useSettingsStore } from '../stores/settings'
 import { structuredClone } from '@/utils/common'
+import { LocalStorageManager, STORAGE_KEYS } from '@renderer/utils/storage-keys'
 
 const message = useMessage()
 const dialog = useDialog()
@@ -13,11 +14,12 @@ const settingsStore = useSettingsStore()
 
 const disabled = computed(() => ['running', 'stopping'].includes(taskStore.taskStatus))
 
-type Key = 'import' | 'export' | 'clear'
+type Key = 'import' | 'export' | 'clear' | 'templates'
 const options = [
   { label: '导入配置', key: 'import' as Key },
   { label: '导出配置', key: 'export' as Key },
-  { label: '清空配置', key: 'clear' as Key }
+  { label: '清空配置', key: 'clear' as Key },
+  { label: '配置模版', key: 'templates' as Key }
 ]
 
 const handleSelect = async (key: Key): Promise<void> => {
@@ -105,6 +107,13 @@ const handleSelect = async (key: Key): Promise<void> => {
           }
         }
       })
+      break
+    }
+    case 'templates': {
+      // 清空缓存，触发模板提示重新显示
+      LocalStorageManager.remove(STORAGE_KEYS['laizan-template-alert-dismissed'])
+      // 刷新页面以重新显示模板提示
+      window.location.reload()
       break
     }
   }

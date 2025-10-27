@@ -135,6 +135,5 @@
   "simulateWatchBeforeComment": false,
   "watchTimeRangeSeconds": [5, 15],
   "onlyCommentActiveVideo": false,
-  "dontShowDouyinLimitDialog": false,
   "maxCount": 10
 }

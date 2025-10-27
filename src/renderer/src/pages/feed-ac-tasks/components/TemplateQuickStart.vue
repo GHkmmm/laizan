@@ -43,8 +43,7 @@ import { ref, onMounted } from 'vue'
 import { NAlert, NTag, NIcon, useDialog, useMessage } from 'naive-ui'
 import { useSettingsStore } from '../stores/settings'
 import { Happy } from '@vicons/ionicons5'
-
-const STORAGE_KEY = 'laizan-template-alert-dismissed'
+import { LocalStorageManager, STORAGE_KEYS } from '@renderer/utils/storage-keys'
 
 const message = useMessage()
 const dialog = useDialog()
@@ -93,14 +92,14 @@ const handleTemplateClick = async (fileName: string): Promise<void> => {
 
 // 处理关闭
 const handleClose = (): void => {
-  localStorage.setItem(STORAGE_KEY, 'true')
+  LocalStorageManager.set(STORAGE_KEYS['laizan-template-alert-dismissed'], true)
   visible.value = false
 }
 
 // 组件挂载时检查
 onMounted(async () => {
   // 检查是否已关闭
-  if (localStorage.getItem(STORAGE_KEY)) {
+  if (LocalStorageManager.get(STORAGE_KEYS['laizan-template-alert-dismissed'])) {
     visible.value = false
     return
   }
