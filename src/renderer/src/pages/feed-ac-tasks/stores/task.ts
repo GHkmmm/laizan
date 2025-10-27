@@ -3,26 +3,16 @@ import { ref } from 'vue'
 
 export type TaskStatus = 'idle' | 'starting' | 'running' | 'stopping'
 
-export interface TaskForm {
-  maxCount: number
-}
-
 export const useTaskStore = defineStore('task', () => {
   const taskStatus = ref<TaskStatus>('idle')
-  const formModel = ref<TaskForm>({
-    maxCount: 10
-  })
 
   const start = async (): Promise<void> => {
     if (taskStatus.value !== 'idle') return
 
-    const count = Number(formModel.value.maxCount)
-    const safeCount = Number.isFinite(count) && count > 0 ? Math.floor(count) : 1
-
     taskStatus.value = 'starting'
 
     try {
-      const result = await window.api.startTask({ maxCount: safeCount })
+      const result = await window.api.startTask()
       if (result.ok) {
         taskStatus.value = 'running'
       } else {
@@ -58,7 +48,6 @@ export const useTaskStore = defineStore('task', () => {
 
   return {
     taskStatus,
-    formModel,
     start,
     stop,
     resetTaskStatus

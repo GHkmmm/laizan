@@ -63,12 +63,12 @@ app.whenReady().then(() => {
   let currentTask: ACTask | null = null
   let running = false
 
-  ipcMain.handle('task:start', async (event, payload: { maxCount?: number } = {}) => {
+  ipcMain.handle('task:start', async (event) => {
     if (running) {
       return { ok: false, message: 'Task already running' }
     }
     const win = BrowserWindow.fromWebContents(event.sender)
-    currentTask = new ACTask({ maxCount: payload?.maxCount })
+    currentTask = new ACTask()
     running = true
 
     // 订阅进度

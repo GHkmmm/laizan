@@ -52,6 +52,7 @@ export interface FeedAcSettingsV2 {
   watchTimeRangeSeconds: [number, number]
   onlyCommentActiveVideo: boolean
   dontShowDouyinLimitDialog?: boolean
+  maxCount: number
 }
 
 export function getDefaultFeedAcSettings(): FeedAcSettings {
@@ -81,7 +82,8 @@ export function getDefaultFeedAcSettingsV2(): FeedAcSettingsV2 {
     simulateWatchBeforeComment: false,
     watchTimeRangeSeconds: [5, 15],
     onlyCommentActiveVideo: false,
-    dontShowDouyinLimitDialog: false
+    dontShowDouyinLimitDialog: false,
+    maxCount: 10
   }
 }
 
@@ -124,7 +126,8 @@ export function migrateV1ToV2(v1Config: FeedAcSettings): FeedAcSettingsV2 {
     simulateWatchBeforeComment: v1Config.simulateWatchBeforeComment,
     watchTimeRangeSeconds: [...v1Config.watchTimeRangeSeconds],
     onlyCommentActiveVideo: v1Config.onlyCommentActiveVideo,
-    dontShowDouyinLimitDialog: v1Config.dontShowDouyinLimitDialog
+    dontShowDouyinLimitDialog: v1Config.dontShowDouyinLimitDialog,
+    maxCount: 10 // 默认值
   }
 }
 

@@ -66,7 +66,6 @@ export async function loginAndStorageState(): Promise<void> {
 }
 
 export default class ACTask extends EventEmitter {
-  private _maxCount: number = 10
   private _browser?: Browser
   private _page?: Page
   private _dyElementHandler!: DYElementHandler
@@ -75,9 +74,8 @@ export default class ACTask extends EventEmitter {
   // 用于缓存视频数据的Map
   private _videoDataCache = new Map<string, FeedItem>()
 
-  constructor({ maxCount }: { maxCount?: number } = {}) {
+  constructor() {
     super()
-    maxCount && (this._maxCount = maxCount)
   }
 
   async _launch(): Promise<void> {
@@ -114,17 +112,19 @@ export default class ACTask extends EventEmitter {
 
     let commentCount = 0 // 记录已评论次数
 
+    const maxCount = settings.maxCount || 10
+
     // 循环处理视频，直到达到评论次数限制
-    for (let i = 0; commentCount < this._maxCount; i++) {
+    for (let i = 0; commentCount < maxCount; i++) {
       if (this._stopped) {
         throw new Error('Task stopped')
       }
       console.log(
-        `\n\n====== 开始处理第 ${i + 1} 个视频，已评论次数：${commentCount}/${this._maxCount} ======\n\n`
+        `\n\n====== 开始处理第 ${i + 1} 个视频，已评论次数：${commentCount}/${maxCount} ======\n\n`
       )
       this._emitProgress(
         'processing',
-        `开始处理第 ${i + 1} 个视频，已评论次数：${commentCount}/${this._maxCount}`
+        `开始处理第 ${i + 1} 个视频，已评论次数：${commentCount}/${maxCount}`
       )
 
       // 获取当前视频信息
@@ -221,15 +221,15 @@ export default class ACTask extends EventEmitter {
           const commentSuccess = await this._postComment(videoAnalysis.matchedRuleGroup)
           if (commentSuccess) {
             commentCount++
-            console.log(`评论发送成功，已评论次数：${commentCount}/${this._maxCount}`)
-            this._emitProgress('comment-success', `评论成功 ${commentCount}/${this._maxCount}`)
+            console.log(`评论发送成功，已评论次数：${commentCount}/${maxCount}`)
+            this._emitProgress('comment-success', `评论成功 ${commentCount}/${maxCount}`)
             await sleep(random(1000, 3000))
             console.log('关闭评论区')
             await this._dyElementHandler.closeCommentSection()
             await sleep(random(1000, 2000))
-            if (commentCount >= this._maxCount) {
-              console.log(`已达到评论次数限制 ${this._maxCount}，任务完成`)
-              this._emitProgress('completed', `已达到评论次数限制 ${this._maxCount}，任务完成`)
+            if (commentCount >= maxCount) {
+              console.log(`已达到评论次数限制 ${maxCount}，任务完成`)
+              this._emitProgress('completed', `已达到评论次数限制 ${maxCount}，任务完成`)
               break
             }
           } else {
