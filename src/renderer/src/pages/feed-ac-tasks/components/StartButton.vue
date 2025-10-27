@@ -68,18 +68,32 @@ const validateForm = (): boolean => {
     return false
   }
 
-  // 检查规则组是否有评论内容
-  const hasValidComment = settings.value.ruleGroups.some((group) => {
-    const hasCommentTexts =
-      group.commentTexts &&
-      group.commentTexts.length > 0 &&
-      group.commentTexts.some((text) => text.trim())
-    const hasCommentImage = group.commentImagePath && group.commentImagePath.trim()
-    return hasCommentTexts || hasCommentImage
-  })
+  // 递归检查所有最深层规则组是否配置了评论内容
+  const checkLeafRuleGroups = (groups: typeof settings.value.ruleGroups): boolean => {
+    for (const group of groups) {
+      // 如果有子规则组，递归检查子规则组
+      if (group.children && group.children.length > 0) {
+        if (!checkLeafRuleGroups(group.children)) {
+          return false
+        }
+      } else {
+        // 最深层规则组，检查是否配置了评论内容
+        const hasCommentTexts =
+          group.commentTexts &&
+          group.commentTexts.length > 0 &&
+          group.commentTexts.some((text) => text.trim())
+        const hasCommentImage = group.commentImagePath && group.commentImagePath.trim()
 
-  if (!hasValidComment) {
-    message.error('请至少在一个规则组中配置评论内容')
+        if (!hasCommentTexts && !hasCommentImage) {
+          return false
+        }
+      }
+    }
+    return true
+  }
+
+  if (!checkLeafRuleGroups(settings.value.ruleGroups)) {
+    message.error('还有未配置评论内容的规则组，请完善配置')
     return false
   }
 
