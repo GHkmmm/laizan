@@ -1,11 +1,14 @@
 <template>
-  <n-form-item label="规则配置：">
-    <div class="flex flex-col gap-3 pt-1 w-full">
+  <n-form-item label="规则配置：" label-placement="top">
+    <!-- <template #label>
+      <h2 class="text-lg">规则配置：</h2>
+    </template> -->
+    <div class="flex flex-col gap-3 w-full">
       <div class="flex justify-between items-center">
         <h4 class="text-xs font-bold text-gray-400">当视频满足以下规则配置 系统会自动评论</h4>
         <n-button secondary type="primary" size="medium" @click="handleAddRuleGroup"
-          >新增规则组</n-button
-        >
+          >新增规则组
+        </n-button>
       </div>
       <n-data-table
         bordered
@@ -34,29 +37,35 @@ import { storeToRefs } from 'pinia'
 const modal = useModal()
 const settingsStore = useSettingsStore()
 const { settings } = storeToRefs(settingsStore)
-const { saveSettings } = settingsStore
+const { saveSettings, onSettingsLoaded } = settingsStore
+
+// 递归获取所有包含子规则的规则组ID
+const getAllParentIds = (groups: FeedAcRuleGroups[]): DataTableRowKey[] => {
+  const ids: DataTableRowKey[] = []
+
+  groups.forEach((group) => {
+    if (group.children && group.children.length > 0) {
+      ids.push(group.id)
+      // 递归获取子规则组中的父级ID
+      ids.push(...getAllParentIds(group.children))
+    }
+  })
+
+  return ids
+}
+
+// 展开所有包含子规则的规则组
+const expandAllRuleGroups = (): void => {
+  expandedRowKeys.value = getAllParentIds(settings.value.ruleGroups)
+}
 
 // 组件挂载时加载配置
 onMounted(async () => {
   await settingsStore.loadSettings()
-
-  // 递归获取所有包含子规则的规则组ID
-  const getAllParentIds = (groups: FeedAcRuleGroups[]): DataTableRowKey[] => {
-    const ids: DataTableRowKey[] = []
-
-    groups.forEach((group) => {
-      if (group.children && group.children.length > 0) {
-        ids.push(group.id)
-        // 递归获取子规则组中的父级ID
-        ids.push(...getAllParentIds(group.children))
-      }
-    })
-
-    return ids
-  }
-
-  // 默认展开所有包含子规则的规则组
-  expandedRowKeys.value = getAllParentIds(settings.value.ruleGroups)
+  // 初始加载时展开所有规则组
+  expandAllRuleGroups()
+  // 注册配置加载完成的回调，当导入配置时也会展开所有规则组
+  onSettingsLoaded(expandAllRuleGroups)
 })
 
 // 控制展开的行键值

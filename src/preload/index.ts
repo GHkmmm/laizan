@@ -20,12 +20,15 @@ const api = {
     payload: FeedAcSettings
   ): Promise<{ ok: boolean; path?: string; message?: string }> =>
     ipcRenderer.invoke('feedAcSetting:export', payload),
-  pickImportFeedAcSettings: (): Promise<{
+  getTemplateList: (): Promise<string[]> => ipcRenderer.invoke('feedAcSetting:getTemplateList'),
+  pickImportFeedAcSettings: (
+    templateFileName?: string
+  ): Promise<{
     ok: boolean
-    content?: string
-    path?: string
+    data?: FeedAcSettingsV2
+    needMigration?: boolean
     message?: string
-  }> => ipcRenderer.invoke('feedAcSetting:pickImport'),
+  }> => ipcRenderer.invoke('feedAcSetting:pickImport', templateFileName),
   // browser executable path
   getBrowserExecPath: (): Promise<string | undefined> => ipcRenderer.invoke('browserExec:get'),
   updateBrowserExecPath: (payload: { path?: string }): Promise<string | undefined> =>

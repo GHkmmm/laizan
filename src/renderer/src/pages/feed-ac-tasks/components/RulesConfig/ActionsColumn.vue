@@ -1,12 +1,12 @@
 <template>
   <n-button-group size="small" class="items-center">
-    <n-button ghost type="primary" tertiary @click="handleEdit">编辑</n-button>
+    <n-button ghost type="primary" :bordered="false" @click="handleEdit">编辑</n-button>
     <n-divider vertical />
-    <n-button ghost type="primary" tertiary @click="handleCopy">复制</n-button>
+    <n-button ghost type="primary" :bordered="false" @click="handleCopy">复制</n-button>
     <n-divider vertical />
-    <n-button ghost type="primary" tertiary @click="handleDelete">删除</n-button>
+    <n-button ghost type="primary" :bordered="false" @click="handleDelete">删除</n-button>
     <n-divider vertical />
-    <n-button ghost type="primary" tertiary @click="handleAddChildRuleGroup">
+    <n-button ghost type="primary" :bordered="false" @click="handleAddChildRuleGroup">
       新增子规则组
     </n-button>
   </n-button-group>

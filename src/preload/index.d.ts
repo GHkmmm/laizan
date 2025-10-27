@@ -18,10 +18,11 @@ declare global {
       exportFeedAcSettings: (
         payload: FeedAcSettingsV2
       ) => Promise<{ ok: boolean; path?: string; message?: string }>
-      pickImportFeedAcSettings: () => Promise<{
+      getTemplateList: () => Promise<string[]>
+      pickImportFeedAcSettings: (templateFileName?: string) => Promise<{
         ok: boolean
-        content?: string
-        path?: string
+        data?: FeedAcSettingsV2
+        needMigration?: boolean
         message?: string
       }>
       getBrowserExecPath: () => Promise<string | undefined>

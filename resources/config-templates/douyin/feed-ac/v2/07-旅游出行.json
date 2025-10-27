@@ -1,0 +1,140 @@
+{
+  "version": "v2",
+  "ruleGroups": [
+    {
+      "id": "travel_guide_001",
+      "type": "manual",
+      "name": "旅游攻略",
+      "relation": "or",
+      "rules": [
+        {
+          "field": "videoDesc",
+          "keyword": "攻略"
+        },
+        {
+          "field": "videoDesc",
+          "keyword": "旅游"
+        },
+        {
+          "field": "videoTag",
+          "keyword": "旅游攻略"
+        }
+      ],
+      "children": [
+        {
+          "id": "travel_guide_001_1",
+          "type": "manual",
+          "name": "国内游",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "国内"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "周边"
+            }
+          ],
+          "commentTexts": [
+            "太实用了！🗺️收藏了下个月就去！",
+            "请问总共花费多少？人均预算多少？",
+            "这个路线规划得很合理！感谢分享👍"
+          ]
+        },
+        {
+          "id": "travel_guide_001_2",
+          "type": "manual",
+          "name": "出境游",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "出境"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "海外"
+            }
+          ],
+          "commentTexts": [
+            "景色太美了😍请问最佳旅游季节是？",
+            "攻略很详细！已经转发给朋友了💕",
+            "签证好办吗？需要准备什么材料？"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "travel_destination_002",
+      "type": "manual",
+      "name": "景点推荐",
+      "relation": "or",
+      "rules": [
+        {
+          "field": "videoDesc",
+          "keyword": "景点"
+        },
+        {
+          "field": "videoDesc",
+          "keyword": "打卡"
+        },
+        {
+          "field": "videoTag",
+          "keyword": "旅行"
+        }
+      ],
+      "children": [
+        {
+          "id": "travel_destination_002_1",
+          "type": "manual",
+          "name": "自然风光",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "风景"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "山水"
+            }
+          ],
+          "commentTexts": [
+            "这个地方太美了！📸请问在哪个城市？",
+            "看着就很舒服！适合亲子游吗？",
+            "收藏了！下次一定要去打卡✨"
+          ]
+        },
+        {
+          "id": "travel_destination_002_2",
+          "type": "manual",
+          "name": "人文古迹",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "古镇"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "历史"
+            }
+          ],
+          "commentTexts": [
+            "门票贵吗？需要提前预约吗？",
+            "你拍的照片太好看了！用的什么设备？",
+            "这个地方很有历史感！值得一去👍"
+          ]
+        }
+      ]
+    }
+  ],
+  "blockKeywords": ["被坑", "宰客", "不推荐"],
+  "authorBlockKeywords": [],
+  "simulateWatchBeforeComment": false,
+  "watchTimeRangeSeconds": [5, 15],
+  "onlyCommentActiveVideo": false,
+  "dontShowDouyinLimitDialog": false,
+  "maxCount": 10
+}

@@ -9,10 +9,11 @@
       </n-button>
       <div
         v-else
-        class="cursor-pointer text-green-300 hover:text-green-200 underline"
+        class="cursor-pointer text-green-300 hover:text-green-200 flex items-center max-w-56"
         @click="handleConfigureComment"
       >
-        {{ displayComment }}
+        <span class="truncate underline">{{ commentText }}</span>
+        <span v-if="commentCount > 1" class="flex-shrink-0">(+{{ commentCount - 1 }})</span>
       </div>
     </div>
   </div>
@@ -48,19 +49,23 @@ const hasCommentConfig = computed(() => {
   )
 })
 
-// 计算显示的评论内容
-const displayComment = computed(() => {
+// 计算评论文字（不含数量）
+const commentText = computed(() => {
   if (props.row.commentTexts && props.row.commentTexts.length > 0) {
-    // 如果有多条评论，显示第一条并提示还有更多
-    if (props.row.commentTexts.length > 1) {
-      return `${props.row.commentTexts[0]} (+${props.row.commentTexts.length - 1})`
-    }
     return props.row.commentTexts[0]
   }
   if (props.row.commentImagePath) {
     return '[图片评论]'
   }
   return ''
+})
+
+// 计算评论数量
+const commentCount = computed(() => {
+  if (props.row.commentTexts && props.row.commentTexts.length > 0) {
+    return props.row.commentTexts.length
+  }
+  return 0
 })
 
 // 获取父组件的 modal

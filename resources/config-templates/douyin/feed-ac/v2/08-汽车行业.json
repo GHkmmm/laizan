@@ -1,0 +1,140 @@
+{
+  "version": "v2",
+  "ruleGroups": [
+    {
+      "id": "auto_review_001",
+      "type": "manual",
+      "name": "汽车评测",
+      "relation": "or",
+      "rules": [
+        {
+          "field": "videoDesc",
+          "keyword": "评测"
+        },
+        {
+          "field": "videoDesc",
+          "keyword": "试驾"
+        },
+        {
+          "field": "videoTag",
+          "keyword": "汽车"
+        }
+      ],
+      "children": [
+        {
+          "id": "auto_review_001_1",
+          "type": "manual",
+          "name": "燃油车",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "燃油"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "汽油"
+            }
+          ],
+          "commentTexts": [
+            "评测很专业！🚗这款车我也在考虑",
+            "请问油耗实际表现怎么样？",
+            "性价比确实不错👍准备去试驾看看"
+          ]
+        },
+        {
+          "id": "auto_review_001_2",
+          "type": "manual",
+          "name": "新能源车",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "电动"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "新能源"
+            }
+          ],
+          "commentTexts": [
+            "空间够用吗？后排坐三个人挤不挤？",
+            "这个配置在同级别里算好的吗？",
+            "续航表现怎么样？冬天会打折扣吗？"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "auto_tips_002",
+      "type": "manual",
+      "name": "用车技巧",
+      "relation": "or",
+      "rules": [
+        {
+          "field": "videoDesc",
+          "keyword": "技巧"
+        },
+        {
+          "field": "videoDesc",
+          "keyword": "保养"
+        },
+        {
+          "field": "videoTag",
+          "keyword": "用车"
+        }
+      ],
+      "children": [
+        {
+          "id": "auto_tips_002_1",
+          "type": "manual",
+          "name": "驾驶技巧",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "驾驶"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "开车"
+            }
+          ],
+          "commentTexts": [
+            "学到了！这个技巧太实用了💡",
+            "新手司机表示很有帮助！感谢分享👍",
+            "收藏了！这些知识都很重要"
+          ]
+        },
+        {
+          "id": "auto_tips_002_2",
+          "type": "manual",
+          "name": "维修保养",
+          "relation": "or",
+          "rules": [
+            {
+              "field": "videoDesc",
+              "keyword": "保养"
+            },
+            {
+              "field": "videoDesc",
+              "keyword": "维修"
+            }
+          ],
+          "commentTexts": [
+            "请问多久保养一次比较合适？",
+            "讲解很清楚！马上去试试✨",
+            "这个能省不少钱！实用👍"
+          ]
+        }
+      ]
+    }
+  ],
+  "blockKeywords": ["事故车", "问题车", "召回"],
+  "authorBlockKeywords": [],
+  "simulateWatchBeforeComment": false,
+  "watchTimeRangeSeconds": [5, 15],
+  "onlyCommentActiveVideo": false,
+  "dontShowDouyinLimitDialog": false,
+  "maxCount": 10
+}

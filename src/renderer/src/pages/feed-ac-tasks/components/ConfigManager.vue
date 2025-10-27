@@ -3,11 +3,6 @@ import { computed } from 'vue'
 import { NButton, NDropdown, useDialog, useMessage } from 'naive-ui'
 import { useTaskStore } from '../stores/task'
 import { useSettingsStore } from '../stores/settings'
-import {
-  FeedAcSettingsV2,
-  detectConfigVersion,
-  getUnifiedFeedAcSettings
-} from '@/shared/feed-ac-setting'
 import { structuredClone } from '@/utils/common'
 
 const message = useMessage()
@@ -24,57 +19,6 @@ const options = [
   { label: '导出配置', key: 'export' as Key },
   { label: '清空配置', key: 'clear' as Key }
 ]
-
-const validateImported = (
-  content: string | undefined
-): { ok: boolean; message?: string; data?: FeedAcSettingsV2; needMigration?: boolean } => {
-  let setting: FeedAcSettingsV2
-  try {
-    setting = JSON.parse(content || '{}')
-  } catch (e) {
-    console.error(e)
-    return { ok: false, message: 'JSON 解析失败' }
-  }
-  if (typeof setting !== 'object' || setting === null || Object.keys(setting).length === 0)
-    return { ok: false, message: '文件结构异常' }
-
-  try {
-    // 检测配置版本
-    const version = detectConfigVersion(setting)
-    console.log('配置版本：', version)
-
-    if (version === 'v2') {
-      // v2 配置验证
-      if (!Array.isArray(setting.authorBlockKeywords))
-        return { ok: false, message: '作者屏蔽词配置错误' }
-
-      if (!Array.isArray(setting.blockKeywords)) return { ok: false, message: '屏蔽词配置错误' }
-
-      if (!Array.isArray(setting.ruleGroups)) return { ok: false, message: '规则组配置错误' }
-
-      if (typeof setting.simulateWatchBeforeComment !== 'boolean')
-        return { ok: false, message: '模拟观看项配置错误' }
-
-      if (
-        !Array.isArray(setting.watchTimeRangeSeconds) ||
-        setting.watchTimeRangeSeconds.length !== 2
-      )
-        return { ok: false, message: '观看时长配置错误' }
-
-      if (typeof setting.onlyCommentActiveVideo !== 'boolean')
-        return { ok: false, message: '只观看活跃视频配置错误' }
-
-      return { ok: true, data: setting as FeedAcSettingsV2 }
-    } else if (version === 'v1') {
-      // v1 配置需要迁移
-      return { ok: true, data: getUnifiedFeedAcSettings(setting), needMigration: true }
-    } else {
-      return { ok: false, message: '不支持的配置文件格式' }
-    }
-  } catch (e) {
-    return { ok: false, message: String(e) }
-  }
-}
 
 const handleSelect = async (key: Key): Promise<void> => {
   if (disabled.value) return
@@ -99,14 +43,13 @@ const handleSelect = async (key: Key): Promise<void> => {
           if (picked.message && picked.message !== '用户取消') message.error(picked.message)
           return
         }
-        const v = validateImported(picked.content)
-        if (!v.ok) {
-          message.error(v.message || '文件内容不合法')
+        if (!picked.data) {
+          message.error('文件内容不合法')
           return
         }
 
         // 检查是否需要迁移
-        if (v.needMigration) {
+        if (picked.needMigration) {
           dialog.warning({
             title: '配置文件升级',
             content:
@@ -115,7 +58,7 @@ const handleSelect = async (key: Key): Promise<void> => {
             negativeText: '取消',
             onPositiveClick: async () => {
               try {
-                await window.api.updateFeedAcSettings(v.data || {})
+                await window.api.updateFeedAcSettings(picked.data || {})
                 // 刷新表单数据
                 await settingsStore.loadSettings()
                 message.success('配置已升级并导入成功')
@@ -132,7 +75,7 @@ const handleSelect = async (key: Key): Promise<void> => {
             negativeText: '取消',
             onPositiveClick: async () => {
               try {
-                await window.api.updateFeedAcSettings(v.data || {})
+                await window.api.updateFeedAcSettings(picked.data || {})
                 // 刷新表单数据
                 await settingsStore.loadSettings()
                 message.success('已导入配置并覆盖当前配置')
