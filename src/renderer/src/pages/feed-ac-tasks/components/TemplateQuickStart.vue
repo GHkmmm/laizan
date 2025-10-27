@@ -4,16 +4,17 @@
     title="快速体验“自动评论引流”功能"
     closable
     class="mt-4 mb-5"
+    :bordered="false"
     @close="handleClose"
   >
     <template #icon>
-      <n-icon size="26">
+      <n-icon size="26" class="text-amber-200">
         <Happy />
       </n-icon>
     </template>
     <div class="flex flex-col gap-3">
       <p class="text-sm text-gray-400">
-        以下是我们提供的一些简易模版，您可以根据所在行业选择对应的模版进行体验。
+        以下是我们使用AI生成的一些简易模版，方便您快速体验功能，而非各个行业的最佳实践，请您根据实际需求自行调整规则。
       </p>
 
       <!-- 模板列表 - 横向展示 -->
@@ -26,6 +27,7 @@
               :bordered="false"
               size="medium"
               class="template-tag cursor-pointer hover:opacity-80 transition-opacity"
+              type="warning"
               :style="{ animationDelay: `${index * 100}ms` }"
               @click="handleTemplateClick(fileName)"
             >

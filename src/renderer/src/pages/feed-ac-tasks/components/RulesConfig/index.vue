@@ -5,7 +5,7 @@
     </template> -->
     <div class="flex flex-col gap-3 w-full">
       <div class="flex justify-between items-center">
-        <h4 class="text-xs font-bold text-gray-400">当视频满足以下规则配置 系统会自动评论</h4>
+        <h4 class="text-xs font-bold text-gray-400">只有配置了评论内容系统才会发布评论哦～</h4>
         <n-button secondary type="primary" size="medium" @click="handleAddRuleGroup"
           >新增规则组
         </n-button>
