@@ -248,6 +248,35 @@ app.whenReady().then(() => {
     }
   })
 
+  // 调试功能：打开抖音首页
+  ipcMain.handle('debug:openDouyinHomepage', async () => {
+    try {
+      // 获取浏览器路径
+      const browserPath =
+        storage.get(StorageKey.browserExecPath) ||
+        (process.platform === 'darwin'
+          ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+          : '')
+
+      // 启动Playwright浏览器
+      const browser = await chromium.launch({
+        executablePath: browserPath,
+        headless: false
+      })
+
+      // 创建新页面并打开抖音首页，带上登录信息
+      const context = await browser.newContext({
+        storageState: storage.get(StorageKey.auth) ?? {}
+      })
+      const page = await context.newPage()
+      await page.goto('https://www.douyin.com/?recommend=1')
+
+      return { ok: true, message: '已成功打开抖音首页' }
+    } catch (error) {
+      return { ok: false, message: String(error) }
+    }
+  })
+
   ipcMain.handle('feedAcSetting:export', async (e, payload: FeedAcSettingsV2) => {
     const win = BrowserWindow.fromWebContents(e.sender)
     const options = {

@@ -59,7 +59,10 @@ const api = {
   selectImagePath: (
     type: 'folder' | 'file'
   ): Promise<{ ok: boolean; path?: string; message?: string }> =>
-    ipcRenderer.invoke('imagePath:select', type)
+    ipcRenderer.invoke('imagePath:select', type),
+  // 调试功能：打开抖音首页
+  openDouyinHomepage: (): Promise<{ ok: boolean; message?: string }> =>
+    ipcRenderer.invoke('debug:openDouyinHomepage')
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

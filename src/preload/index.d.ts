@@ -40,6 +40,8 @@ declare global {
       selectImagePath: (
         type: 'folder' | 'file'
       ) => Promise<{ ok: boolean; path?: string; message?: string }>
+      // 调试功能：打开抖音首页
+      openDouyinHomepage: () => Promise<{ ok: boolean; message?: string }>
       // removed global clearCache per new design
     }
   }

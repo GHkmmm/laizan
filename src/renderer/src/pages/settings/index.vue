@@ -67,6 +67,20 @@
         </n-form>
       </n-card>
     </div>
+    <!-- 调试模块，仅在开发模式下可见 -->
+    <div v-if="isDev" class="flex flex-col gap-3">
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-bold">调试</h2>
+      </div>
+      <n-card :bordered="true">
+        <div class="flex flex-col gap-4">
+          <div class="text-gray-500 text-sm leading-6">
+            此模块仅在开发模式下可见，用于调试功能。
+          </div>
+          <n-button secondary @click="onOpenDouyinHomepage"> 抖音首页调试 </n-button>
+        </div>
+      </n-card>
+    </div>
   </div>
 </template>
 
@@ -109,6 +123,9 @@ const modelOptionsForPlatform = computed(() => PLATFORM_MODELS[aiSetting.value.p
 
 const message = useMessage()
 const dialog = useDialog()
+
+// 检查是否为开发模式
+const isDev = ref<boolean>(import.meta.env.DEV)
 
 onMounted(async () => {
   try {
@@ -187,6 +204,20 @@ const onSaveBrowser = async (): Promise<void> => {
     message.error(`路径检测异常：${String(e)}`)
   } finally {
     isSavingBrowser.value = false
+  }
+}
+
+// 打开抖音首页调试功能
+const onOpenDouyinHomepage = async (): Promise<void> => {
+  try {
+    const result = await window.api.openDouyinHomepage()
+    if (result.ok) {
+      message.success(result.message || '已成功打开抖音首页')
+    } else {
+      message.error(result.message || '打开抖音首页失败')
+    }
+  } catch (e) {
+    message.error(`打开抖音首页异常：${String(e)}`)
   }
 }
 </script>
