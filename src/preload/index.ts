@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 import { FeedAcSettingsV2, FeedAcRuleGroups } from '@/shared/feed-ac-setting'
 import { AISettings } from '@/shared/ai-setting'
+import { TaskHistoryRecord } from '@/shared/task-history'
 
 // Custom APIs for renderer
 export const api = {
@@ -65,7 +66,7 @@ export const api = {
     ipcRenderer.invoke('browserExec:testLaunch', payload),
   selectBrowserExecPath: (): Promise<string | undefined> =>
     ipcRenderer.invoke('browserExec:select'),
-  startTask: (): Promise<{ ok: boolean; message?: string }> => ipcRenderer.invoke('task:start'),
+  startTask: (): Promise<{ ok: boolean; taskId?: string; message?: string }> => ipcRenderer.invoke('task:start'),
   stopTask: (): Promise<{ ok: boolean; message?: string }> => ipcRenderer.invoke('task:stop'),
   onTaskProgress: (
     handler: (p: { type: string; message: string; timestamp: number }) => void
@@ -90,7 +91,16 @@ export const api = {
     ipcRenderer.invoke('imagePath:select', type),
   // 调试功能：打开抖音首页
   openDouyinHomepage: (): Promise<{ ok: boolean; message?: string }> =>
-    ipcRenderer.invoke('debug:openDouyinHomepage')
+    ipcRenderer.invoke('debug:openDouyinHomepage'),
+  // 任务历史相关 API
+  getTaskHistoryList: (): Promise<TaskHistoryRecord[]> =>
+    ipcRenderer.invoke('taskHistory:getList'),
+  getTaskHistoryDetail: (taskId: string): Promise<TaskHistoryRecord | null> =>
+    ipcRenderer.invoke('taskHistory:getDetail', taskId),
+  deleteTaskHistory: (taskId: string): Promise<{ ok: boolean; message?: string }> =>
+    ipcRenderer.invoke('taskHistory:delete', taskId),
+  getCurrentRunningTask: (): Promise<TaskHistoryRecord | null> =>
+    ipcRenderer.invoke('taskHistory:getCurrentRunningTask')
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

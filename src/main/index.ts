@@ -9,6 +9,8 @@ import { registerAISettingIPC } from './ipc/ai-setting'
 import { registerBrowserExecIPC } from './ipc/browser-exec'
 import { registerFilePickerIPC } from './ipc/file-picker'
 import { registerDebugIPC } from './ipc/debug'
+import { registerTaskHistoryIPC } from './ipc/task-history'
+import { taskHistoryService } from './service/task-history'
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -55,6 +57,9 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
+  // 初始化任务历史服务（修正异常关闭的任务）
+  taskHistoryService.init()
+
   // 注册所有 IPC 处理器
   registerAuthIPC()
   registerTaskIPC()
@@ -63,6 +68,7 @@ app.whenReady().then(() => {
   registerBrowserExecIPC()
   registerFilePickerIPC()
   registerDebugIPC()
+  registerTaskHistoryIPC()
 
   createWindow()
 

@@ -10,6 +10,8 @@ import { EventEmitter } from 'events'
 import { getFeedAcSettings } from './settings'
 import { FeedAcRuleGroups, FeedAcSettingsV2 } from '@/shared/feed-ac-setting'
 import { getAISettings } from '../ai/settings'
+import { taskHistoryService } from '../task-history'
+import { VideoRecord } from '@/shared/task-history'
 
 // 检查视频活跃度的接口
 interface VideoActivityResult {
@@ -70,6 +72,8 @@ export default class ACTask extends EventEmitter {
   private _page?: Page
   private _dyElementHandler!: DYElementHandler
   private _stopped: boolean = false
+  private _taskId?: string // 任务历史记录 ID
+  private _currentVideoStartTime?: number // 当前视频开始时间
 
   // 用于缓存视频数据的Map
   private _videoDataCache = new Map<string, FeedItem>()
@@ -99,6 +103,12 @@ export default class ACTask extends EventEmitter {
   public async run(): Promise<void> {
     await this._launch()
     const settings = getFeedAcSettings()
+    
+    // 创建任务历史记录
+    const taskRecord = taskHistoryService.createTask(settings)
+    this._taskId = taskRecord.id
+    console.log(`任务已创建，ID: ${this._taskId}`)
+    
     // 设置视频数据监听
     await this._setupVideoDataListener()
     console.log('视频数据监听已设置')
@@ -120,12 +130,19 @@ export default class ACTask extends EventEmitter {
         throw new Error('Task stopped')
       }
       console.log(
-        `\n\n====== 开始处理第 ${i + 1} 个视频，已评论次数：${commentCount}/${maxCount} ======\n\n`
+        `
+
+====== 开始处理第 ${i + 1} 个视频，已评论次数：${commentCount}/${maxCount} ======
+
+`
       )
       this._emitProgress(
         'processing',
         `开始处理第 ${i + 1} 个视频，已评论次数：${commentCount}/${maxCount}`
       )
+
+      // 记录当前视频开始时间
+      this._currentVideoStartTime = Date.now()
 
       // 获取当前视频信息
       const videoInfo = await this._getCurrentVideoInfo()
@@ -133,6 +150,8 @@ export default class ACTask extends EventEmitter {
       if (!videoInfo) {
         console.log('未获取到当前视频信息，跳到下一个视频')
         this._emitProgress('info-miss', '未获取到当前视频信息，跳到下一个视频')
+        // 记录视频信息缺失
+        this._recordVideoSkip('unknown', '未获取到当前视频信息', {})
         await sleep(random(1000, 3000))
         await this._dyElementHandler.goToNextVideo()
         continue
@@ -141,6 +160,8 @@ export default class ACTask extends EventEmitter {
       if (videoInfo.aweme_type !== 0) {
         console.log('不是常规视频，直接跳过')
         this._emitProgress('skip-nonstandard', '不是常规视频，直接跳过')
+        // 记录非常规视频
+        this._recordVideoSkip(videoInfo.aweme_id, '非常规视频类型', videoInfo)
         await this._dyElementHandler.goToNextVideo()
         continue
       }
@@ -176,6 +197,8 @@ export default class ACTask extends EventEmitter {
                   .join(',')} 视频作者: ${videoInfo.author.nickname}`)
         )
         this._emitProgress('skip-blocked', '命中屏蔽关键词，跳过该视频')
+        // 记录命中屏蔽关键词
+        this._recordVideoSkip(videoInfo.aweme_id, '命中屏蔽关键词', videoInfo)
         await sleep(random(500, 1000))
         await this._dyElementHandler.goToNextVideo()
         continue
@@ -221,6 +244,12 @@ export default class ACTask extends EventEmitter {
           const commentSuccess = await this._postComment(videoAnalysis.matchedRuleGroup)
           if (commentSuccess) {
             commentCount++
+            // 记录评论成功
+            this._recordVideoComment(
+              videoInfo.aweme_id,
+              videoInfo,
+              commentSuccess.commentText || ''
+            )
             console.log(`评论发送成功，已评论次数：${commentCount}/${maxCount}`)
             this._emitProgress('comment-success', `评论成功 ${commentCount}/${maxCount}`)
             await sleep(random(1000, 3000))
@@ -235,6 +264,12 @@ export default class ACTask extends EventEmitter {
           } else {
             console.log('评论发送失败，尝试通过点击按钮关闭评论区')
             this._emitProgress('comment-fail', '评论发送失败')
+            // 记录评论失败
+            this._recordVideoSkip(
+              videoInfo.aweme_id,
+              commentSuccess.reason || '评论发布接口返回错误',
+              videoInfo
+            )
             try {
               await this._dyElementHandler.closeCommentSectionByButton()
             } catch (closeError) {
@@ -245,6 +280,8 @@ export default class ACTask extends EventEmitter {
         } else {
           console.log('视频活跃度不符合标准，不发布评论')
           this._emitProgress('inactive', '视频活跃度不符合标准，不发布评论')
+          // 记录活跃度不足
+          this._recordVideoSkip(videoInfo.aweme_id, '视频活跃度不符合标准', videoInfo)
           await this._dyElementHandler.closeCommentSection()
           await sleep(random(1000, 2000))
         }
@@ -255,6 +292,8 @@ export default class ACTask extends EventEmitter {
         await sleep(random(500, 1500))
         console.log('当前视频不满足评论规则，快速滑走')
         this._emitProgress('fast-skip', '快速滑走')
+        // 记录规则不匹配
+        this._recordVideoSkip(videoInfo.aweme_id, '不满足评论规则', videoInfo)
       }
 
       // 跳转至下一条视频
@@ -524,7 +563,7 @@ export default class ACTask extends EventEmitter {
     }
   }
 
-  async _postComment(matchedRuleGroup?: FeedAcRuleGroups): Promise<boolean> {
+  async _postComment(matchedRuleGroup?: FeedAcRuleGroups): Promise<{ success: boolean; commentText?: string; reason?: string }> {
     try {
       // 从用户配置中获取随机评论内容
       const randomComment = this._getRandomComment(matchedRuleGroup)
@@ -602,7 +641,7 @@ export default class ACTask extends EventEmitter {
             console.log('上传图片失败:', uploadError)
             // 图片上传失败，取消发送评论
             console.log('由于图片上传失败，取消发送评论')
-            return false
+            return { success: false, reason: '图片上传失败' }
           }
         } else {
           console.log('未配置图片或图片路径无效，跳过图片上传')
@@ -611,7 +650,7 @@ export default class ACTask extends EventEmitter {
         console.log('添加图片过程中出错:', error)
         // 图片添加过程出错，取消发送评论
         console.log('由于图片添加过程出错，取消发送评论')
-        return false
+        return { success: false, reason: '图片添加过程出错' }
       }
 
       // 输入完成后稍微暂停一下，然后按回车键发送评论
@@ -695,10 +734,10 @@ export default class ACTask extends EventEmitter {
       }
 
       console.log('评论已发送成功')
-      return true
+      return { success: true, commentText: randomComment }
     } catch (error) {
       console.log('发布评论时出错:', error)
-      return false
+      return { success: false, reason: String(error) }
     }
   }
 
@@ -931,5 +970,55 @@ export default class ACTask extends EventEmitter {
       this._emitProgress('verify-error', reason)
       return { success: false, reason }
     }
+  }
+
+  /**
+   * 记录视频跳过（未评论）
+   */
+  private _recordVideoSkip(
+    videoId: string,
+    skipReason: string,
+    videoInfo: Partial<FeedItem>
+  ): void {
+    if (!this._taskId || !this._currentVideoStartTime) return
+
+    const videoRecord: VideoRecord = {
+      videoId,
+      authorName: videoInfo.author?.nickname || '未知',
+      videoDesc: videoInfo.desc || '',
+      videoTags: (videoInfo.video_tag || []).map((t) => t.tag_name),
+      shareUrl: videoInfo.share_url || '',
+      watchDuration: Date.now() - this._currentVideoStartTime,
+      isCommented: false,
+      skipReason,
+      timestamp: Date.now()
+    }
+
+    taskHistoryService.addVideoRecord(this._taskId, videoRecord)
+  }
+
+  /**
+   * 记录视频评论成功
+   */
+  private _recordVideoComment(
+    videoId: string,
+    videoInfo: FeedItem,
+    commentText: string
+  ): void {
+    if (!this._taskId || !this._currentVideoStartTime) return
+
+    const videoRecord: VideoRecord = {
+      videoId,
+      authorName: videoInfo.author.nickname,
+      videoDesc: videoInfo.desc,
+      videoTags: (videoInfo.video_tag || []).map((t) => t.tag_name),
+      shareUrl: videoInfo.share_url,
+      watchDuration: Date.now() - this._currentVideoStartTime,
+      isCommented: true,
+      commentText,
+      timestamp: Date.now()
+    }
+
+    taskHistoryService.addVideoRecord(this._taskId, videoRecord)
   }
 }
