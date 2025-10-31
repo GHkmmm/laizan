@@ -4,7 +4,7 @@ import { FeedAcSettings, FeedAcSettingsV2 } from '@/shared/feed-ac-setting'
 import { AISettings } from '@/shared/ai-setting'
 
 // Custom APIs for renderer
-const api = {
+export const api = {
   hasAuth: (): Promise<boolean> => ipcRenderer.invoke('hasAuth'),
   login: (): Promise<void> => ipcRenderer.invoke('login'),
   logout: (): void => ipcRenderer.send('logout'),
