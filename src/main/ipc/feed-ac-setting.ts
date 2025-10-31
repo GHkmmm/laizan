@@ -8,7 +8,7 @@ import {
   getFeedAcSettings,
   getUnifiedFeedAcSettings,
   updateFeedAcSettings
-} from '../workflows/feed-ac/settings'
+} from '../service/feed-ac/settings'
 
 /**
  * 注册 Feed AC 配置相关的 IPC 处理器

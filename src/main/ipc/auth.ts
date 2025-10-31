@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron'
 import { storage, StorageKey } from '../utils/storage'
-import { loginAndStorageState } from '../workflows/feed-ac'
+import { loginAndStorageState } from '../service/feed-ac'
 
 /**
  * 注册认证相关的 IPC 处理器

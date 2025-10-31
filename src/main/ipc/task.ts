@@ -1,5 +1,5 @@
 import { BrowserWindow, ipcMain } from 'electron'
-import ACTask from '../workflows/feed-ac'
+import ACTask from '../service/feed-ac'
 
 /**
  * 注册任务控制相关的 IPC 处理器

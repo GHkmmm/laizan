@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron'
 import { storage, StorageKey } from '../utils/storage'
-import { getAISettings, getDefaultAISetting, updateAISettings } from '../workflows/ai/settings'
+import { getAISettings, getDefaultAISetting, updateAISettings } from '../service/ai/settings'
 /**
  * 注册 AI 设置相关的 IPC 处理器
  */
