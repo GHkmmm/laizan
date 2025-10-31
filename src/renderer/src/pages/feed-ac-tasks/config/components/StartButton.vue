@@ -49,6 +49,7 @@ import { storeToRefs } from 'pinia'
 import { PlayOutline, PauseOutline } from '@vicons/ionicons5'
 import DouyinLimitDialog from './DouyinLimitDialog.vue'
 import { LocalStorageManager, STORAGE_KEYS } from '@renderer/utils/storage-keys'
+import { FeedAcRuleGroups } from '@/shared/feed-ac-setting'
 
 const taskStore = useTaskStore()
 const settingsStore = useSettingsStore()
@@ -64,13 +65,13 @@ const showDouyinLimitDialog = ref(false)
 
 const validateForm = (): boolean => {
   // 检查是否有规则组
-  if (settings.value.ruleGroups.length === 0) {
+  if (settings.value!.ruleGroups.length === 0) {
     message.error('请至少配置一个规则组')
     return false
   }
 
   // 递归检查所有最深层规则组是否配置了评论内容
-  const checkLeafRuleGroups = (groups: typeof settings.value.ruleGroups): boolean => {
+  const checkLeafRuleGroups = (groups: FeedAcRuleGroups[]): boolean => {
     for (const group of groups) {
       // 如果有子规则组，递归检查子规则组
       if (group.children && group.children.length > 0) {
@@ -93,7 +94,7 @@ const validateForm = (): boolean => {
     return true
   }
 
-  if (!checkLeafRuleGroups(settings.value.ruleGroups)) {
+  if (!checkLeafRuleGroups(settings.value!.ruleGroups)) {
     message.error('还有未配置评论内容的规则组，请完善配置')
     return false
   }

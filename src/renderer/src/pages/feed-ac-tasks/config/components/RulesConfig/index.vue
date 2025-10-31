@@ -56,7 +56,7 @@ const getAllParentIds = (groups: FeedAcRuleGroups[]): DataTableRowKey[] => {
 
 // 展开所有包含子规则的规则组
 const expandAllRuleGroups = (): void => {
-  expandedRowKeys.value = getAllParentIds(settings.value.ruleGroups)
+  expandedRowKeys.value = getAllParentIds(settings.value!.ruleGroups)
 }
 
 // 组件挂载时加载配置
@@ -120,7 +120,7 @@ const columns: DataTableColumns<FeedAcRuleGroups> = [
       }
 
       // 构建当前的父级映射
-      buildParentMap(settings.value.ruleGroups)
+      buildParentMap(settings.value!.ruleGroups)
 
       return h(ActionsColumn, {
         row,
@@ -164,7 +164,7 @@ function handleEditRuleGroup(id: string, ruleGroupData: FeedAcRuleGroups): void 
     return false
   }
 
-  updateRuleGroup(settings.value.ruleGroups)
+  updateRuleGroup(settings.value!.ruleGroups)
 
   saveSettings()
 }
@@ -192,10 +192,10 @@ function handleCopyRuleGroup(ruleGroupData: FeedAcRuleGroups, parentId?: string)
       return false
     }
 
-    findAndAddToParent(settings.value.ruleGroups)
+    findAndAddToParent(settings.value!.ruleGroups)
   } else {
     // 如果没有父级ID，则将复制的规则组添加到根级别
-    settings.value.ruleGroups.push(ruleGroupData)
+    settings.value!.ruleGroups.push(ruleGroupData)
   }
   saveSettings()
 }
@@ -221,7 +221,7 @@ function handleConfigureComment(ruleGroupData: FeedAcRuleGroups): void {
     return false
   }
 
-  updateRuleGroup(settings.value.ruleGroups)
+  updateRuleGroup(settings.value!.ruleGroups)
   saveSettings()
 }
 
@@ -243,7 +243,7 @@ function handleDeleteRuleGroup(id: string): void {
     return false
   }
 
-  deleteRuleGroup(settings.value.ruleGroups)
+  deleteRuleGroup(settings.value!.ruleGroups)
 
   saveSettings()
 }
@@ -280,7 +280,7 @@ function addChildRuleGroup(parentId: string, ruleGroupData: FeedAcRuleGroups): v
     return false
   }
 
-  findAndAddChild(settings.value.ruleGroups)
+  findAndAddChild(settings.value!.ruleGroups)
   saveSettings()
 }
 
@@ -299,7 +299,7 @@ function handleAddRuleGroup(): void {
         onConfirm: (ruleGroupData) => {
           // 将新规则组添加到数据中
           console.log('settings.value', settings.value)
-          settings.value.ruleGroups.push(ruleGroupData)
+          settings.value!.ruleGroups.push(ruleGroupData)
           saveSettings()
           m.destroy()
         }
