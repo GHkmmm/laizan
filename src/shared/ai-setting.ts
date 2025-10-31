@@ -11,15 +11,3 @@ export const PLATFORM_MODELS: Record<AIPlatform, string[]> = {
   bailian: [],
   openai: []
 }
-
-export function getDefaultAISetting(): AISettings {
-  return {
-    platform: 'volcengine',
-    model: 'doubao-seed-1.6-250615',
-    apiKeys: {
-      volcengine: '',
-      bailian: '',
-      openai: ''
-    }
-  }
-}

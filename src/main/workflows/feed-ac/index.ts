@@ -8,8 +8,8 @@ import DYElementHandler from '../../elements/douyin'
 import { ArkService } from '../../service/ark'
 import { EventEmitter } from 'events'
 import { getFeedAcSettings } from './settings'
-import { getAiSettings } from './ai-settings'
 import { FeedAcRuleGroups, FeedAcSettingsV2 } from '@/shared/feed-ac-setting'
+import { getAISettings } from '../ai/settings'
 
 // 检查视频活跃度的接口
 interface VideoActivityResult {
@@ -392,7 +392,7 @@ export default class ACTask extends EventEmitter {
     // 如果是AI判断类型
     if (ruleGroup.type === 'ai' && ruleGroup.aiPrompt) {
       try {
-        const aiSettings = getAiSettings()
+        const aiSettings = getAISettings()
         const arkService = new ArkService({
           apiKey: aiSettings.apiKeys[aiSettings.platform],
           model: aiSettings.model

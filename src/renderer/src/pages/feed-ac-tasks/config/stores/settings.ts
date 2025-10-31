@@ -1,9 +1,9 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { FeedAcSettingsV2, getDefaultFeedAcSettingsV2 } from '@/shared/feed-ac-setting'
+import { FeedAcSettingsV2 } from '@/shared/feed-ac-setting'
 
 export const useSettingsStore = defineStore('settings', () => {
-  const settings = ref<FeedAcSettingsV2>(getDefaultFeedAcSettingsV2())
+  const settings = ref<FeedAcSettingsV2>()
 
   // 配置加载完成后的回调函数
   let onSettingsLoadedCallback: (() => void) | null = null

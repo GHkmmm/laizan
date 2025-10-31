@@ -1,14 +1,12 @@
 import { app, BrowserWindow, dialog, ipcMain, OpenDialogOptions } from 'electron'
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'fs'
 import { join } from 'path'
-import {
-  detectConfigVersion,
-  FeedAcSettingsV2,
-  getUnifiedFeedAcSettings
-} from '@/shared/feed-ac-setting'
+import { FeedAcSettingsV2 } from '@/shared/feed-ac-setting'
 import {
   clearFeedAcSettings,
+  detectConfigVersion,
   getFeedAcSettings,
+  getUnifiedFeedAcSettings,
   updateFeedAcSettings
 } from '../workflows/feed-ac/settings'
 

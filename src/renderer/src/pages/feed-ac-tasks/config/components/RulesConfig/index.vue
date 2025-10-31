@@ -13,7 +13,7 @@
       <n-data-table
         bordered
         :columns="columns"
-        :data="settings.ruleGroups"
+        :data="settings!.ruleGroups"
         :row-key="rowKey"
         :expanded-row-keys="expandedRowKeys"
         @update:expanded-row-keys="handleUpdateExpandedRowKeys"
@@ -61,7 +61,6 @@ const expandAllRuleGroups = (): void => {
 
 // 组件挂载时加载配置
 onMounted(async () => {
-  await settingsStore.loadSettings()
   // 初始加载时展开所有规则组
   expandAllRuleGroups()
   // 注册配置加载完成的回调，当导入配置时也会展开所有规则组

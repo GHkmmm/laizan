@@ -1,7 +1,7 @@
 <template>
   <n-form-item label="评论次数：">
     <n-input-number
-      v-model:value="settings.maxCount"
+      v-model:value="settings!.maxCount"
       :min="1"
       :max="999"
       placeholder="输入评论次数"

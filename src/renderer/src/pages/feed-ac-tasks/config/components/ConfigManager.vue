@@ -5,6 +5,7 @@ import { useTaskStore } from '../stores/task'
 import { useSettingsStore } from '../stores/settings'
 import { structuredClone } from '@/utils/common'
 import { LocalStorageManager, STORAGE_KEYS } from '@renderer/utils/storage-keys'
+import { FeedAcSettingsV2 } from '@/shared/feed-ac-setting'
 
 const message = useMessage()
 const dialog = useDialog()
@@ -12,7 +13,9 @@ const dialog = useDialog()
 const taskStore = useTaskStore()
 const settingsStore = useSettingsStore()
 
-const disabled = computed(() => ['running', 'stopping'].includes(taskStore.taskStatus))
+const disabled = computed(
+  () => ['running', 'stopping'].includes(taskStore.taskStatus) || !settingsStore.settings
+)
 
 type Key = 'import' | 'export' | 'clear' | 'templates'
 const options = [
@@ -27,7 +30,9 @@ const handleSelect = async (key: Key): Promise<void> => {
   switch (key) {
     case 'export': {
       try {
-        const res = await window.api.exportFeedAcSettings(structuredClone(settingsStore.settings))
+        const res = await window.api.exportFeedAcSettings(
+          structuredClone<FeedAcSettingsV2>(settingsStore.settings!)
+        )
         if (res.ok) {
           message.success(`已导出到：${res.path}`)
         } else {

@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
-import { FeedAcSettings, FeedAcSettingsV2 } from '@/shared/feed-ac-setting'
+import { FeedAcSettingsV2 } from '@/shared/feed-ac-setting'
 import { AISettings } from '@/shared/ai-setting'
 
 // Custom APIs for renderer
@@ -17,7 +17,7 @@ export const api = {
     ipcRenderer.invoke('aiSetting:update', payload),
   clearAISettings: (): Promise<AISettings> => ipcRenderer.invoke('aiSetting:clear'),
   exportFeedAcSettings: (
-    payload: FeedAcSettings
+    payload: FeedAcSettingsV2
   ): Promise<{ ok: boolean; path?: string; message?: string }> =>
     ipcRenderer.invoke('feedAcSetting:export', payload),
   getTemplateList: (): Promise<string[]> => ipcRenderer.invoke('feedAcSetting:getTemplateList'),

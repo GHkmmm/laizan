@@ -1,18 +1,16 @@
 import { ipcMain } from 'electron'
-import { getAiSettings, updateAiSettings } from '../workflows/feed-ac/ai-settings'
 import { storage, StorageKey } from '../utils/storage'
-import { getDefaultAISetting } from '@/shared/ai-setting'
-
+import { getAISettings, getDefaultAISetting, updateAISettings } from '../workflows/ai/settings'
 /**
  * 注册 AI 设置相关的 IPC 处理器
  */
 export function registerAISettingIPC(): void {
   ipcMain.handle('aiSetting:get', () => {
-    return getAiSettings()
+    return getAISettings()
   })
 
-  ipcMain.handle('aiSetting:update', (_e, payload: Parameters<typeof updateAiSettings>[0]) => {
-    return updateAiSettings(payload)
+  ipcMain.handle('aiSetting:update', (_e, payload: Parameters<typeof updateAISettings>[0]) => {
+    return updateAISettings(payload)
   })
 
   ipcMain.handle('aiSetting:clear', () => {

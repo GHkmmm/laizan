@@ -12,21 +12,27 @@ import RuntimeSettings from './components/RuntimeSettings.vue'
 import StartButton from './components/StartButton.vue'
 import ConfigManager from './components/ConfigManager.vue'
 import TemplateQuickStart from './components/TemplateQuickStart.vue'
+import { useSettingsStore } from './stores/settings'
 // import CommentContent from './components/CommentContent.vue'
 
 // 使用 Pinia stores
 const taskStore = useTaskStore()
 const logsStore = useLogsStore()
+const settingsStore = useSettingsStore()
 
 // 解构需要的响应式数据（无需在此检查登录态，进入本页即已登录）
 const { taskStatus } = storeToRefs(taskStore)
 const { resetTaskStatus } = taskStore
 const { addLog, setupAutoScroll } = logsStore
+const { settings } = storeToRefs(settingsStore)
 
 let offProgress: null | (() => void) = null
 let offEnded: null | (() => void) = null
 
 onMounted(async () => {
+  // 加载配置
+  settingsStore.loadSettings()
+
   // 设置自动滚动
   setupAutoScroll()
 
@@ -63,27 +69,32 @@ onBeforeUnmount(() => {
       <StartButton />
     </div>
     <div class="flex flex-col justify-center items-center pb-10 min-h-screen">
-      <template v-if="!['running', 'stopping'].includes(taskStatus)">
-        <n-form size="large" label-placement="left" class="w-full px-10">
-          <!-- 快速导入模板组件 -->
-          <TemplateQuickStart />
+      <template v-if="settings">
+        <template v-if="!['running', 'stopping'].includes(taskStatus)">
+          <n-form size="large" label-placement="left" class="w-full px-10">
+            <!-- 快速导入模板组件 -->
+            <TemplateQuickStart />
 
-          <!-- 规则设置组件 -->
-          <RulesConfig />
+            <!-- 规则设置组件 -->
+            <RulesConfig />
 
-          <!-- 评论次数组件 -->
-          <FormCount />
+            <!-- 评论次数组件 -->
+            <FormCount />
 
-          <!-- 运行设置组件 -->
-          <RuntimeSettings />
+            <!-- 运行设置组件 -->
+            <RuntimeSettings />
 
-          <!-- 关键词屏蔽设置组件 -->
-          <KeywordBlocking />
-        </n-form>
+            <!-- 关键词屏蔽设置组件 -->
+            <KeywordBlocking />
+          </n-form>
+        </template>
+        <template v-else>
+          <!-- 任务运行时的日志显示 -->
+          <TaskLogs />
+        </template>
       </template>
       <template v-else>
-        <!-- 任务运行时的日志显示 -->
-        <TaskLogs />
+        <span>配置加载中</span>
       </template>
     </div>
   </div>

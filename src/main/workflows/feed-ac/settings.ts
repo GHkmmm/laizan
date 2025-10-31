@@ -1,10 +1,11 @@
 import { storage, StorageKey } from '../../utils/storage'
 import {
   type FeedAcSettingsV2,
-  getDefaultFeedAcSettingsV2,
-  getUnifiedFeedAcSettings,
-  detectConfigVersion
+  FeedAcRuleGroups,
+  FeedAcSettings,
+  FeedAcSettingsUnion
 } from '@/shared/feed-ac-setting'
+import { customAlphabet } from 'nanoid'
 
 export function getFeedAcSettings(): FeedAcSettingsV2 {
   const saved = storage.get(StorageKey.feedAcSetting)
@@ -57,4 +58,73 @@ export function updateFeedAcSettings(partial: Partial<FeedAcSettingsV2>): FeedAc
 export function clearFeedAcSettings(): FeedAcSettingsV2 {
   storage.delete(StorageKey.feedAcSetting)
   return getDefaultFeedAcSettingsV2()
+}
+
+export function getDefaultFeedAcSettingsV2(): FeedAcSettingsV2 {
+  return {
+    version: 'v2',
+    ruleGroups: [],
+    blockKeywords: [],
+    authorBlockKeywords: [],
+    simulateWatchBeforeComment: false,
+    watchTimeRangeSeconds: [5, 15],
+    onlyCommentActiveVideo: false,
+    maxCount: 10
+  }
+}
+
+// 检测配置版本
+export function detectConfigVersion(config?: FeedAcSettingsUnion): 'v1' | 'v2' | 'unknown' {
+  if (config && typeof config === 'object') {
+    // v1 配置的特征：有 rules 数组但没有 version 字段
+    if (!('version' in config) && 'rules' in config && Array.isArray(config.rules)) {
+      return 'v1'
+    }
+    if ('version' in config && config.version === 'v2') {
+      return 'v2'
+    }
+  }
+  return 'unknown'
+}
+
+// 将 v1 配置迁移到 v2
+export function migrateV1ToV2(v1Config: FeedAcSettings): FeedAcSettingsV2 {
+  const nanoid = customAlphabet('1234567890abcdef', 16)
+
+  // 创建默认规则组，将原有的 rules 迁移过来
+  const defaultRuleGroup: FeedAcRuleGroups = {
+    id: nanoid(),
+    type: 'manual',
+    name: '默认规则组',
+    relation: v1Config.ruleRelation,
+    rules: [...v1Config.rules],
+    commentTexts: [...v1Config.commentTexts],
+    commentImagePath: v1Config.commentImagePath,
+    commentImageType: v1Config.commentImageType
+  }
+
+  return {
+    version: 'v2',
+    ruleGroups: v1Config.rules.length > 0 ? [defaultRuleGroup] : [],
+    blockKeywords: [...v1Config.blockKeywords],
+    authorBlockKeywords: [...v1Config.authorBlockKeywords],
+    simulateWatchBeforeComment: v1Config.simulateWatchBeforeComment,
+    watchTimeRangeSeconds: [...v1Config.watchTimeRangeSeconds],
+    onlyCommentActiveVideo: v1Config.onlyCommentActiveVideo,
+    maxCount: 10 // 默认值
+  }
+}
+
+// 统一的配置获取函数，自动处理版本迁移
+export function getUnifiedFeedAcSettings(config?: FeedAcSettingsUnion): FeedAcSettingsV2 {
+  const version = detectConfigVersion(config)
+
+  switch (version) {
+    case 'v2':
+      return config as unknown as FeedAcSettingsV2
+    case 'v1':
+      return migrateV1ToV2(config as unknown as FeedAcSettings)
+    default:
+      return getDefaultFeedAcSettingsV2()
+  }
 }

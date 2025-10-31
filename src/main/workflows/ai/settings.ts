@@ -1,6 +1,6 @@
 import { storage, StorageKey } from '../../utils/storage'
-import { AISettings, AIPlatform, PLATFORM_MODELS, getDefaultAISetting } from '@/shared/ai-setting'
-export function getAiSettings(): AISettings {
+import { AISettings, AIPlatform, PLATFORM_MODELS } from '@/shared/ai-setting'
+export function getAISettings(): AISettings {
   const saved = storage.get(StorageKey.aiSettings) as Partial<AISettings> | undefined
   const defaults = getDefaultAISetting()
   const platform = (saved?.platform as AIPlatform) || defaults.platform
@@ -13,8 +13,8 @@ export function getAiSettings(): AISettings {
   return { platform, model, apiKeys }
 }
 
-export function updateAiSettings(partial: Partial<AISettings>): AISettings {
-  const current = getAiSettings()
+export function updateAISettings(partial: Partial<AISettings>): AISettings {
+  const current = getAISettings()
   const nextPlatform = (partial.platform as AIPlatform) || current.platform
   const candidates = PLATFORM_MODELS[nextPlatform]
   const nextModel = partial.model ?? current.model
@@ -38,4 +38,16 @@ export function resetAiSettings(): AISettings {
   const defaults = getDefaultAISetting()
   storage.set(StorageKey.aiSettings, defaults)
   return defaults
+}
+
+export function getDefaultAISetting(): AISettings {
+  return {
+    platform: 'volcengine',
+    model: 'doubao-seed-1.6-250615',
+    apiKeys: {
+      volcengine: '',
+      bailian: '',
+      openai: ''
+    }
+  }
 }
