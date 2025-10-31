@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { Component, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { NButton, NIcon, NTag, NSpace, NCard, useMessage } from 'naive-ui'
+import { NButton, NIcon, NTag, NCard, useMessage } from 'naive-ui'
 import {
   ArrowBackOutline,
   StopCircleOutline,
@@ -22,7 +22,14 @@ const taskStore = useTaskStore()
 const message = useMessage()
 
 // 状态显示配置
-const statusConfig = {
+const statusConfig: Record<
+  string,
+  {
+    label: string
+    color: 'default' | 'error' | 'info' | 'warning' | 'success' | 'primary'
+    icon: Component
+  }
+> = {
   running: { label: '运行中', color: 'info', icon: TimeOutline },
   completed: { label: '已完成', color: 'success', icon: CheckmarkCircleOutline },
   stopped: { label: '已停止', color: 'default', icon: StopCircleOutline },
@@ -46,23 +53,21 @@ const formatTime = (timestamp: number | null): string => {
 }
 
 const goBack = (): void => {
-  router.push({ name: 'feedAcTasksHistory' })
+  router.back()
 }
 
 const stopTask = async (): Promise<void> => {
   try {
-    const result = await taskStore.stop()
-    if (result.ok) {
-      message.success('任务已停止')
-    }
+    await taskStore.stop()
+    message.success('任务已停止')
   } catch (error) {
-    message.error('停止任务失败')
+    message.error(`停止任务失败：${String(error)}`)
   }
 }
 </script>
 
 <template>
-  <div class="sticky top-0 z-10 bg-white shadow">
+  <div class="sticky top-0 z-10 shadow">
     <n-card>
       <div class="space-y-4">
         <!-- 顶部操作栏 -->
@@ -77,12 +82,8 @@ const stopTask = async (): Promise<void> => {
             </n-button>
             <h1 class="text-xl font-bold">任务详情</h1>
           </div>
-          
-          <n-button
-            v-if="task.status === 'running'"
-            type="error"
-            @click="stopTask"
-          >
+
+          <n-button v-if="task.status === 'running'" type="error" @click="stopTask">
             <template #icon>
               <n-icon>
                 <StopCircleOutline />
@@ -103,23 +104,25 @@ const stopTask = async (): Promise<void> => {
               {{ statusInfo.label }}
             </n-tag>
           </div>
-          
+
           <div>
             <div class="text-sm text-gray-400 mb-1">评论成功</div>
             <div class="text-lg font-semibold">{{ task.commentCount }} 次</div>
           </div>
-          
+
           <div>
             <div class="text-sm text-gray-400 mb-1">处理视频</div>
             <div class="text-lg font-semibold">{{ task.videoRecords.length }} 个</div>
           </div>
-          
+
           <div>
             <div class="text-sm text-gray-400 mb-1">评论成功率</div>
             <div class="text-lg font-semibold">
-              {{ task.videoRecords.length > 0 
-                ? ((task.commentCount / task.videoRecords.length) * 100).toFixed(1) 
-                : 0 }}%
+              {{
+                task.videoRecords.length > 0
+                  ? ((task.commentCount / task.videoRecords.length) * 100).toFixed(1)
+                  : 0
+              }}%
             </div>
           </div>
         </div>
@@ -130,7 +133,7 @@ const stopTask = async (): Promise<void> => {
             <div class="text-sm text-gray-400 mb-1">开始时间</div>
             <div class="text-sm">{{ formatTime(task.startTime) }}</div>
           </div>
-          
+
           <div>
             <div class="text-sm text-gray-400 mb-1">结束时间</div>
             <div class="text-sm">{{ formatTime(task.endTime) }}</div>

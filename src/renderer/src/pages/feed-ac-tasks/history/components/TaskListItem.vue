@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { Component, computed } from 'vue'
 import { NCard, NTag, NSpace, NIcon } from 'naive-ui'
 import {
   CheckmarkCircleOutline,
@@ -16,7 +16,14 @@ interface Props {
 const props = defineProps<Props>()
 
 // 状态显示配置
-const statusConfig = {
+const statusConfig: Record<
+  string,
+  {
+    label: string
+    color: 'info' | 'success' | 'default' | 'error' | 'warning' | 'primary' | undefined
+    icon: Component
+  }
+> = {
   running: { label: '运行中', color: 'info', icon: TimeOutline },
   completed: { label: '已完成', color: 'success', icon: CheckmarkCircleOutline },
   stopped: { label: '已停止', color: 'default', icon: StopCircleOutline },
@@ -70,9 +77,7 @@ const statusInfo = computed(() => statusConfig[props.task.status])
               </template>
               {{ statusInfo.label }}
             </n-tag>
-            <span class="text-sm text-gray-500">
-              评论成功 {{ task.commentCount }} 次
-            </span>
+            <span class="text-sm text-gray-500"> 评论成功 {{ task.commentCount }} 次 </span>
           </n-space>
         </div>
       </div>

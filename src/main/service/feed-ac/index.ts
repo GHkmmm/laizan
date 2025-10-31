@@ -103,12 +103,12 @@ export default class ACTask extends EventEmitter {
   public async run(): Promise<void> {
     await this._launch()
     const settings = getFeedAcSettings()
-    
+
     // 创建任务历史记录
     const taskRecord = taskHistoryService.createTask(settings)
     this._taskId = taskRecord.id
     console.log(`任务已创建，ID: ${this._taskId}`)
-    
+
     // 设置视频数据监听
     await this._setupVideoDataListener()
     console.log('视频数据监听已设置')
@@ -241,15 +241,11 @@ export default class ACTask extends EventEmitter {
         if (activityCheck.shouldComment) {
           console.log('尝试发布评论')
           this._emitProgress('try-comment', '尝试发布评论')
-          const commentSuccess = await this._postComment(videoAnalysis.matchedRuleGroup)
-          if (commentSuccess) {
+          const commnetResult = await this._postComment(videoAnalysis.matchedRuleGroup)
+          if (commnetResult.success) {
             commentCount++
             // 记录评论成功
-            this._recordVideoComment(
-              videoInfo.aweme_id,
-              videoInfo,
-              commentSuccess.commentText || ''
-            )
+            this._recordVideoComment(videoInfo.aweme_id, videoInfo, commnetResult.commentText || '')
             console.log(`评论发送成功，已评论次数：${commentCount}/${maxCount}`)
             this._emitProgress('comment-success', `评论成功 ${commentCount}/${maxCount}`)
             await sleep(random(1000, 3000))
@@ -267,7 +263,7 @@ export default class ACTask extends EventEmitter {
             // 记录评论失败
             this._recordVideoSkip(
               videoInfo.aweme_id,
-              commentSuccess.reason || '评论发布接口返回错误',
+              commnetResult.reason || '评论发布接口返回错误',
               videoInfo
             )
             try {
@@ -563,7 +559,9 @@ export default class ACTask extends EventEmitter {
     }
   }
 
-  async _postComment(matchedRuleGroup?: FeedAcRuleGroups): Promise<{ success: boolean; commentText?: string; reason?: string }> {
+  async _postComment(
+    matchedRuleGroup?: FeedAcRuleGroups
+  ): Promise<{ success: boolean; commentText?: string; reason?: string }> {
     try {
       // 从用户配置中获取随机评论内容
       const randomComment = this._getRandomComment(matchedRuleGroup)
@@ -579,7 +577,7 @@ export default class ACTask extends EventEmitter {
         .catch(() => null)
       if (!inputContainer) {
         console.log('未找到评论输入框容器')
-        return false
+        return { success: false, reason: '未找到评论输入框容器' }
       }
 
       await inputContainer.click()
@@ -1000,11 +998,7 @@ export default class ACTask extends EventEmitter {
   /**
    * 记录视频评论成功
    */
-  private _recordVideoComment(
-    videoId: string,
-    videoInfo: FeedItem,
-    commentText: string
-  ): void {
+  private _recordVideoComment(videoId: string, videoInfo: FeedItem, commentText: string): void {
     if (!this._taskId || !this._currentVideoStartTime) return
 
     const videoRecord: VideoRecord = {

@@ -6,7 +6,7 @@ export type TaskStatus = 'idle' | 'starting' | 'running' | 'stopping'
 export const useTaskStore = defineStore('task', () => {
   const taskStatus = ref<TaskStatus>('idle')
 
-  const start = async (): Promise<void> => {
+  const start = async (): Promise<string | undefined> => {
     if (taskStatus.value !== 'idle') return
 
     taskStatus.value = 'starting'
@@ -15,6 +15,7 @@ export const useTaskStore = defineStore('task', () => {
       const result = await window.api.startTask()
       if (result.ok) {
         taskStatus.value = 'running'
+        return result.taskId
       } else {
         taskStatus.value = 'idle'
         throw new Error(result.message || '未知错误')

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, computed, ref } from 'vue'
+import { onMounted, onBeforeUnmount, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { NSpin, NEmpty } from 'naive-ui'
 import { useTaskHistoryStore } from '../config/stores/history'
@@ -47,7 +47,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-scree">
     <n-spin :show="loading">
       <div v-if="currentTask">
         <!-- 任务详情头部 -->

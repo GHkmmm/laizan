@@ -20,14 +20,15 @@ const goBack = (): void => {
 }
 
 const goToDetail = (taskId: string): void => {
+  console.log('goToDetail', taskId)
   router.push({ name: 'feedAcTasksDetail', params: { taskId } })
 }
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-scree">
     <!-- 页面头部 -->
-    <div class="sticky top-0 z-10 bg-white shadow">
+    <div class="sticky top-0 z-10">
       <div class="flex items-center justify-between p-4">
         <div class="flex items-center gap-2">
           <n-button text @click="goBack">
@@ -58,7 +59,3 @@ const goToDetail = (taskId: string): void => {
     </div>
   </div>
 </template>
-
-<style scoped>
-/* 可选：添加自定义样式 */
-</style>

@@ -19,22 +19,6 @@
     </template>
     {{ startButtonTooltip }}
   </n-tooltip>
-  <n-button
-    v-else
-    type="error"
-    strong
-    secondary
-    :loading="taskStatus === 'stopping'"
-    :disabled="taskStatus === 'stopping'"
-    @click="handleStop"
-  >
-    <template #icon>
-      <NIcon>
-        <PauseOutline />
-      </NIcon>
-    </template>
-    {{ taskStatus === 'stopping' ? '停止中...' : '停止任务' }}
-  </n-button>
 
   <!-- 抖音限制提示弹窗 -->
   <DouyinLimitDialog
@@ -52,7 +36,7 @@ import { useTaskStore } from '../stores/task'
 import { useSettingsStore } from '../stores/settings'
 import { useLogsStore } from '../stores/logs'
 import { storeToRefs } from 'pinia'
-import { PlayOutline, PauseOutline } from '@vicons/ionicons5'
+import { PlayOutline } from '@vicons/ionicons5'
 import DouyinLimitDialog from './DouyinLimitDialog.vue'
 import { LocalStorageManager, STORAGE_KEYS } from '@renderer/utils/storage-keys'
 import { FeedAcRuleGroups } from '@/shared/feed-ac-setting'
@@ -67,7 +51,7 @@ const router = useRouter()
 
 const { taskStatus } = storeToRefs(taskStore)
 const { settings } = storeToRefs(settingsStore)
-const { start, stop } = taskStore
+const { start } = taskStore
 
 // 弹窗状态
 const showDouyinLimitDialog = ref(false)
@@ -155,11 +139,13 @@ const handleStart = async (): Promise<void> => {
 const startTask = async (): Promise<void> => {
   try {
     logsStore.clearLogs()
-    const result = await start()
-    
+    const taskId = await start()
+
+    console.log('任务启动， taskId:', taskId)
+
     // 启动成功后，跳转到任务详情页
-    if (result.ok && result.taskId) {
-      router.push({ name: 'feedAcTasksDetail', params: { taskId: result.taskId } })
+    if (taskId) {
+      router.push({ name: 'feedAcTasksDetail', params: { taskId: taskId } })
     }
   } catch (error) {
     logsStore.addLog(`启动失败: ${error instanceof Error ? error.message : String(error)}`)
@@ -178,14 +164,6 @@ const handleDouyinLimitConfirm = async (dontShowAgain: boolean): Promise<void> =
 
 const handleDouyinLimitCancel = (): void => {
   // 用户取消，不做任何操作
-}
-
-const handleStop = async (): Promise<void> => {
-  try {
-    await stop()
-  } catch (error) {
-    logsStore.addLog(`停止失败: ${error instanceof Error ? error.message : String(error)}`)
-  }
 }
 
 // 组件加载时检查运行中的任务
