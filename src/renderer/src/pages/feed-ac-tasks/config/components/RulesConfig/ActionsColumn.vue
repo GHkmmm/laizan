@@ -16,7 +16,6 @@
 import { NButtonGroup, NButton, NDivider, useModal, useMessage, useDialog } from 'naive-ui'
 import { h } from 'vue'
 import RuleGroupModal from './RuleGroupModal.vue'
-import { customAlphabet } from 'nanoid'
 import type { FeedAcRuleGroups } from '@/shared/feed-ac-setting'
 
 // 定义 props
@@ -37,7 +36,6 @@ const emit = defineEmits<{
 const modal = useModal()
 const message = useMessage()
 const dialog = useDialog()
-const nanoid = customAlphabet('1234567890abcdef', 16)
 
 const handleEdit = (): void => {
   const m = modal.create({
@@ -63,24 +61,8 @@ const handleEdit = (): void => {
 }
 
 const handleCopy = (): void => {
-  // 深拷贝规则组数据并生成新的ID
-  const copiedRuleGroup = JSON.parse(JSON.stringify(props.row))
-  copiedRuleGroup.id = nanoid()
-
-  // 递归更新所有子规则组的ID
-  const updateIds = (group: FeedAcRuleGroups): void => {
-    group.id = nanoid()
-    if (group.children && group.children.length > 0) {
-      group.children.forEach(updateIds)
-    }
-  }
-
-  if (copiedRuleGroup.children && copiedRuleGroup.children.length > 0) {
-    copiedRuleGroup.children.forEach(updateIds)
-  }
-
-  // 通过事件将复制的规则组和父级ID传递给父组件处理
-  emit('copy', copiedRuleGroup, props.parentId)
+  // 直接传递规则组，后端会处理深拷贝和生成新 ID
+  emit('copy', props.row, props.parentId)
   message.success('规则组复制成功')
 }
 

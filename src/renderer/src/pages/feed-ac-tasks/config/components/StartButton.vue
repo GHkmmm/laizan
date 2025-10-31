@@ -125,8 +125,6 @@ const handleStart = async (): Promise<void> => {
 
 const startTask = async (): Promise<void> => {
   try {
-    // 启动前保存设置
-    await settingsStore.saveSettings()
     logsStore.clearLogs()
     await start()
   } catch (error) {

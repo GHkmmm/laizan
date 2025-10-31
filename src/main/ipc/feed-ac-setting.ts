@@ -1,32 +1,91 @@
 import { app, BrowserWindow, dialog, ipcMain, OpenDialogOptions } from 'electron'
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'fs'
 import { join } from 'path'
-import { FeedAcSettingsV2 } from '@/shared/feed-ac-setting'
+import { FeedAcSettingsV2, FeedAcRuleGroups } from '@/shared/feed-ac-setting'
 import {
   clearFeedAcSettings,
   detectConfigVersion,
   getFeedAcSettings,
   getUnifiedFeedAcSettings,
-  updateFeedAcSettings
+  createRuleGroup,
+  updateRuleGroup,
+  deleteRuleGroup,
+  copyRuleGroup,
+  updateExceptRuleGroup,
+  importFullSettings
 } from '../service/feed-ac/settings'
 
 /**
  * 注册 Feed AC 配置相关的 IPC 处理器
  */
 export function registerFeedAcSettingIPC(): void {
+  // ============= 全量操作 =============
   ipcMain.handle('feedAcSetting:get', () => {
     return getFeedAcSettings()
   })
 
+  ipcMain.handle('feedAcSetting:clear', () => {
+    return clearFeedAcSettings()
+  })
+
+  // ============= 规则组操作 =============
   ipcMain.handle(
-    'feedAcSetting:update',
-    (_e, payload: Partial<ReturnType<typeof getFeedAcSettings>>) => {
-      return updateFeedAcSettings(payload)
+    'feedAcSetting:createRuleGroup',
+    (_e, ruleGroupData: Omit<FeedAcRuleGroups, 'id'>, parentId?: string) => {
+      try {
+        return { ok: true, data: createRuleGroup(ruleGroupData, parentId) }
+      } catch (error) {
+        return { ok: false, message: String(error) }
+      }
     }
   )
 
-  ipcMain.handle('feedAcSetting:clear', () => {
-    return clearFeedAcSettings()
+  ipcMain.handle(
+    'feedAcSetting:updateRuleGroup',
+    (_e, id: string, updates: Partial<Omit<FeedAcRuleGroups, 'id'>>) => {
+      try {
+        return { ok: true, data: updateRuleGroup(id, updates) }
+      } catch (error) {
+        return { ok: false, message: String(error) }
+      }
+    }
+  )
+
+  ipcMain.handle('feedAcSetting:deleteRuleGroup', (_e, id: string) => {
+    try {
+      return { ok: true, data: deleteRuleGroup(id) }
+    } catch (error) {
+      return { ok: false, message: String(error) }
+    }
+  })
+
+  ipcMain.handle('feedAcSetting:copyRuleGroup', (_e, id: string, parentId?: string) => {
+    try {
+      return { ok: true, data: copyRuleGroup(id, parentId) }
+    } catch (error) {
+      return { ok: false, message: String(error) }
+    }
+  })
+
+  // ============= 其他配置字段更新 =============
+  ipcMain.handle(
+    'feedAcSetting:updateExceptRuleGroup',
+    (_e, updates: Partial<Omit<FeedAcSettingsV2, 'ruleGroups' | 'version'>>) => {
+      try {
+        return { ok: true, data: updateExceptRuleGroup(updates) }
+      } catch (error) {
+        return { ok: false, message: String(error) }
+      }
+    }
+  )
+
+  // ============= 导入导出 =============
+  ipcMain.handle('feedAcSetting:import', (_e, config: FeedAcSettingsV2) => {
+    try {
+      return { ok: true, data: importFullSettings(config) }
+    } catch (error) {
+      return { ok: false, message: String(error) }
+    }
   })
 
   ipcMain.handle('feedAcSetting:export', async (e, payload: FeedAcSettingsV2) => {

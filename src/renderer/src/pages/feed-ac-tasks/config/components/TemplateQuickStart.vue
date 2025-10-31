@@ -81,7 +81,7 @@ const handleTemplateClick = async (fileName: string): Promise<void> => {
         }
 
         // 更新配置
-        await window.api.updateFeedAcSettings(result.data)
+        await window.api.importFeedAcSettings(result.data)
         // 刷新状态
         await settingsStore.loadSettings()
         message.success(`模板"${name}"导入成功`)

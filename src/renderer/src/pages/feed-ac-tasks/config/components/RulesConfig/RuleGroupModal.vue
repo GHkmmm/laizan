@@ -84,7 +84,6 @@ import {
   NPopover
 } from 'naive-ui'
 import type { FeedAcRule, FeedAcRuleGroups } from '@/shared/feed-ac-setting'
-import { customAlphabet } from 'nanoid'
 import { useAiSettings } from '../../hooks/useAiSettings'
 
 // 定义 props
@@ -102,9 +101,6 @@ const emit = defineEmits<ModalEmits>()
 
 // 使用自定义hooks获取AI设置
 const { isAiConfigured, loading } = useAiSettings()
-
-// 生成唯一ID的函数
-const nanoid = customAlphabet('1234567890abcdef', 16)
 
 // 表单数据
 const ruleType = ref<'ai' | 'manual'>('manual')
@@ -170,9 +166,9 @@ const handleConfirm = (): void => {
     return
   }
 
-  const result: FeedAcRuleGroups = {
-    // 如果是编辑模式，保留原有的ID，否则生成新的ID
-    id: props.ruleGroup?.id || nanoid(),
+  const result: Omit<FeedAcRuleGroups, 'id'> & { id?: string } = {
+    // 如果是编辑模式，保留原有的ID；否则不传 id，由后端生成
+    ...(props.ruleGroup?.id ? { id: props.ruleGroup.id } : {}),
     type: ruleType.value,
     name: groupName.value,
     ...(ruleType.value === 'ai'
@@ -183,6 +179,6 @@ const handleConfirm = (): void => {
         })
   }
 
-  emit('confirm', result)
+  emit('confirm', result as FeedAcRuleGroups)
 }
 </script>

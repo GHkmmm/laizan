@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
-import { FeedAcSettingsV2 } from '@/shared/feed-ac-setting'
+import { FeedAcSettingsV2, FeedAcRuleGroups } from '@/shared/feed-ac-setting'
 import { AISettings } from '@/shared/ai-setting'
 
 // Custom APIs for renderer
@@ -9,9 +9,37 @@ export const api = {
   login: (): Promise<void> => ipcRenderer.invoke('login'),
   logout: (): void => ipcRenderer.send('logout'),
   getFeedAcSettings: (): Promise<FeedAcSettingsV2> => ipcRenderer.invoke('feedAcSetting:get'),
-  updateFeedAcSettings: (payload: Partial<FeedAcSettingsV2>): Promise<FeedAcSettingsV2> =>
-    ipcRenderer.invoke('feedAcSetting:update', payload),
   clearFeedAcSettings: (): Promise<FeedAcSettingsV2> => ipcRenderer.invoke('feedAcSetting:clear'),
+  // 规则组操作
+  createRuleGroup: (
+    ruleGroupData: Omit<FeedAcRuleGroups, 'id'>,
+    parentId?: string
+  ): Promise<{ ok: boolean; data?: FeedAcSettingsV2; message?: string }> =>
+    ipcRenderer.invoke('feedAcSetting:createRuleGroup', ruleGroupData, parentId),
+  updateRuleGroup: (
+    id: string,
+    updates: Partial<Omit<FeedAcRuleGroups, 'id'>>
+  ): Promise<{ ok: boolean; data?: FeedAcSettingsV2; message?: string }> =>
+    ipcRenderer.invoke('feedAcSetting:updateRuleGroup', id, updates),
+  deleteRuleGroup: (
+    id: string
+  ): Promise<{ ok: boolean; data?: FeedAcSettingsV2; message?: string }> =>
+    ipcRenderer.invoke('feedAcSetting:deleteRuleGroup', id),
+  copyRuleGroup: (
+    id: string,
+    parentId?: string
+  ): Promise<{ ok: boolean; data?: FeedAcSettingsV2; message?: string }> =>
+    ipcRenderer.invoke('feedAcSetting:copyRuleGroup', id, parentId),
+  // 其他配置字段更新
+  updateExceptRuleGroup: (
+    updates: Partial<Omit<FeedAcSettingsV2, 'ruleGroups' | 'version'>>
+  ): Promise<{ ok: boolean; data?: FeedAcSettingsV2; message?: string }> =>
+    ipcRenderer.invoke('feedAcSetting:updateExceptRuleGroup', updates),
+  // 导入完整配置
+  importFeedAcSettings: (
+    config: FeedAcSettingsV2
+  ): Promise<{ ok: boolean; data?: FeedAcSettingsV2; message?: string }> =>
+    ipcRenderer.invoke('feedAcSetting:import', config),
   getAISettings: (): Promise<AISettings> => ipcRenderer.invoke('aiSetting:get'),
   updateAISettings: (payload: Partial<AISettings>): Promise<AISettings> =>
     ipcRenderer.invoke('aiSetting:update', payload),

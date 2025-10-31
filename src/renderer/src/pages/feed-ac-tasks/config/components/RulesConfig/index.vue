@@ -37,7 +37,13 @@ import { storeToRefs } from 'pinia'
 const modal = useModal()
 const settingsStore = useSettingsStore()
 const { settings } = storeToRefs(settingsStore)
-const { saveSettings, onSettingsLoaded } = settingsStore
+const {
+  onSettingsLoaded,
+  updateRuleGroup: updateRuleGroupAPI,
+  copyRuleGroup: copyRuleGroupAPI,
+  deleteRuleGroup: deleteRuleGroupAPI,
+  createRuleGroup: createRuleGroupAPI
+} = settingsStore
 
 // 递归获取所有包含子规则的规则组ID
 const getAllParentIds = (groups: FeedAcRuleGroups[]): DataTableRowKey[] => {
@@ -147,144 +153,52 @@ function rowKey(row: FeedAcRuleGroups): string {
 }
 
 // 编辑规则组
-function handleEditRuleGroup(id: string, ruleGroupData: FeedAcRuleGroups): void {
-  const updateRuleGroup = (groups: FeedAcRuleGroups[]): boolean => {
-    for (let i = 0; i < groups.length; i++) {
-      if (groups[i].id === id) {
-        groups[i] = Object.assign({}, groups[i], ruleGroupData)
-        return true
-      }
-
-      if (groups[i].children && groups[i].children!.length > 0) {
-        if (updateRuleGroup(groups[i].children!)) {
-          return true
-        }
-      }
-    }
-    return false
-  }
-
-  updateRuleGroup(settings.value!.ruleGroups)
-
-  saveSettings()
+async function handleEditRuleGroup(id: string, ruleGroupData: FeedAcRuleGroups): Promise<void> {
+  await updateRuleGroupAPI(id, ruleGroupData)
 }
 
 // 复制规则组
-function handleCopyRuleGroup(ruleGroupData: FeedAcRuleGroups, parentId?: string): void {
-  // 如果有父级ID，则将复制的规则组添加到对应的父级下
-  if (parentId) {
-    const findAndAddToParent = (groups: FeedAcRuleGroups[]): boolean => {
-      for (const group of groups) {
-        if (group.id === parentId) {
-          if (!group.children) {
-            group.children = []
-          }
-          group.children.push(ruleGroupData)
-          return true
-        }
-
-        if (group.children && group.children.length > 0) {
-          if (findAndAddToParent(group.children)) {
-            return true
-          }
-        }
-      }
-      return false
-    }
-
-    findAndAddToParent(settings.value!.ruleGroups)
-  } else {
-    // 如果没有父级ID，则将复制的规则组添加到根级别
-    settings.value!.ruleGroups.push(ruleGroupData)
-  }
-  saveSettings()
+async function handleCopyRuleGroup(
+  ruleGroupData: FeedAcRuleGroups,
+  parentId?: string
+): Promise<void> {
+  await copyRuleGroupAPI(ruleGroupData.id, parentId)
 }
 
 // 配置评论内容
-function handleConfigureComment(ruleGroupData: FeedAcRuleGroups): void {
-  const updateRuleGroup = (groups: FeedAcRuleGroups[]): boolean => {
-    for (let i = 0; i < groups.length; i++) {
-      if (groups[i].id === ruleGroupData.id) {
-        // 更新评论相关字段
-        groups[i].commentTexts = ruleGroupData.commentTexts
-        groups[i].commentImagePath = ruleGroupData.commentImagePath
-        groups[i].commentImageType = ruleGroupData.commentImageType
-        return true
-      }
-
-      if (groups[i].children && groups[i].children!.length > 0) {
-        if (updateRuleGroup(groups[i].children!)) {
-          return true
-        }
-      }
-    }
-    return false
-  }
-
-  updateRuleGroup(settings.value!.ruleGroups)
-  saveSettings()
+async function handleConfigureComment(ruleGroupData: FeedAcRuleGroups): Promise<void> {
+  // 只更新评论相关字段
+  await updateRuleGroupAPI(ruleGroupData.id, {
+    commentTexts: ruleGroupData.commentTexts,
+    commentImagePath: ruleGroupData.commentImagePath,
+    commentImageType: ruleGroupData.commentImageType
+  })
 }
 
 // 删除规则组
-function handleDeleteRuleGroup(id: string): void {
-  const deleteRuleGroup = (groups: FeedAcRuleGroups[]): boolean => {
-    for (let i = 0; i < groups.length; i++) {
-      if (groups[i].id === id) {
-        groups.splice(i, 1)
-        return true
-      }
-
-      if (groups[i].children && groups[i].children!.length > 0) {
-        if (deleteRuleGroup(groups[i].children!)) {
-          return true
-        }
-      }
-    }
-    return false
-  }
-
-  deleteRuleGroup(settings.value!.ruleGroups)
-
-  saveSettings()
+async function handleDeleteRuleGroup(id: string): Promise<void> {
+  await deleteRuleGroupAPI(id)
 }
 
 // 添加子规则组的函数
-function addChildRuleGroup(parentId: string, ruleGroupData: FeedAcRuleGroups): void {
-  const findAndAddChild = (groups: FeedAcRuleGroups[]): boolean => {
-    for (const group of groups) {
-      if (group.id === parentId) {
-        // 清空当前规则组的评论内容
-        delete group.commentTexts
-        delete group.commentImagePath
-        delete group.commentImageType
+async function addChildRuleGroup(parentId: string, ruleGroupData: FeedAcRuleGroups): Promise<void> {
+  // 先清空父级规则组的评论内容
+  await updateRuleGroupAPI(parentId, {
+    commentTexts: undefined,
+    commentImagePath: undefined,
+    commentImageType: undefined
+  })
 
-        if (!group.children) {
-          group.children = []
-        }
-        group.children.push(ruleGroupData)
+  // 再创建子规则组
+  await createRuleGroupAPI(ruleGroupData, parentId)
 
-        // 展开父级规则组
-        if (!expandedRowKeys.value.includes(parentId)) {
-          expandedRowKeys.value = [...expandedRowKeys.value, parentId]
-        }
-
-        return true
-      }
-
-      if (group.children && group.children.length > 0) {
-        if (findAndAddChild(group.children)) {
-          return true
-        }
-      }
-    }
-    return false
+  // 展开父级规则组
+  if (!expandedRowKeys.value.includes(parentId)) {
+    expandedRowKeys.value = [...expandedRowKeys.value, parentId]
   }
-
-  findAndAddChild(settings.value!.ruleGroups)
-  saveSettings()
 }
 
-function handleAddRuleGroup(): void {
+async function handleAddRuleGroup(): Promise<void> {
   const m = modal.create({
     title: '新增规则组',
     preset: 'card',
@@ -296,11 +210,9 @@ function handleAddRuleGroup(): void {
         onCancel: () => {
           m.destroy()
         },
-        onConfirm: (ruleGroupData) => {
-          // 将新规则组添加到数据中
-          console.log('settings.value', settings.value)
-          settings.value!.ruleGroups.push(ruleGroupData)
-          saveSettings()
+        onConfirm: async (ruleGroupData) => {
+          // 调用 API 创建规则组（不传 parentId，作为根规则组）
+          await createRuleGroupAPI(ruleGroupData)
           m.destroy()
         }
       })

@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { NButton, NDropdown, useDialog, useMessage } from 'naive-ui'
 import { useTaskStore } from '../stores/task'
 import { useSettingsStore } from '../stores/settings'
-import { structuredClone } from '@/utils/common'
+import { deepClone } from '@/utils/common'
 import { LocalStorageManager, STORAGE_KEYS } from '@renderer/utils/storage-keys'
 import { FeedAcSettingsV2 } from '@/shared/feed-ac-setting'
 
@@ -31,7 +31,7 @@ const handleSelect = async (key: Key): Promise<void> => {
     case 'export': {
       try {
         const res = await window.api.exportFeedAcSettings(
-          structuredClone<FeedAcSettingsV2>(settingsStore.settings!)
+          deepClone<FeedAcSettingsV2>(settingsStore.settings!)
         )
         if (res.ok) {
           message.success(`已导出到：${res.path}`)
@@ -65,7 +65,11 @@ const handleSelect = async (key: Key): Promise<void> => {
             negativeText: '取消',
             onPositiveClick: async () => {
               try {
-                await window.api.updateFeedAcSettings(picked.data || {})
+                if (!picked.data) {
+                  message.error('配置数据无效')
+                  return
+                }
+                await window.api.importFeedAcSettings(picked.data)
                 // 刷新表单数据
                 await settingsStore.loadSettings()
                 message.success('配置已升级并导入成功')
@@ -82,7 +86,11 @@ const handleSelect = async (key: Key): Promise<void> => {
             negativeText: '取消',
             onPositiveClick: async () => {
               try {
-                await window.api.updateFeedAcSettings(picked.data || {})
+                if (!picked.data) {
+                  message.error('配置数据无效')
+                  return
+                }
+                await window.api.importFeedAcSettings(picked.data)
                 // 刷新表单数据
                 await settingsStore.loadSettings()
                 message.success('已导入配置并覆盖当前配置')

@@ -22,9 +22,10 @@ const taskStore = useTaskStore()
 const settingsStore = useSettingsStore()
 const { settings } = storeToRefs(settingsStore)
 const { taskStatus } = taskStore
+const { updateExceptRuleGroup } = settingsStore
 
 // 处理maxCount变化，直接保存到配置中
 const handleMaxCountChange = (): void => {
-  settingsStore.saveSettings()
+  updateExceptRuleGroup({ maxCount: settings.value!.maxCount })
 }
 </script>

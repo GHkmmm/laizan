@@ -42,7 +42,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { AIPlatform, AISettings } from '@/shared/ai-setting'
 import { useDialog, useMessage, NForm, NFormItem, NInput, NButton, NCard, NSelect } from 'naive-ui'
-import { structuredClone } from '@/utils/common'
+import { deepClone } from '@/utils/common'
 
 const aiSetting = ref<AISettings>()
 const message = useMessage()
@@ -78,7 +78,7 @@ const onSave = async (): Promise<void> => {
       message.error('所选模型与平台不匹配')
       return
     }
-    aiSetting.value = await window.api.updateAISettings(structuredClone(aiSetting.value!))
+    aiSetting.value = await window.api.updateAISettings(deepClone(aiSetting.value!))
     message.success('已保存')
   } catch (e) {
     message.error(String(e))

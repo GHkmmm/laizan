@@ -5,22 +5,22 @@
         <div class="flex flex-col gap-2 pt-3 w-full">
           <div class="flex flex-col gap-2">
             <n-checkbox
-              v-model:checked="settings.simulateWatchBeforeComment"
+              v-model:checked="settings!.simulateWatchBeforeComment"
               size="small"
               @update:checked="saveSettings"
             >
               是否模拟真人先观看视频再评论
             </n-checkbox>
-            <div v-if="settings.simulateWatchBeforeComment" class="flex flex-col gap-2 py-3">
+            <div v-if="settings!.simulateWatchBeforeComment" class="flex flex-col gap-2 py-3">
               <div>
                 <span>视频将随机播放</span>
-                <span class="text-green-200 px-1">{{ settings.watchTimeRangeSeconds[0] }}秒</span>
+                <span class="text-green-200 px-1">{{ settings!.watchTimeRangeSeconds[0] }}秒</span>
                 <span>至</span>
-                <span class="text-green-200 px-1">{{ settings.watchTimeRangeSeconds[1] }}秒</span>
+                <span class="text-green-200 px-1">{{ settings!.watchTimeRangeSeconds[1] }}秒</span>
                 <span>后评论</span>
               </div>
               <n-slider
-                v-model:value="settings.watchTimeRangeSeconds"
+                v-model:value="settings!.watchTimeRangeSeconds"
                 range
                 :min="0"
                 :max="60"
@@ -31,7 +31,7 @@
           </div>
           <div class="flex items-center">
             <n-checkbox
-              v-model:checked="settings.onlyCommentActiveVideo"
+              v-model:checked="settings!.onlyCommentActiveVideo"
               size="small"
               @update:checked="saveSettings"
             >
@@ -60,8 +60,13 @@ import { HelpCircleOutline } from '@vicons/ionicons5'
 
 const settingsStore = useSettingsStore()
 const { settings } = storeToRefs(settingsStore)
+const { updateExceptRuleGroup } = settingsStore
 
-const saveSettings = (): Promise<void> => {
-  return settingsStore.saveSettings()
+const saveSettings = (): void => {
+  updateExceptRuleGroup({
+    simulateWatchBeforeComment: settings.value!.simulateWatchBeforeComment,
+    watchTimeRangeSeconds: settings.value!.watchTimeRangeSeconds,
+    onlyCommentActiveVideo: settings.value!.onlyCommentActiveVideo
+  })
 }
 </script>
