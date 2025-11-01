@@ -1,12 +1,11 @@
 <template>
-  <n-tooltip :disabled="!startButtonTooltip" trigger="hover">
+  <n-tooltip :disabled="!isRunning" trigger="hover">
     <template #trigger>
       <n-button
-        v-if="!['running', 'stopping'].includes(taskStatus)"
         type="primary"
         strong
         :loading="taskStatus === 'starting'"
-        :disabled="isStartDisabled"
+        :disabled="isRunning"
         @click="handleStart"
       >
         <template #icon>
@@ -17,7 +16,7 @@
         {{ taskStatus === 'starting' ? '启动中...' : '开始任务' }}
       </n-button>
     </template>
-    {{ startButtonTooltip }}
+    任务正在运行，请等待前一个任务结束
   </n-tooltip>
 
   <!-- 抖音限制提示弹窗 -->
@@ -29,7 +28,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { NButton, useMessage, NIcon, NTooltip } from 'naive-ui'
 import { useRouter } from 'vue-router'
 import { useTaskStore } from '../stores/task'
@@ -40,12 +39,10 @@ import { PlayOutline } from '@vicons/ionicons5'
 import DouyinLimitDialog from './DouyinLimitDialog.vue'
 import { LocalStorageManager, STORAGE_KEYS } from '@renderer/utils/storage-keys'
 import { FeedAcRuleGroups } from '@/shared/feed-ac-setting'
-import { useTaskHistoryStore } from '../stores/history'
 
 const taskStore = useTaskStore()
 const settingsStore = useSettingsStore()
 const logsStore = useLogsStore()
-const taskHistoryStore = useTaskHistoryStore()
 const message = useMessage()
 const router = useRouter()
 
@@ -56,25 +53,8 @@ const { start } = taskStore
 // 弹窗状态
 const showDouyinLimitDialog = ref(false)
 
-// 检查是否有任务正在运行
-const hasRunningTask = ref(false)
-const checkRunningTask = async (): Promise<void> => {
-  const runningTask = await taskHistoryStore.loadCurrentRunningTask()
-  hasRunningTask.value = !!runningTask
-}
-
-// 禁用开始按钮的条件
-const isStartDisabled = computed(() => {
-  return taskStatus.value === 'starting' || hasRunningTask.value
-})
-
-// 悬停提示
-const startButtonTooltip = computed(() => {
-  if (hasRunningTask.value) {
-    return '任务正在运行，请等待前一个任务结束'
-  }
-  return ''
-})
+// 是否正在运行
+const isRunning = computed(() => !['idle'].includes(taskStatus.value))
 
 const validateForm = (): boolean => {
   // 检查是否有规则组
@@ -165,9 +145,4 @@ const handleDouyinLimitConfirm = async (dontShowAgain: boolean): Promise<void> =
 const handleDouyinLimitCancel = (): void => {
   // 用户取消，不做任何操作
 }
-
-// 组件加载时检查运行中的任务
-onMounted(() => {
-  checkRunningTask()
-})
 </script>

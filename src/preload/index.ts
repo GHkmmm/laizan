@@ -66,7 +66,8 @@ export const api = {
     ipcRenderer.invoke('browserExec:testLaunch', payload),
   selectBrowserExecPath: (): Promise<string | undefined> =>
     ipcRenderer.invoke('browserExec:select'),
-  startTask: (): Promise<{ ok: boolean; taskId?: string; message?: string }> => ipcRenderer.invoke('task:start'),
+  startTask: (): Promise<{ ok: boolean; taskId?: string; message?: string }> =>
+    ipcRenderer.invoke('task:start'),
   stopTask: (): Promise<{ ok: boolean; message?: string }> => ipcRenderer.invoke('task:stop'),
   onTaskProgress: (
     handler: (p: { type: string; message: string; timestamp: number }) => void
@@ -93,8 +94,7 @@ export const api = {
   openDouyinHomepage: (): Promise<{ ok: boolean; message?: string }> =>
     ipcRenderer.invoke('debug:openDouyinHomepage'),
   // 任务历史相关 API
-  getTaskHistoryList: (): Promise<TaskHistoryRecord[]> =>
-    ipcRenderer.invoke('taskHistory:getList'),
+  getTaskHistoryList: (): Promise<TaskHistoryRecord[]> => ipcRenderer.invoke('taskHistory:getList'),
   getTaskHistoryDetail: (taskId: string): Promise<TaskHistoryRecord | null> =>
     ipcRenderer.invoke('taskHistory:getDetail', taskId),
   deleteTaskHistory: (taskId: string): Promise<{ ok: boolean; message?: string }> =>
