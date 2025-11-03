@@ -19,7 +19,7 @@ const taskStore = useTaskStore()
 const logsStore = useLogsStore()
 const settingsStore = useSettingsStore()
 
-const { resetTaskStatus } = taskStore
+const { resetTaskStatus, syncTaskStatus } = taskStore
 const { addLog, setupAutoScroll } = logsStore
 const { settings } = storeToRefs(settingsStore)
 
@@ -32,6 +32,9 @@ onMounted(async () => {
 
   // 设置自动滚动
   setupAutoScroll()
+
+  // 同步任务状态 - 检查是否有运行中的任务
+  await syncTaskStatus()
 
   // 监听任务进度
   offProgress = window.api.onTaskProgress((p) => {

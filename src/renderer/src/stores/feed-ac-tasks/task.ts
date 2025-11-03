@@ -55,11 +55,30 @@ export const useTaskStore = defineStore('task', () => {
     taskStatus.value = 'idle'
   }
 
+  /**
+   * 同步任务状态
+   * 检查主进程是否有运行中的任务，并同步到本地状态
+   */
+  const syncTaskStatus = async (): Promise<void> => {
+    try {
+      const runningTask = await window.api.getCurrentRunningTask()
+      if (runningTask) {
+        taskStatus.value = 'running'
+      } else {
+        taskStatus.value = 'idle'
+      }
+    } catch (error) {
+      console.error('同步任务状态失败:', error)
+      taskStatus.value = 'idle'
+    }
+  }
+
   return {
     taskStatus,
     isRunning,
     start,
     stop,
-    resetTaskStatus
+    resetTaskStatus,
+    syncTaskStatus
   }
 })

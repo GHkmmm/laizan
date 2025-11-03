@@ -17,6 +17,7 @@ const isRunning = computed(() => currentTask.value?.status === 'running')
 
 let refreshInterval: number | null = null
 let offProgress: (() => void) | null = null
+let offEnded: (() => void) | null = null
 
 onMounted(async () => {
   // 加载任务详情
@@ -33,6 +34,16 @@ onMounted(async () => {
       // 任务有更新时立即刷新
       taskDetailStore.refreshCurrentTask()
     })
+
+    // 监听任务结束事件
+    offEnded = window.api.onTaskEnded(async () => {
+      // 任务结束时刷新详情并停止定时器
+      await taskDetailStore.refreshCurrentTask()
+      if (refreshInterval) {
+        clearInterval(refreshInterval)
+        refreshInterval = null
+      }
+    })
   }
 })
 
@@ -42,6 +53,9 @@ onBeforeUnmount(() => {
   }
   if (offProgress) {
     offProgress()
+  }
+  if (offEnded) {
+    offEnded()
   }
 })
 </script>
