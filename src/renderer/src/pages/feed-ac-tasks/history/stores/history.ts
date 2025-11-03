@@ -2,9 +2,12 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { TaskHistoryRecord } from '@/shared/task-history'
 
+/**
+ * 任务历史列表 Store
+ * 职责：管理历史任务列表的加载、删除等操作
+ */
 export const useTaskHistoryStore = defineStore('taskHistory', () => {
   const taskList = ref<TaskHistoryRecord[]>([])
-  const currentTask = ref<TaskHistoryRecord | null>(null)
   const loading = ref(false)
 
   /**
@@ -16,20 +19,6 @@ export const useTaskHistoryStore = defineStore('taskHistory', () => {
       taskList.value = await window.api.getTaskHistoryList()
     } catch (error) {
       console.error('Failed to load task history list:', error)
-    } finally {
-      loading.value = false
-    }
-  }
-
-  /**
-   * 获取任务详情
-   */
-  const loadTaskDetail = async (taskId: string): Promise<void> => {
-    loading.value = true
-    try {
-      currentTask.value = await window.api.getTaskHistoryDetail(taskId)
-    } catch (error) {
-      console.error('Failed to load task detail:', error)
     } finally {
       loading.value = false
     }
@@ -53,35 +42,10 @@ export const useTaskHistoryStore = defineStore('taskHistory', () => {
     }
   }
 
-  /**
-   * 获取当前正在运行的任务
-   */
-  const loadCurrentRunningTask = async (): Promise<TaskHistoryRecord | null> => {
-    try {
-      const task = await window.api.getCurrentRunningTask()
-      return task
-    } catch (error) {
-      console.error('Failed to load current running task:', error)
-      return null
-    }
-  }
-
-  /**
-   * 刷新当前任务详情（用于运行中任务的实时更新）
-   */
-  const refreshCurrentTask = async (): Promise<void> => {
-    if (!currentTask.value) return
-    await loadTaskDetail(currentTask.value.id)
-  }
-
   return {
     taskList,
-    currentTask,
     loading,
     loadTaskList,
-    loadTaskDetail,
-    deleteTask,
-    loadCurrentRunningTask,
-    refreshCurrentTask
+    deleteTask
   }
 })

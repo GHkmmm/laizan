@@ -1,5 +1,5 @@
 import { customAlphabet } from 'nanoid'
-import { TaskHistoryRecord, VideoRecord, TaskStatus } from '@/shared/task-history'
+import { TaskHistoryRecord, VideoRecord } from '@/shared/task-history'
 import { FeedAcSettingsV2 } from '@/shared/feed-ac-setting'
 import { taskHistoryStorage } from './storage'
 
@@ -25,7 +25,7 @@ export class TaskHistoryService {
       videoRecords: [],
       settings: JSON.parse(JSON.stringify(settings)) // 深拷贝配置
     }
-    
+
     taskHistoryStorage.add(task)
     return task
   }
@@ -41,14 +41,14 @@ export class TaskHistoryService {
       console.error(`Task ${taskId} not found`)
       return
     }
-    
+
     task.videoRecords.push(videoRecord)
-    
+
     // 如果是成功评论，更新评论计数
     if (videoRecord.isCommented) {
       task.commentCount++
     }
-    
+
     taskHistoryStorage.update(taskId, {
       videoRecords: task.videoRecords,
       commentCount: task.commentCount
@@ -66,11 +66,11 @@ export class TaskHistoryService {
       endTime: Date.now(),
       status
     }
-    
+
     if (errorMessage) {
       updates.errorMessage = errorMessage
     }
-    
+
     taskHistoryStorage.update(taskId, updates)
   }
 

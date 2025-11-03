@@ -10,6 +10,7 @@ import { registerBrowserExecIPC } from './ipc/browser-exec'
 import { registerFilePickerIPC } from './ipc/file-picker'
 import { registerDebugIPC } from './ipc/debug'
 import { registerTaskHistoryIPC } from './ipc/task-history'
+import { registerTaskDetailIPC } from './ipc/task-detail'
 import { taskHistoryService } from './service/task-history'
 function createWindow(): void {
   // Create the browser window.
@@ -69,6 +70,7 @@ app.whenReady().then(() => {
   registerFilePickerIPC()
   registerDebugIPC()
   registerTaskHistoryIPC()
+  registerTaskDetailIPC()
 
   createWindow()
 

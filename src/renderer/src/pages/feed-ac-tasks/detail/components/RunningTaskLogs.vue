@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount } from 'vue'
 import { NCard, NLog } from 'naive-ui'
-import { useLogsStore } from '../../config/stores/logs'
+import { useLogsStore } from '@renderer/stores/feed-ac-tasks/logs'
 import { storeToRefs } from 'pinia'
 
 const logsStore = useLogsStore()
@@ -29,13 +29,7 @@ onBeforeUnmount(() => {
 <template>
   <div class="p-6">
     <n-card title="运行日志">
-      <n-log 
-        ref="logInstRef" 
-        :log="progressLogs" 
-        language="javascript" 
-        trim 
-        :rows="15"
-      />
+      <n-log ref="logInstRef" :log="progressLogs" language="javascript" trim :rows="15" />
     </n-card>
   </div>
 </template>

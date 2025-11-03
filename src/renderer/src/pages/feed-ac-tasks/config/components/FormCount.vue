@@ -14,7 +14,7 @@
 
 <script setup lang="ts">
 import { NFormItem, NInputNumber } from 'naive-ui'
-import { useTaskStore } from '../stores/task'
+import { useTaskStore } from '@renderer/stores/feed-ac-tasks/task'
 import { useSettingsStore } from '../stores/settings'
 import { storeToRefs } from 'pinia'
 

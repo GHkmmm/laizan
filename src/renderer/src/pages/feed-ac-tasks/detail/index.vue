@@ -2,15 +2,15 @@
 import { onMounted, onBeforeUnmount, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { NSpin, NEmpty } from 'naive-ui'
-import { useTaskHistoryStore } from '../config/stores/history'
+import { useTaskDetailStore } from './stores/detail'
 import { storeToRefs } from 'pinia'
 import TaskDetailHeader from './components/TaskDetailHeader.vue'
 import VideoRecordList from './components/VideoRecordList.vue'
 import RunningTaskLogs from './components/RunningTaskLogs.vue'
 
 const route = useRoute()
-const taskHistoryStore = useTaskHistoryStore()
-const { currentTask, loading } = storeToRefs(taskHistoryStore)
+const taskDetailStore = useTaskDetailStore()
+const { currentTask, loading } = storeToRefs(taskDetailStore)
 
 const taskId = computed(() => route.params.taskId as string)
 const isRunning = computed(() => currentTask.value?.status === 'running')
@@ -20,18 +20,18 @@ let offProgress: (() => void) | null = null
 
 onMounted(async () => {
   // 加载任务详情
-  await taskHistoryStore.loadTaskDetail(taskId.value)
+  await taskDetailStore.loadTaskDetail(taskId.value)
 
   // 如果任务正在运行，设置定时刷新
   if (isRunning.value) {
     refreshInterval = window.setInterval(async () => {
-      await taskHistoryStore.refreshCurrentTask()
+      await taskDetailStore.refreshCurrentTask()
     }, 2000) // 每2秒刷新一次
 
     // 监听任务进度事件
     offProgress = window.api.onTaskProgress(() => {
       // 任务有更新时立即刷新
-      taskHistoryStore.refreshCurrentTask()
+      taskDetailStore.refreshCurrentTask()
     })
   }
 })

@@ -3,6 +3,10 @@ import { ref } from 'vue'
 
 export type TaskStatus = 'idle' | 'starting' | 'running' | 'stopping'
 
+/**
+ * 任务控制 Store
+ * 职责：管理任务的启动、停止状态
+ */
 export const useTaskStore = defineStore('task', () => {
   const taskStatus = ref<TaskStatus>('idle')
 

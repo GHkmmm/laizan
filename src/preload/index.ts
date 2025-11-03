@@ -95,12 +95,13 @@ export const api = {
     ipcRenderer.invoke('debug:openDouyinHomepage'),
   // 任务历史相关 API
   getTaskHistoryList: (): Promise<TaskHistoryRecord[]> => ipcRenderer.invoke('taskHistory:getList'),
-  getTaskHistoryDetail: (taskId: string): Promise<TaskHistoryRecord | null> =>
-    ipcRenderer.invoke('taskHistory:getDetail', taskId),
   deleteTaskHistory: (taskId: string): Promise<{ ok: boolean; message?: string }> =>
     ipcRenderer.invoke('taskHistory:delete', taskId),
+  // 任务详情相关 API
+  getTaskDetail: (taskId: string): Promise<TaskHistoryRecord | null> =>
+    ipcRenderer.invoke('taskDetail:get', taskId),
   getCurrentRunningTask: (): Promise<TaskHistoryRecord | null> =>
-    ipcRenderer.invoke('taskHistory:getCurrentRunningTask')
+    ipcRenderer.invoke('taskDetail:getCurrentRunning')
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, h } from 'vue'
-import { NCard, NDataTable, NTag, NRadioGroup, NRadioButton, NEmpty, NSpace } from 'naive-ui'
+import { NCard, NDataTable, NTag, NRadioGroup, NRadioButton, NEmpty } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
 import { TaskHistoryRecord, VideoRecord } from '@/shared/task-history'
 
@@ -116,12 +116,8 @@ const columns: DataTableColumns<VideoRecord> = [
     <n-card title="视频观看记录">
       <template #header-extra>
         <n-radio-group v-model:value="filter" size="small">
-          <n-radio-button value="all">
-            全部 ({{ task.videoRecords.length }})
-          </n-radio-button>
-          <n-radio-button value="commented">
-            已评论 ({{ task.commentCount }})
-          </n-radio-button>
+          <n-radio-button value="all"> 全部 ({{ task.videoRecords.length }}) </n-radio-button>
+          <n-radio-button value="commented"> 已评论 ({{ task.commentCount }}) </n-radio-button>
         </n-radio-group>
       </template>
 

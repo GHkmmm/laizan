@@ -3,7 +3,7 @@ import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { NButton, NIcon, NSpin, NEmpty } from 'naive-ui'
 import { ArrowBackOutline } from '@vicons/ionicons5'
-import { useTaskHistoryStore } from '../config/stores/history'
+import { useTaskHistoryStore } from './stores/history'
 import { storeToRefs } from 'pinia'
 import TaskListItem from './components/TaskListItem.vue'
 

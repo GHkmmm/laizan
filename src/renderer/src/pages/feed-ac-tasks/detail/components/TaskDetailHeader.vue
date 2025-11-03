@@ -10,7 +10,8 @@ import {
   TimeOutline
 } from '@vicons/ionicons5'
 import { TaskHistoryRecord } from '@/shared/task-history'
-import { useTaskStore } from '../../config/stores/task'
+import { useTaskStore } from '@renderer/stores/feed-ac-tasks/task'
+import { useTaskDetailStore } from '../stores/detail'
 
 interface Props {
   task: TaskHistoryRecord
@@ -19,6 +20,7 @@ interface Props {
 const props = defineProps<Props>()
 const router = useRouter()
 const taskStore = useTaskStore()
+const taskDetailStore = useTaskDetailStore()
 const message = useMessage()
 
 // 状态显示配置
@@ -60,6 +62,8 @@ const stopTask = async (): Promise<void> => {
   try {
     await taskStore.stop()
     message.success('任务已停止')
+    // 停止任务后刷新详情
+    await taskDetailStore.refreshCurrentTask()
   } catch (error) {
     message.error(`停止任务失败：${String(error)}`)
   }
