@@ -72,14 +72,15 @@ export default class ACTask extends EventEmitter {
   private _page?: Page
   private _dyElementHandler!: DYElementHandler
   private _stopped: boolean = false
-  private _taskId?: string // 任务历史记录 ID
+  private _taskId: string // 任务历史记录 ID
   private _currentVideoStartTime?: number // 当前视频开始时间
 
   // 用于缓存视频数据的Map
   private _videoDataCache = new Map<string, FeedItem>()
 
-  constructor() {
+  constructor(taskId: string) {
     super()
+    this._taskId = taskId
   }
 
   async _launch(): Promise<void> {
@@ -100,14 +101,11 @@ export default class ACTask extends EventEmitter {
     this._dyElementHandler = new DYElementHandler(this._page)
   }
 
-  public async run(): Promise<void> {
+  public async run(): Promise<string> {
     await this._launch()
     const settings = getFeedAcSettings()
 
-    // 创建任务历史记录
-    const taskRecord = taskHistoryService.createTask(settings)
-    this._taskId = taskRecord.id
-    console.log(`任务已创建，ID: ${this._taskId}`)
+    console.log(`任务已启动，ID: ${this._taskId}`)
 
     // 设置视频数据监听
     await this._setupVideoDataListener()
@@ -298,6 +296,7 @@ export default class ACTask extends EventEmitter {
     }
 
     await this._close()
+    return this._taskId
   }
 
   public async stop(): Promise<void> {

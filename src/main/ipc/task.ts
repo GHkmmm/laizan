@@ -17,13 +17,15 @@ export function registerTaskIPC(): void {
       return { ok: false, message: 'Task already running' }
     }
     const win = BrowserWindow.fromWebContents(event.sender)
-    currentTask = new ACTask()
-    running = true
 
     // 获取配置并创建任务记录
     const settings = getFeedAcSettings()
     const taskRecord = taskHistoryService.createTask(settings)
     currentTaskId = taskRecord.id
+
+    // 创建任务实例，传入任务ID
+    currentTask = new ACTask(currentTaskId)
+    running = true
 
     // 订阅进度事件，主动推送到渲染进程
     currentTask.on('progress', (p) => {
@@ -37,7 +39,8 @@ export function registerTaskIPC(): void {
     // 异步执行任务
     ;(async () => {
       try {
-        await currentTask?.run()
+        const taskId = await currentTask?.run()
+        currentTaskId = taskId ?? null
         // 任务成功完成
         if (currentTaskId) {
           taskHistoryService.endTask(currentTaskId, 'completed')
@@ -46,7 +49,7 @@ export function registerTaskIPC(): void {
       } catch (err) {
         const msg = String(err)
         const isClosed = msg.includes('Task stopped') || msg.includes('has been closed')
-        
+
         // 更新任务状态
         if (currentTaskId) {
           if (isClosed) {
@@ -55,7 +58,7 @@ export function registerTaskIPC(): void {
             taskHistoryService.endTask(currentTaskId, 'error', msg)
           }
         }
-        
+
         win?.webContents.send('task:ended', {
           status: isClosed ? 'stopped' : 'error',
           message: msg
