@@ -16,7 +16,7 @@
         </a>
       </div>
       <n-menu
-        default-value="feed-ac-tasks"
+        default-value="feed-ac-tasks-config"
         :options="menuOptions"
         :render-label="renderMenuLabel"
         class="h-screen"
@@ -65,8 +65,8 @@ const menuOptions: MenuOption[] = [
         children: [
           {
             label: '自动评论引流',
-            key: 'feed-ac-tasks',
-            routeName: 'feedAcTasks'
+            key: 'feed-ac-tasks-config',
+            routeName: 'feedAcTasksConfig'
           }
         ]
       },
