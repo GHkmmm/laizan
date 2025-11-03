@@ -62,7 +62,9 @@ onBeforeUnmount(() => {
 
 <template>
   <div>
-    <div class="absolute top-0 left-0 right-0 z-10 flex items-center bg-black/5 backdrop-blur-xl">
+    <div
+      class="absolute top-0 left-0 right-0 z-10 flex items-center bg-[#101014]/50 backdrop-blur-2xl"
+    >
       <div class="flex justify-between w-full p-6 pb-3">
         <HistoryButton />
         <div class="flex gap-2">

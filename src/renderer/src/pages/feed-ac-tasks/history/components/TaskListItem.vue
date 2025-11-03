@@ -95,7 +95,9 @@ const handleDelete = async (): Promise<void> => {
 </script>
 
 <template>
-  <n-card hoverable class="cursor-pointer transition-all">
+  <n-card
+    class="hover:shadow-2xl hover:shadow-green-200/5 transition duration-200 ease-in-out cursor-pointer"
+  >
     <div class="space-y-3">
       <!-- 任务状态和时间 -->
       <div class="flex items-start justify-between">
@@ -157,10 +159,3 @@ const handleDelete = async (): Promise<void> => {
     </div>
   </n-card>
 </template>
-
-<style scoped>
-.n-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-</style>

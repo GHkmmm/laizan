@@ -68,7 +68,7 @@ const handleClearAll = async (): Promise<void> => {
 <template>
   <div class="min-h-scree">
     <!-- 页面头部 -->
-    <div class="absolute top-0 left-0 right-0 z-10 bg-black/5 backdrop-blur-xl">
+    <div class="absolute top-0 left-0 right-0 z-10 bg-[#101014]/50 backdrop-blur-2xl">
       <div class="flex items-center justify-between p-6 pb-3">
         <div class="flex items-center gap-2">
           <n-button text @click="goBack">
@@ -86,7 +86,7 @@ const handleClearAll = async (): Promise<void> => {
           @positive-click="handleClearAll"
         >
           <template #trigger>
-            <n-button type="error" secondary size="small">
+            <n-button type="error" secondary size="medium">
               <template #icon>
                 <n-icon>
                   <TrashOutline />
