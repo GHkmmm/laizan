@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount } from 'vue'
-import { NForm } from 'naive-ui'
-import { useTaskStore } from './stores/task'
-import { useLogsStore } from './stores/logs'
+import { NForm, NButton, NIcon } from 'naive-ui'
+import { useRouter } from 'vue-router'
+import { TimeOutline } from '@vicons/ionicons5'
+import { useTaskStore } from '@renderer/stores/feed-ac-tasks/task'
+import { useLogsStore } from '@renderer/stores/feed-ac-tasks/logs'
 import { storeToRefs } from 'pinia'
 import RulesConfig from './components/RulesConfig/index.vue'
 import KeywordBlocking from './components/KeywordBlocking.vue'
@@ -19,6 +21,7 @@ import { useSettingsStore } from './stores/settings'
 const taskStore = useTaskStore()
 const logsStore = useLogsStore()
 const settingsStore = useSettingsStore()
+const router = useRouter()
 
 // 解构需要的响应式数据（无需在此检查登录态，进入本页即已登录）
 const { taskStatus } = storeToRefs(taskStore)
@@ -60,11 +63,24 @@ onBeforeUnmount(() => {
 })
 
 // 由 ConfigManager 组件承载配置管理逻辑
+
+// 跳转到历史任务页面
+const goToHistory = (): void => {
+  router.push({ name: 'feedAcTasksHistory' })
+}
 </script>
 
 <template>
   <div>
     <div class="sticky top-0 z-10 flex gap-2 justify-end items-center p-4">
+      <n-button secondary @click="goToHistory">
+        <template #icon>
+          <n-icon>
+            <TimeOutline />
+          </n-icon>
+        </template>
+        历史任务
+      </n-button>
       <ConfigManager />
       <StartButton />
     </div>

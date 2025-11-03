@@ -19,6 +19,16 @@ const routes: RouteRecordRaw[] = [
                 path: 'config',
                 name: 'feedAcTasksConfig',
                 component: () => import('@renderer/pages/feed-ac-tasks/config/index.vue')
+              },
+              {
+                path: 'history',
+                name: 'feedAcTasksHistory',
+                component: () => import('@renderer/pages/feed-ac-tasks/history/index.vue')
+              },
+              {
+                path: 'detail/:taskId',
+                name: 'feedAcTasksDetail',
+                component: () => import('@renderer/pages/feed-ac-tasks/detail/index.vue')
               }
             ]
           }

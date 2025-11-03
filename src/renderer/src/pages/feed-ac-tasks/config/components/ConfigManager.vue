@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { NButton, NDropdown, useDialog, useMessage } from 'naive-ui'
-import { useTaskStore } from '../stores/task'
+import { useTaskStore } from '@renderer/stores/feed-ac-tasks/task'
 import { useSettingsStore } from '../stores/settings'
 import { deepClone } from '@/utils/common'
 import { LocalStorageManager, STORAGE_KEYS } from '@renderer/utils/storage-keys'

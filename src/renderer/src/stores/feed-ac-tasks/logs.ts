@@ -2,6 +2,10 @@ import { defineStore } from 'pinia'
 import { ref, nextTick, watchEffect } from 'vue'
 import type { LogInst } from 'naive-ui'
 
+/**
+ * 任务运行日志 Store
+ * 职责：管理任务运行过程中的日志显示
+ */
 export const useLogsStore = defineStore('logs', () => {
   const progressLogs = ref('')
   const logInstRef = ref<LogInst | null>(null)

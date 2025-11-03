@@ -6,7 +6,7 @@
 
 <script setup lang="ts">
 import { NLog } from 'naive-ui'
-import { useLogsStore } from '../stores/logs'
+import { useLogsStore } from '@renderer/stores/feed-ac-tasks/logs'
 import { storeToRefs } from 'pinia'
 
 const logsStore = useLogsStore()

@@ -1,35 +1,23 @@
 <template>
-  <n-button
-    v-if="!['running', 'stopping'].includes(taskStatus)"
-    type="primary"
-    strong
-    :loading="taskStatus === 'starting'"
-    :disabled="taskStatus === 'starting'"
-    @click="handleStart"
-  >
-    <template #icon>
-      <NIcon>
-        <PlayOutline />
-      </NIcon>
+  <n-tooltip :disabled="!isRunning" trigger="hover">
+    <template #trigger>
+      <n-button
+        type="primary"
+        strong
+        :loading="taskStatus === 'starting'"
+        :disabled="isRunning"
+        @click="handleStart"
+      >
+        <template #icon>
+          <NIcon>
+            <PlayOutline />
+          </NIcon>
+        </template>
+        {{ taskStatus === 'starting' ? '启动中...' : '开始任务' }}
+      </n-button>
     </template>
-    {{ taskStatus === 'starting' ? '启动中...' : '开始任务' }}
-  </n-button>
-  <n-button
-    v-else
-    type="error"
-    strong
-    secondary
-    :loading="taskStatus === 'stopping'"
-    :disabled="taskStatus === 'stopping'"
-    @click="handleStop"
-  >
-    <template #icon>
-      <NIcon>
-        <PauseOutline />
-      </NIcon>
-    </template>
-    {{ taskStatus === 'stopping' ? '停止中...' : '停止任务' }}
-  </n-button>
+    任务正在运行，请等待前一个任务结束
+  </n-tooltip>
 
   <!-- 抖音限制提示弹窗 -->
   <DouyinLimitDialog
@@ -40,13 +28,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { NButton, useMessage, NIcon } from 'naive-ui'
-import { useTaskStore } from '../stores/task'
+import { ref, computed } from 'vue'
+import { NButton, useMessage, NIcon, NTooltip } from 'naive-ui'
+import { useRouter } from 'vue-router'
+import { useTaskStore } from '@renderer/stores/feed-ac-tasks/task'
 import { useSettingsStore } from '../stores/settings'
-import { useLogsStore } from '../stores/logs'
+import { useLogsStore } from '@renderer/stores/feed-ac-tasks/logs'
 import { storeToRefs } from 'pinia'
-import { PlayOutline, PauseOutline } from '@vicons/ionicons5'
+import { PlayOutline } from '@vicons/ionicons5'
 import DouyinLimitDialog from './DouyinLimitDialog.vue'
 import { LocalStorageManager, STORAGE_KEYS } from '@renderer/utils/storage-keys'
 import { FeedAcRuleGroups } from '@/shared/feed-ac-setting'
@@ -55,13 +44,17 @@ const taskStore = useTaskStore()
 const settingsStore = useSettingsStore()
 const logsStore = useLogsStore()
 const message = useMessage()
+const router = useRouter()
 
 const { taskStatus } = storeToRefs(taskStore)
 const { settings } = storeToRefs(settingsStore)
-const { start, stop } = taskStore
+const { start } = taskStore
 
 // 弹窗状态
 const showDouyinLimitDialog = ref(false)
+
+// 是否正在运行
+const isRunning = computed(() => !['idle'].includes(taskStatus.value))
 
 const validateForm = (): boolean => {
   // 检查是否有规则组
@@ -126,7 +119,14 @@ const handleStart = async (): Promise<void> => {
 const startTask = async (): Promise<void> => {
   try {
     logsStore.clearLogs()
-    await start()
+    const taskId = await start()
+
+    console.log('任务启动， taskId:', taskId)
+
+    // 启动成功后，跳转到任务详情页
+    if (taskId) {
+      router.push({ name: 'feedAcTasksDetail', params: { taskId: taskId } })
+    }
   } catch (error) {
     logsStore.addLog(`启动失败: ${error instanceof Error ? error.message : String(error)}`)
   }
@@ -144,13 +144,5 @@ const handleDouyinLimitConfirm = async (dontShowAgain: boolean): Promise<void> =
 
 const handleDouyinLimitCancel = (): void => {
   // 用户取消，不做任何操作
-}
-
-const handleStop = async (): Promise<void> => {
-  try {
-    await stop()
-  } catch (error) {
-    logsStore.addLog(`停止失败: ${error instanceof Error ? error.message : String(error)}`)
-  }
 }
 </script>

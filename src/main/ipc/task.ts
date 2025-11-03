@@ -1,5 +1,7 @@
 import { BrowserWindow, ipcMain } from 'electron'
 import ACTask from '../service/feed-ac'
+import { taskHistoryService } from '../service/task-history'
+import { getFeedAcSettings } from '../service/feed-ac/settings'
 
 /**
  * 注册任务控制相关的 IPC 处理器
@@ -8,13 +10,21 @@ import ACTask from '../service/feed-ac'
 export function registerTaskIPC(): void {
   let currentTask: ACTask | null = null
   let running = false
+  let currentTaskId: string | null = null // 当前运行任务的 ID
 
   ipcMain.handle('task:start', async (event) => {
     if (running) {
       return { ok: false, message: 'Task already running' }
     }
     const win = BrowserWindow.fromWebContents(event.sender)
-    currentTask = new ACTask()
+
+    // 获取配置并创建任务记录
+    const settings = getFeedAcSettings()
+    const taskRecord = taskHistoryService.createTask(settings)
+    currentTaskId = taskRecord.id
+
+    // 创建任务实例，传入任务ID
+    currentTask = new ACTask(currentTaskId)
     running = true
 
     // 订阅进度事件，主动推送到渲染进程
@@ -29,11 +39,26 @@ export function registerTaskIPC(): void {
     // 异步执行任务
     ;(async () => {
       try {
-        await currentTask?.run()
+        const taskId = await currentTask?.run()
+        currentTaskId = taskId ?? null
+        // 任务成功完成
+        if (currentTaskId) {
+          taskHistoryService.endTask(currentTaskId, 'completed')
+        }
         win?.webContents.send('task:ended', { status: 'success' })
       } catch (err) {
         const msg = String(err)
         const isClosed = msg.includes('Task stopped') || msg.includes('has been closed')
+
+        // 更新任务状态
+        if (currentTaskId) {
+          if (isClosed) {
+            taskHistoryService.endTask(currentTaskId, 'stopped')
+          } else {
+            taskHistoryService.endTask(currentTaskId, 'error', msg)
+          }
+        }
+
         win?.webContents.send('task:ended', {
           status: isClosed ? 'stopped' : 'error',
           message: msg
@@ -41,10 +66,11 @@ export function registerTaskIPC(): void {
       } finally {
         running = false
         currentTask = null
+        currentTaskId = null
       }
     })()
 
-    return { ok: true }
+    return { ok: true, taskId: taskRecord.id }
   })
 
   ipcMain.handle('task:stop', async () => {
