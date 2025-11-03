@@ -37,6 +37,8 @@ export const useTaskStore = defineStore('task', () => {
         taskStatus.value = 'running'
         throw new Error(result.message || '未知错误')
       }
+      // 停止成功后重置状态
+      taskStatus.value = 'idle'
     } catch (error) {
       taskStatus.value = 'running'
       throw error
