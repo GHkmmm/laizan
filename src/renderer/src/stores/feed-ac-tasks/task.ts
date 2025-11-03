@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 export type TaskStatus = 'idle' | 'starting' | 'running' | 'stopping'
 
@@ -9,6 +9,8 @@ export type TaskStatus = 'idle' | 'starting' | 'running' | 'stopping'
  */
 export const useTaskStore = defineStore('task', () => {
   const taskStatus = ref<TaskStatus>('idle')
+
+  const isRunning = computed(() => !['idle'].includes(taskStatus.value))
 
   const start = async (): Promise<string | undefined> => {
     if (taskStatus.value !== 'idle') return
@@ -55,6 +57,7 @@ export const useTaskStore = defineStore('task', () => {
 
   return {
     taskStatus,
+    isRunning,
     start,
     stop,
     resetTaskStatus

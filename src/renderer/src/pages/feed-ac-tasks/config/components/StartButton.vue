@@ -28,7 +28,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { NButton, useMessage, NIcon, NTooltip } from 'naive-ui'
 import { useRouter } from 'vue-router'
 import { useTaskStore } from '@renderer/stores/feed-ac-tasks/task'
@@ -46,15 +46,12 @@ const logsStore = useLogsStore()
 const message = useMessage()
 const router = useRouter()
 
-const { taskStatus } = storeToRefs(taskStore)
+const { taskStatus, isRunning } = storeToRefs(taskStore)
 const { settings } = storeToRefs(settingsStore)
 const { start } = taskStore
 
 // 弹窗状态
 const showDouyinLimitDialog = ref(false)
-
-// 是否正在运行
-const isRunning = computed(() => !['idle'].includes(taskStatus.value))
 
 const validateForm = (): boolean => {
   // 检查是否有规则组

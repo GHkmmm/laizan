@@ -1,30 +1,24 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount } from 'vue'
-import { NForm, NButton, NIcon } from 'naive-ui'
-import { useRouter } from 'vue-router'
-import { TimeOutline } from '@vicons/ionicons5'
+import { NForm } from 'naive-ui'
 import { useTaskStore } from '@renderer/stores/feed-ac-tasks/task'
 import { useLogsStore } from '@renderer/stores/feed-ac-tasks/logs'
 import { storeToRefs } from 'pinia'
 import RulesConfig from './components/RulesConfig/index.vue'
 import KeywordBlocking from './components/KeywordBlocking.vue'
-import TaskLogs from './components/TaskLogs.vue'
 import FormCount from './components/FormCount.vue'
 import RuntimeSettings from './components/RuntimeSettings.vue'
 import StartButton from './components/StartButton.vue'
 import ConfigManager from './components/ConfigManager.vue'
 import TemplateQuickStart from './components/TemplateQuickStart.vue'
 import { useSettingsStore } from './stores/settings'
-// import CommentContent from './components/CommentContent.vue'
+import HistoryButton from './components/HistoryButton.vue'
 
 // 使用 Pinia stores
 const taskStore = useTaskStore()
 const logsStore = useLogsStore()
 const settingsStore = useSettingsStore()
-const router = useRouter()
 
-// 解构需要的响应式数据（无需在此检查登录态，进入本页即已登录）
-const { taskStatus } = storeToRefs(taskStore)
 const { resetTaskStatus } = taskStore
 const { addLog, setupAutoScroll } = logsStore
 const { settings } = storeToRefs(settingsStore)
@@ -61,53 +55,37 @@ onBeforeUnmount(() => {
   offProgress?.()
   offEnded?.()
 })
-
-// 由 ConfigManager 组件承载配置管理逻辑
-
-// 跳转到历史任务页面
-const goToHistory = (): void => {
-  router.push({ name: 'feedAcTasksHistory' })
-}
 </script>
 
 <template>
   <div>
-    <div class="sticky top-0 z-10 flex gap-2 justify-end items-center p-4">
-      <n-button secondary @click="goToHistory">
-        <template #icon>
-          <n-icon>
-            <TimeOutline />
-          </n-icon>
-        </template>
-        历史任务
-      </n-button>
-      <ConfigManager />
-      <StartButton />
+    <div class="absolute top-0 left-0 right-0 z-10 flex items-center bg-black/5 backdrop-blur-xl">
+      <div class="flex justify-between w-full p-6 pb-3">
+        <HistoryButton />
+        <div class="flex gap-2">
+          <ConfigManager />
+          <StartButton />
+        </div>
+      </div>
     </div>
-    <div class="flex flex-col justify-center items-center pb-10 min-h-screen">
+    <div class="flex flex-col justify-center items-center pt-26 pb-10 min-h-screen">
       <template v-if="settings">
-        <template v-if="!['running', 'stopping'].includes(taskStatus)">
-          <n-form size="large" label-placement="left" class="w-full px-10">
-            <!-- 快速导入模板组件 -->
-            <TemplateQuickStart />
+        <n-form size="large" label-placement="left" class="w-full px-10">
+          <!-- 快速导入模板组件 -->
+          <TemplateQuickStart />
 
-            <!-- 规则设置组件 -->
-            <RulesConfig />
+          <!-- 规则设置组件 -->
+          <RulesConfig />
 
-            <!-- 评论次数组件 -->
-            <FormCount />
+          <!-- 评论次数组件 -->
+          <FormCount />
 
-            <!-- 运行设置组件 -->
-            <RuntimeSettings />
+          <!-- 运行设置组件 -->
+          <RuntimeSettings />
 
-            <!-- 关键词屏蔽设置组件 -->
-            <KeywordBlocking />
-          </n-form>
-        </template>
-        <template v-else>
-          <!-- 任务运行时的日志显示 -->
-          <TaskLogs />
-        </template>
+          <!-- 关键词屏蔽设置组件 -->
+          <KeywordBlocking />
+        </n-form>
       </template>
       <template v-else>
         <span>配置加载中</span>

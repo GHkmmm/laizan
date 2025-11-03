@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { Component, computed } from 'vue'
-import { NCard, NTag, NSpace, NIcon } from 'naive-ui'
+import { NCard, NTag, NSpace, NIcon, NButton, NPopconfirm, useMessage } from 'naive-ui'
 import {
   CheckmarkCircleOutline,
   StopCircleOutline,
   CloseCircleOutline,
-  TimeOutline
+  TimeOutline,
+  TrashOutline
 } from '@vicons/ionicons5'
 import { TaskHistoryRecord } from '@/shared/task-history'
 
@@ -14,6 +15,11 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+const emit = defineEmits<{
+  (e: 'delete', taskId: string): void
+}>()
+
+const message = useMessage()
 
 // 状态显示配置
 const statusConfig: Record<
@@ -62,6 +68,30 @@ const duration = computed(() => {
 })
 
 const statusInfo = computed(() => statusConfig[props.task.status])
+
+// 检查任务是否正在运行
+const isRunning = computed(() => props.task.status === 'running')
+
+// 删除任务
+const handleDelete = async (): Promise<void> => {
+  // 检查是否正在运行
+  if (isRunning.value) {
+    message.warning('任务正在运行，无法删除')
+    return
+  }
+
+  try {
+    const result = await window.api.deleteTaskHistory(props.task.id)
+    if (result.ok) {
+      emit('delete', props.task.id)
+      message.success('删除成功')
+    } else {
+      message.error(result.message || '删除失败')
+    }
+  } catch (error) {
+    message.error(`删除失败: ${String(error)}`)
+  }
+}
 </script>
 
 <template>
@@ -80,6 +110,21 @@ const statusInfo = computed(() => statusConfig[props.task.status])
             <span class="text-sm text-gray-500"> 评论成功 {{ task.commentCount }} 次 </span>
           </n-space>
         </div>
+        <n-popconfirm :disabled="isRunning" :show-icon="false" @positive-click="handleDelete">
+          <template #trigger>
+            <n-button
+              text
+              :type="isRunning ? 'default' : 'error'"
+              :disabled="isRunning"
+              @click.stop
+            >
+              <template #icon>
+                <n-icon :component="TrashOutline" />
+              </template>
+            </n-button>
+          </template>
+          确定要删除这个任务吗？此操作不可恢复。
+        </n-popconfirm>
       </div>
 
       <!-- 时间信息 -->
