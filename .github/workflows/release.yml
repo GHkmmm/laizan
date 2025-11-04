@@ -1,0 +1,90 @@
+name: Release on tag
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+env:
+  TAG_NAME: ${{ github.ref_name }}
+
+jobs:
+  create_release:
+    name: Create or update GitHub Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create or update release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG_NAME }}
+          name: ${{ env.TAG_NAME }}
+          draft: false
+          prerelease: false
+          make_latest: true
+          fail_on_unmatched_files: false
+          
+  build_win:
+    name: Build Windows installer
+    needs: create_release
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Windows
+        run: npm run build:win
+
+      - name: Upload .exe to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG_NAME }}
+          files: |
+            dist/*.exe
+          fail_on_unmatched_files: false
+          generate_release_notes: false
+
+  build_mac:
+    name: Build macOS installer
+    needs: create_release
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build macOS
+        run: npm run build:mac
+
+      - name: Upload .dmg to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG_NAME }}
+          files: |
+            dist/*.dmg
+          fail_on_unmatched_files: false
+          generate_release_notes: false
+

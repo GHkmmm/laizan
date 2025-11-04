@@ -22,7 +22,7 @@ nsis:
   uninstallerIcon: 'build/icon.ico'
   oneClick: false
   allowToChangeInstallationDirectory: true
-  include: 'build/installer.nsh'
+  # include: 'build/installer.nsh'
 mac:
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
