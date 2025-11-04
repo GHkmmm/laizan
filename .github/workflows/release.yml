@@ -21,11 +21,11 @@ jobs:
         with:
           tag_name: ${{ env.TAG_NAME }}
           name: ${{ env.TAG_NAME }}
-          draft: false
+          draft: true
           prerelease: false
           make_latest: true
           fail_on_unmatched_files: false
-          
+
   build_win:
     name: Build Windows installer
     needs: create_release
@@ -87,4 +87,3 @@ jobs:
             dist/*.dmg
           fail_on_unmatched_files: false
           generate_release_notes: false
-
