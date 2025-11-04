@@ -77,7 +77,7 @@
 ### 快速开始
 
 1. **下载安装**  
-   前往 [Releases 页面](https://github.com/GHkmmm/laizan/releases) 下载适合您系统的版本
+   前往 [Releases 页面](https://github.com/GHkmmm/laizan/releases) 下载适合您系统的版本。（macOS提示“已损坏 无法打开”是因为应用没有签名，请运行`sudo xattr -rd com.apple.quarantine /Applications/来赞.app`解决）
 
 2. **首次配置**  
    - 首次启动会弹出快速开始引导
