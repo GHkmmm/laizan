@@ -1,8 +1,8 @@
 import { BaseAIService } from './base'
 
-export class ArkService extends BaseAIService {
+export class DeepSeekService extends BaseAIService {
   protected async _request(content: string): Promise<string | null> {
-    const response = await fetch('https://ark.cn-beijing.volces.com/api/v3/chat/completions', {
+    const response = await fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${this.apiKey}`,
@@ -13,14 +13,10 @@ export class ArkService extends BaseAIService {
         messages: [
           {
             role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: content
-              }
-            ]
+            content: content
           }
-        ]
+        ],
+        stream: false
       })
     })
 

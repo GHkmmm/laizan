@@ -1,4 +1,4 @@
-export type AIPlatform = 'volcengine' | 'bailian' | 'openai'
+export type AIPlatform = 'volcengine' | 'bailian' | 'openai' | 'deepseek'
 
 export interface AISettings {
   platform: AIPlatform
@@ -9,5 +9,6 @@ export interface AISettings {
 export const PLATFORM_MODELS: Record<AIPlatform, string[]> = {
   volcengine: ['doubao-seed-1.6-250615'],
   bailian: [],
-  openai: []
+  openai: [],
+  deepseek: ['deepseek-chat', 'deepseek-reasoner']
 }

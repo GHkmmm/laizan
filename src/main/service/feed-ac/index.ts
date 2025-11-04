@@ -5,7 +5,7 @@ import { CommentResponse, FeedItem, FeedListResponse } from './types'
 import * as fs from 'fs'
 import * as path from 'path'
 import DYElementHandler from '../../elements/douyin'
-import { ArkService } from '../../integration/ai/ark'
+import { AIServiceFactory } from '../../integration/ai/factory'
 import { EventEmitter } from 'events'
 import { getFeedAcSettings } from './settings'
 import { FeedAcRuleGroups, FeedAcSettingsV2 } from '@/shared/feed-ac-setting'
@@ -427,7 +427,7 @@ export default class ACTask extends EventEmitter {
     if (ruleGroup.type === 'ai' && ruleGroup.aiPrompt) {
       try {
         const aiSettings = getAISettings()
-        const arkService = new ArkService({
+        const aiService = AIServiceFactory.createService(aiSettings.platform, {
           apiKey: aiSettings.apiKeys[aiSettings.platform],
           model: aiSettings.model
         })
@@ -438,7 +438,7 @@ export default class ACTask extends EventEmitter {
           videoTag: videoInfo.video_tag
         })
 
-        const aiResult = await arkService.analyzeVideoType(videoInfoStr, ruleGroup.aiPrompt)
+        const aiResult = await aiService.analyzeVideoType(videoInfoStr, ruleGroup.aiPrompt)
         console.log(`AI规则组 "${ruleGroup.name}" 判断结果:`, aiResult)
 
         currentRuleGroupMatched = aiResult.shouldWatch

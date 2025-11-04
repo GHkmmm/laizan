@@ -40,7 +40,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { AIPlatform, AISettings } from '@/shared/ai-setting'
+import { AIPlatform, AISettings, PLATFORM_MODELS } from '@/shared/ai-setting'
 import { useDialog, useMessage, NForm, NFormItem, NInput, NButton, NCard, NSelect } from 'naive-ui'
 import { deepClone } from '@/utils/common'
 
@@ -48,23 +48,19 @@ const aiSetting = ref<AISettings>()
 const message = useMessage()
 const dialog = useDialog()
 
-const PLATFORM_MODELS: Record<AIPlatform, { label: string; value: string }[]> = {
-  volcengine: [{ label: 'doubao-seed-1.6-250615', value: 'doubao-seed-1.6-250615' }],
-  bailian: [],
-  openai: []
-}
-
-const platformOptions = [
+const platformOptions: Array<{ label: string; value: AIPlatform; disabled?: boolean }> = [
   { label: '火山引擎', value: 'volcengine' },
+  { label: 'DeepSeek', value: 'deepseek' },
   { label: '阿里百炼（暂未开放）', value: 'bailian', disabled: true },
   { label: 'OpenAI（暂未开放）', value: 'openai', disabled: true }
 ]
 
-const modelOptionsForPlatform = computed(
-  () => PLATFORM_MODELS[aiSetting.value?.platform ?? 'volcengine']
-)
+const modelOptionsForPlatform = computed(() => {
+  const platform = aiSetting.value?.platform ?? 'volcengine'
+  return PLATFORM_MODELS[platform].map((model) => ({ label: model, value: model }))
+})
 const onPlatformChange = (p: AIPlatform): void => {
-  const options = PLATFORM_MODELS[p].map((o) => o.value)
+  const options = PLATFORM_MODELS[p]
   if (!options.includes(aiSetting.value!.model)) {
     aiSetting.value!.model = options[0] || ''
   }
@@ -73,7 +69,7 @@ const onPlatformChange = (p: AIPlatform): void => {
 
 const onSave = async (): Promise<void> => {
   try {
-    const options = PLATFORM_MODELS[aiSetting.value!.platform].map((o) => o.value)
+    const options = PLATFORM_MODELS[aiSetting.value!.platform]
     if (!options.includes(aiSetting.value!.model)) {
       message.error('所选模型与平台不匹配')
       return
