@@ -47,7 +47,8 @@ export function getDefaultAISetting(): AISettings {
     apiKeys: {
       volcengine: '',
       bailian: '',
-      openai: ''
+      openai: '',
+      deepseek: ''
     }
   }
 }
