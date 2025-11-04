@@ -5,7 +5,5 @@ out
 .eslintcache
 *.log*
 
-.vscode/
-
 # Qoder IDE
-.qcoder/
+.qoder/
