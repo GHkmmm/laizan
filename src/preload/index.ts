@@ -70,9 +70,9 @@ export const api = {
     ipcRenderer.invoke('task:start'),
   stopTask: (): Promise<{ ok: boolean; message?: string }> => ipcRenderer.invoke('task:stop'),
   onTaskProgress: (
-    handler: (p: { type: string; message: string; timestamp: number }) => void
+    handler: (p: { message: string; timestamp: number }) => void
   ): (() => void) => {
-    const listener = (_, p: { type: string; message: string; timestamp: number }): void =>
+    const listener = (_, p: { message: string; timestamp: number }): void =>
       handler(p)
     ipcRenderer.on('task:progress', listener)
     return () => ipcRenderer.removeListener('task:progress', listener)

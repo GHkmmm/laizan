@@ -105,18 +105,16 @@ export default class ACTask extends EventEmitter {
     await this._launch()
     const settings = getFeedAcSettings()
 
-    console.log(`任务已启动，ID: ${this._taskId}`)
+    this._log('info', `任务已启动，ID: ${this._taskId}`)
 
     // 设置视频数据监听
     await this._setupVideoDataListener()
-    console.log('视频数据监听已设置')
-    this._emitProgress('ready', '视频数据监听已设置')
+    this._log('info', '视频数据监听已设置')
     // 等待假视频图片消失 (recommend-fake-video-img)
     await this._page!.waitForSelector('.recommend-fake-video-img', {
       state: 'detached'
     })
-    console.log('视频已加载完成')
-    this._emitProgress('loaded', '视频已加载完成')
+    this._log('info', '视频已加载完成')
 
     let commentCount = 0 // 记录已评论次数
 
@@ -127,17 +125,7 @@ export default class ACTask extends EventEmitter {
       if (this._stopped) {
         throw new Error('Task stopped')
       }
-      console.log(
-        `
-
-====== 开始处理第 ${i + 1} 个视频，已评论次数：${commentCount}/${maxCount} ======
-
-`
-      )
-      this._emitProgress(
-        'processing',
-        `开始处理第 ${i + 1} 个视频，已评论次数：${commentCount}/${maxCount}`
-      )
+      this._log('info', `====== 开始处理第 ${i + 1} 个视频，已评论次数：${commentCount}/${maxCount} ======`)
 
       // 记录当前视频开始时间
       this._currentVideoStartTime = Date.now()
@@ -146,8 +134,7 @@ export default class ACTask extends EventEmitter {
       const videoInfo = await this._getCurrentVideoInfo()
 
       if (!videoInfo) {
-        console.log('未获取到当前视频信息，跳到下一个视频')
-        this._emitProgress('info-miss', '未获取到当前视频信息，跳到下一个视频')
+        this._log('warn', '未获取到当前视频信息，跳到下一个视频')
         // 记录视频信息缺失
         this._recordVideoSkip('unknown', '未获取到当前视频信息', {})
         await sleep(random(1000, 3000))
@@ -156,8 +143,7 @@ export default class ACTask extends EventEmitter {
       }
 
       if (videoInfo.aweme_type !== 0) {
-        console.log('不是常规视频，直接跳过')
-        this._emitProgress('skip-nonstandard', '不是常规视频，直接跳过')
+        this._log('warn', '不是常规视频，直接跳过')
         // 记录非常规视频
         this._recordVideoSkip(videoInfo.aweme_id, '非常规视频类型', videoInfo)
         await this._dyElementHandler.goToNextVideo()
@@ -165,14 +151,14 @@ export default class ACTask extends EventEmitter {
       }
 
       const videoDescription = videoInfo.desc
-      console.log(`视频作者: @${videoInfo.author.nickname} (ID: ${videoInfo.author.uid})`)
-      console.log(`视频描述: ${videoDescription}`)
+      this._log('info', `视频作者: @${videoInfo.author.nickname} (ID: ${videoInfo.author.uid})`)
+      this._log('info', `视频描述: ${videoDescription}`)
 
       // 输出视频标签信息
       if (Array.isArray(videoInfo.video_tag) && videoInfo.video_tag.length > 0) {
-        console.log(`视频标签: ${JSON.stringify(videoInfo.video_tag)}`)
+        this._log('info', `视频标签: ${JSON.stringify(videoInfo.video_tag)}`)
       } else {
-        console.log('暂无视频标签')
+        this._log('info', '暂无视频标签')
       }
 
       // 关键词屏蔽（基于设置）
@@ -184,7 +170,8 @@ export default class ACTask extends EventEmitter {
       )
 
       if (hitBlock || hitAuthorBlock) {
-        console.log(
+        this._log(
+          'warn',
           `视频${hitBlock ? '描述' : '作者'}命中屏蔽关键词，跳过该视频。` +
             (hitBlock
               ? `屏蔽关键词: ${settings.blockKeywords
@@ -194,7 +181,6 @@ export default class ACTask extends EventEmitter {
                   .filter((k) => videoInfo.author.nickname.includes(k))
                   .join(',')} 视频作者: ${videoInfo.author.nickname}`)
         )
-        this._emitProgress('skip-blocked', '命中屏蔽关键词，跳过该视频')
         // 记录命中屏蔽关键词
         this._recordVideoSkip(videoInfo.aweme_id, '命中屏蔽关键词', videoInfo)
         await sleep(random(500, 1000))
@@ -206,58 +192,51 @@ export default class ACTask extends EventEmitter {
       const videoAnalysis = await this._analyzeVideoType(videoInfo, settings)
 
       if (videoAnalysis.shouldViewComment) {
-        console.log('视频需要评论')
+        this._log('info', '视频需要评论')
         // 针对需要评论的视频，若需要模拟观看，则先观看再评论
         if (videoAnalysis.shouldSimulateWatch) {
           const watchTime = this._calculateWatchTime(settings)
-          console.log(`先模拟观看 ${watchTime / 1000} 秒`)
-          this._emitProgress('watch', `模拟观看 ${Math.floor(watchTime / 1000)} 秒`)
+          this._log('info', `先模拟观看 ${watchTime / 1000} 秒`)
           await sleep(watchTime)
         }
 
         // await this._randomLike()
 
         // 打开评论区
-        console.log('打开评论区并监听评论接口')
-        this._emitProgress('open-comment', '打开评论区并监听评论接口')
+        this._log('info', '打开评论区并监听评论接口')
 
         const activityCheck = await this._openCommentSectionAndMonitor()
         if (settings.onlyCommentActiveVideo) {
-          console.log('视频活跃度判断结果:', activityCheck.activityInfo)
+          this._log('info', `视频活跃度判断结果: ${activityCheck.activityInfo}`)
         } else {
-          console.log('跳过活跃度检查，直接评论')
+          this._log('info', '跳过活跃度检查，直接评论')
           activityCheck.shouldComment = true
           activityCheck.activityInfo = '跳过活跃度检查，直接评论'
         }
-        this._emitProgress('activity', activityCheck.activityInfo)
+        this._log('info', activityCheck.activityInfo)
 
         // 浏览评论区2～4秒
-        console.log('浏览评论区2-4秒')
-        this._emitProgress('browse-comment', '浏览评论区2-4秒')
+        this._log('info', '浏览评论区2-4秒')
         await sleep(random(2000, 4000))
 
         if (activityCheck.shouldComment) {
-          console.log('尝试发布评论')
-          this._emitProgress('try-comment', '尝试发布评论')
+          this._log('info', '尝试发布评论')
           const commnetResult = await this._postComment(videoAnalysis.matchedRuleGroup)
           if (commnetResult.success) {
             commentCount++
             // 记录评论成功
             this._recordVideoComment(videoInfo.aweme_id, videoInfo, commnetResult.commentText || '')
-            console.log(`评论发送成功，已评论次数：${commentCount}/${maxCount}`)
-            this._emitProgress('comment-success', `评论成功 ${commentCount}/${maxCount}`)
+            this._log('success', `评论发送成功，已评论次数：${commentCount}/${maxCount}`)
             await sleep(random(1000, 3000))
-            console.log('关闭评论区')
+            this._log('info', '关闭评论区')
             await this._dyElementHandler.closeCommentSection()
             await sleep(random(1000, 2000))
             if (commentCount >= maxCount) {
-              console.log(`已达到评论次数限制 ${maxCount}，任务完成`)
-              this._emitProgress('completed', `已达到评论次数限制 ${maxCount}，任务完成`)
+              this._log('success', `已达到评论次数限制 ${maxCount}，任务完成`)
               break
             }
           } else {
-            console.log('评论发送失败，尝试通过点击按钮关闭评论区')
-            this._emitProgress('comment-fail', '评论发送失败')
+            this._log('error', '评论发送失败，尝试通过点击按钮关闭评论区')
             // 记录评论失败
             this._recordVideoSkip(
               videoInfo.aweme_id,
@@ -267,13 +246,12 @@ export default class ACTask extends EventEmitter {
             try {
               await this._dyElementHandler.closeCommentSectionByButton()
             } catch (closeError) {
-              console.log('关闭评论区失败:', closeError)
+              this._log('error', `关闭评论区失败: ${closeError}`)
             }
             await sleep(random(1000, 2000))
           }
         } else {
-          console.log('视频活跃度不符合标准，不发布评论')
-          this._emitProgress('inactive', '视频活跃度不符合标准，不发布评论')
+          this._log('warn', '视频活跃度不符合标准，不发布评论')
           // 记录活跃度不足
           this._recordVideoSkip(videoInfo.aweme_id, '视频活跃度不符合标准', videoInfo)
           await this._dyElementHandler.closeCommentSection()
@@ -284,14 +262,13 @@ export default class ACTask extends EventEmitter {
       } else {
         // 不需要评论的视频快速滑走
         await sleep(random(500, 1500))
-        console.log('当前视频不满足评论规则，快速滑走')
-        this._emitProgress('fast-skip', '快速滑走')
+        this._log('warn', '当前视频不满足评论规则，快速滑走')
         // 记录规则不匹配
         this._recordVideoSkip(videoInfo.aweme_id, '不满足评论规则', videoInfo)
       }
 
       // 跳转至下一条视频
-      console.log('跳转至下一条视频')
+      this._log('info', '跳转至下一条视频')
       await this._dyElementHandler.goToNextVideo()
     }
 
@@ -318,35 +295,68 @@ export default class ACTask extends EventEmitter {
     this._browser = undefined
   }
 
-  private _emitProgress(type: string, message: string): void {
-    this.emit('progress', { type, message, timestamp: Date.now() })
+  private _emitProgress(message: string): void {
+    this.emit('progress', { message, timestamp: Date.now() })
+  }
+
+  /**
+   * 统一日志输出函数
+   * @param level 日志级别: 'debug' | 'info' | 'warn' | 'error' | 'success'
+   * @param message 日志消息
+   */
+  private _log(level: 'debug' | 'info' | 'warn' | 'error' | 'success', message: string): void {
+    // emoji 映射
+    const emojiMap = {
+      debug: '🔍',
+      info: 'ℹ️',
+      warn: '⚠️',
+      error: '❌',
+      success: '✅'
+    }
+
+    const emoji = emojiMap[level]
+    const formattedMessage = `${emoji} ${message}`
+
+    // 终端始终输出
+    if (level === 'error') {
+      console.error(formattedMessage)
+    } else if (level === 'warn') {
+      console.warn(formattedMessage)
+    } else {
+      console.log(formattedMessage)
+    }
+
+    // debug 级别不输出到 UI
+    if (level !== 'debug') {
+      this._emitProgress(formattedMessage)
+    }
   }
 
   // 监听并缓存视频信息接口数据
   async _setupVideoDataListener(): Promise<void> {
-    console.log('设置视频信息接口监听...')
+    this._log('info', '设置视频信息接口监听...')
 
     // 添加响应监听器
     this._page?.on('response', async (response) => {
       const url = response.url()
       if (url.includes('https://www.douyin.com/aweme/v1/web/tab/feed/')) {
-        console.log('捕获到视频Feed接口请求')
+        this._log('info', '捕获到视频Feed接口请求')
 
         try {
           // 尝试解析JSON响应
           const responseBody = (await response.json()) as FeedListResponse
           if (responseBody && responseBody.aweme_list && Array.isArray(responseBody.aweme_list)) {
-            console.log(`接收到${responseBody.aweme_list.length}条视频数据`)
+            this._log('info', `接收到${responseBody.aweme_list.length}条视频数据`)
 
             // 缓存视频数据
             responseBody.aweme_list.forEach((video) => {
               this._videoDataCache.set(video.aweme_id, video)
             })
 
-            console.log(`视频数据缓存更新，当前缓存数量: ${this._videoDataCache.size}`)
+            this._log('info', `视频数据缓存更新，当前缓存数量: ${this._videoDataCache.size}`)
           }
         } catch (error) {
-          console.log('解析视频Feed接口响应时出错:', error)
+          this._log('error', `解析视频Feed接口响应时出错: ${error}`)
         }
       }
     })
@@ -356,7 +366,7 @@ export default class ACTask extends EventEmitter {
   _calculateWatchTime(settings: ReturnType<typeof getFeedAcSettings>): number {
     const [minSeconds, maxSeconds] = settings.watchTimeRangeSeconds || [5, 15]
     const watchTime = Math.floor(Math.random() * (maxSeconds - minSeconds + 1)) + minSeconds
-    console.log(`计算浏览时间: ${watchTime}秒 (基于用户设置 ${minSeconds}-${maxSeconds} 秒)`)
+    this._log('info', `计算浏览时间: ${watchTime}秒 (基于用户设置 ${minSeconds}-${maxSeconds} 秒)`)
     return watchTime * 1000
   }
 
@@ -367,7 +377,7 @@ export default class ACTask extends EventEmitter {
       const activeVideoElement = await this._page?.$('[data-e2e="feed-active-video"]')
 
       if (!activeVideoElement) {
-        console.log('未找到当前活跃视频元素')
+        this._log('info', '未找到当前活跃视频元素')
         return null
       }
 
@@ -375,17 +385,17 @@ export default class ACTask extends EventEmitter {
       const videoId = await activeVideoElement.getAttribute('data-e2e-vid')
 
       if (!videoId) {
-        console.log('未找到视频ID')
+        this._log('info', '未找到视频ID')
         return null
       }
 
-      console.log(`当前活跃视频ID: ${videoId}`)
+      this._log('info', `当前活跃视频ID: ${videoId}`)
 
       // 从缓存中查找视频数据
       const videoData = this._videoDataCache.get(videoId)
 
       if (!videoData) {
-        console.log(`未在缓存中找到视频ID: ${videoId} 的数据`)
+        this._log('info', `未在缓存中找到视频ID: ${videoId} 的数据`)
         return null
       }
 
@@ -393,11 +403,11 @@ export default class ACTask extends EventEmitter {
 
       // 使用后从缓存中删除数据
       this._videoDataCache.delete(videoId)
-      console.log(`删除已使用的视频数据，当前缓存数量: ${this._videoDataCache.size}`)
+      this._log('info', `删除已使用的视频数据，当前缓存数量: ${this._videoDataCache.size}`)
 
       return videoData
     } catch (error) {
-      console.log('获取当前视频信息时出错:', error)
+      this._log('error', `获取当前视频信息时出错: ${error}`)
       return null
     }
   }
@@ -439,11 +449,11 @@ export default class ACTask extends EventEmitter {
         })
 
         const aiResult = await aiService.analyzeVideoType(videoInfoStr, ruleGroup.aiPrompt)
-        console.log(`AI规则组 "${ruleGroup.name}" 判断结果:`, aiResult)
+        this._log('info', `AI规则组 "${ruleGroup.name}" 判断结果: ${JSON.stringify(aiResult)}`)
 
         currentRuleGroupMatched = aiResult.shouldWatch
       } catch (error) {
-        console.error(`AI规则组 "${ruleGroup.name}" 判断失败:`, error)
+        this._log('error', `AI规则组 "${ruleGroup.name}" 判断失败: ${error}`)
         currentRuleGroupMatched = false
       }
     }
@@ -468,7 +478,7 @@ export default class ACTask extends EventEmitter {
       currentRuleGroupMatched = relation === 'and' ? matches.every(Boolean) : matches.some(Boolean)
 
       if (currentRuleGroupMatched) {
-        console.log(`手动规则组 "${ruleGroup.name}" 匹配成功`)
+        this._log('success', `手动规则组 "${ruleGroup.name}" 匹配成功`)
       }
     }
 
@@ -512,7 +522,7 @@ export default class ACTask extends EventEmitter {
       }
     }
 
-    console.log(`匹配到规则组: ${matchedRuleGroup.name}`)
+    this._log('success', `匹配到规则组: ${matchedRuleGroup.name}`)
 
     // 规则匹配成功，返回观看
     return {
@@ -533,7 +543,7 @@ export default class ACTask extends EventEmitter {
 
       return directories
     } catch (error) {
-      console.log('读取resources目录出错:', error)
+      this._log('error', `读取resources目录出错: ${error}`)
       // 如果出错，返回空数组
       return []
     }
@@ -545,7 +555,7 @@ export default class ACTask extends EventEmitter {
       // 按照10%的概率进行点赞操作
       const shouldLike = Math.random() < 0.1
       if (shouldLike) {
-        console.log('随机触发点赞操作')
+        this._log('info', '随机触发点赞操作')
         await this._dyElementHandler.like()
         // 点赞后随机等待1-3秒
         await sleep(random(1000, 3000))
@@ -553,7 +563,7 @@ export default class ACTask extends EventEmitter {
       }
       return false
     } catch (error) {
-      console.log('执行点赞操作时出错:', error)
+      this._log('error', `执行点赞操作时出错: ${error}`)
       return false
     }
   }
@@ -564,29 +574,29 @@ export default class ACTask extends EventEmitter {
     try {
       // 从用户配置中获取随机评论内容
       const randomComment = this._getRandomComment(matchedRuleGroup)
-      console.log(`随机选择评论内容: ${randomComment}`)
+      this._log('info', `随机选择评论内容: ${randomComment}`)
 
       // 查找评论输入框容器
       const inputContainerSelector = '.comment-input-inner-container'
-      console.log('查找评论输入框容器...')
+      this._log('info', '查找评论输入框容器...')
 
       // 等待输入框容器出现并点击，设置5秒超时
       const inputContainer = await this._page
         ?.waitForSelector(inputContainerSelector, { timeout: 5000 })
         .catch(() => null)
       if (!inputContainer) {
-        console.log('未找到评论输入框容器')
+        this._log('warn', '未找到评论输入框容器')
         return { success: false, reason: '未找到评论输入框容器' }
       }
 
       await inputContainer.click()
-      console.log('成功点击评论输入框容器')
+      this._log('info', '成功点击评论输入框容器')
 
       // 等待一小段时间确保输入框已聚焦
       await sleep(1000)
 
       // 模拟人类输入行为，一个字符一个字符地输入，并在字符之间添加随机延迟
-      console.log(`开始模拟人类输入评论: ${randomComment}`)
+      this._log('info', `开始模拟人类输入评论: ${randomComment}`)
       for (let i = 0; i < randomComment.length; i++) {
         // 输入单个字符
         await this._page?.keyboard.type(randomComment[i])
@@ -601,7 +611,7 @@ export default class ACTask extends EventEmitter {
         }
       }
 
-      console.log(`完成模拟人类输入评论: ${randomComment}`)
+      this._log('info', `完成模拟人类输入评论: ${randomComment}`)
 
       // 随机等待1-3秒
       await sleep(random(1000, 3000))
@@ -610,14 +620,14 @@ export default class ACTask extends EventEmitter {
       try {
         // 从用户配置中获取图片路径
         const imagePath = this._selectImagePath(matchedRuleGroup)
-        console.log(`选择图片路径: ${imagePath}`)
+        this._log('info', `选择图片路径: ${imagePath}`)
 
         // 如果配置了图片路径，则上传图片
         if (imagePath && fs.existsSync(imagePath)) {
           // 使用fileChooser方法上传图片
           try {
             const uploadBtnSelector = '.commentInput-right-ct > div > span:nth-child(2)'
-            console.log('点击上传按钮并等待文件选择器...')
+            this._log('info', '点击上传按钮并等待文件选择器...')
 
             // 设置文件选择器监听并点击上传按钮
             const [fileChooser] = await Promise.all([
@@ -629,30 +639,30 @@ export default class ACTask extends EventEmitter {
 
             // 设置文件
             await fileChooser?.setFiles(imagePath)
-            console.log('通过fileChooser成功上传图片')
+            this._log('info', '通过fileChooser成功上传图片')
 
             // 等待图片上传完成和预览显示
-            console.log('等待图片上传和预览...')
+            this._log('info', '等待图片上传和预览...')
             await sleep(2000)
           } catch (uploadError) {
-            console.log('上传图片失败:', uploadError)
+            this._log('error', `上传图片失败: ${uploadError}`)
             // 图片上传失败，取消发送评论
-            console.log('由于图片上传失败，取消发送评论')
+            this._log('warn', '由于图片上传失败，取消发送评论')
             return { success: false, reason: '图片上传失败' }
           }
         } else {
-          console.log('未配置图片或图片路径无效，跳过图片上传')
+          this._log('info', '未配置图片或图片路径无效，跳过图片上传')
         }
       } catch (error) {
-        console.log('添加图片过程中出错:', error)
+        this._log('error', `添加图片过程中出错: ${error}`)
         // 图片添加过程出错，取消发送评论
-        console.log('由于图片添加过程出错，取消发送评论')
+        this._log('warn', '由于图片添加过程出错，取消发送评论')
         return { success: false, reason: '图片添加过程出错' }
       }
 
       // 输入完成后稍微暂停一下，然后按回车键发送评论
       await sleep(random(500, 1000))
-      console.log('按回车键发送评论')
+      this._log('info', '按回车键发送评论')
 
       // 创建一个Promise来等待评论发布接口响应
       const commentResponsePromise = new Promise<{
@@ -663,7 +673,7 @@ export default class ACTask extends EventEmitter {
         const responseListener = async (response): Promise<void> => {
           const url = response.url()
           if (url.includes('https://www.douyin.com/aweme/v1/web/comment/publish')) {
-            console.log('捕获到评论发布接口响应')
+            this._log('info', '捕获到评论发布接口响应')
 
             try {
               const responseBody = await response.json().catch(() => null)
@@ -675,18 +685,18 @@ export default class ACTask extends EventEmitter {
 
               // 根据status_code判断评论是否发送成功
               if (responseBody && responseBody.status_code === 0) {
-                console.log('评论发送成功: status_code = 0')
+                this._log('info', '评论发送成功: status_code = 0')
                 resolve({ success: true, reason: '评论发布接口返回成功状态码' })
               } else {
                 const errorCode = responseBody ? responseBody.status_code : '未知'
-                console.log(`评论发送失败: status_code = ${errorCode}`)
+                this._log('warn', `评论发送失败: status_code = ${errorCode}`)
                 resolve({
                   success: false,
                   reason: `评论发布接口返回错误状态码: ${errorCode}`
                 })
               }
             } catch (error) {
-              console.log('解析评论发布接口响应时出错:', error)
+              this._log('error', `解析评论发布接口响应时出错: ${error}`)
               this._page?.removeListener('response', responseListener)
               // 清除超时计时器
               clearTimeout(timeoutId)
@@ -701,7 +711,7 @@ export default class ACTask extends EventEmitter {
         // 设置超时处理，5秒后如果没有捕获到评论发布响应就移除监听器
         const timeoutId = setTimeout(() => {
           this._page?.removeListener('response', responseListener)
-          console.log('评论发布接口响应监听超时，未捕获到数据')
+          this._log('warn', '评论发布接口响应监听超时，未捕获到数据')
           resolve({ success: false, reason: '评论发布接口响应监听超时' })
         }, 5000)
       })
@@ -710,30 +720,30 @@ export default class ACTask extends EventEmitter {
       await this._page?.keyboard.press('Enter')
 
       // 等待评论发布接口响应
-      console.log('等待评论发布接口响应...')
+      this._log('info', '等待评论发布接口响应...')
       const commentResult = await commentResponsePromise
 
       // 延迟1秒
       await sleep(1000)
 
       if (!commentResult.success) {
-        console.log(`评论发送失败: ${commentResult.reason}`)
+        this._log('warn', `评论发送失败: ${commentResult.reason}`)
 
         // 评论发送失败时检查是否出现验证码弹窗
         const verifyDialogResult = await this._handleVerifyDialog()
         if (!verifyDialogResult.success) {
-          console.log(`验证码处理失败: ${verifyDialogResult.reason}`)
+          this._log('error', `验证码处理失败: ${verifyDialogResult.reason}`)
           throw new Error(`评论验证码处理失败: ${verifyDialogResult.reason}`)
         }
 
         // 验证码处理完成后，重新尝试发送评论
-        console.log('无需处理验证码或验证码处理完成')
+        this._log('info', '无需处理验证码或验证码处理完成')
       }
 
-      console.log('评论已发送成功')
+      this._log('success', '评论已发送成功')
       return { success: true, commentText: randomComment }
     } catch (error) {
-      console.log('发布评论时出错:', error)
+      this._log('error', `发布评论时出错: ${error}`)
       return { success: false, reason: String(error) }
     }
   }
@@ -759,10 +769,10 @@ export default class ACTask extends EventEmitter {
     try {
       // 确保当前页面已加载完成
       await this._page?.waitForLoadState('domcontentloaded', { timeout: 5000 }).catch(() => {
-        console.log('等待页面加载完成超时，继续执行')
+        this._log('warn', '等待页面加载完成超时，继续执行')
       })
 
-      console.log('设置评论接口监听...')
+      this._log('info', '设置评论接口监听...')
 
       // 创建一个Promise来等待评论数据
       const commentDataPromise = new Promise<{
@@ -773,7 +783,7 @@ export default class ACTask extends EventEmitter {
         const responseListener = async (response): Promise<void> => {
           const url = response.url()
           if (url.includes('https://www.douyin.com/aweme/v1/web/comment/list/')) {
-            console.log('捕获到评论列表接口请求')
+            this._log('info', '捕获到评论列表接口请求')
 
             try {
               // 尝试解析JSON响应
@@ -781,7 +791,7 @@ export default class ACTask extends EventEmitter {
               if (responseBody) {
                 // 判断视频活跃度
                 const activityResult = this._checkVideoActivity(responseBody)
-                console.log('视频活跃度检查结果:', activityResult.reason)
+                this._log('info', `视频活跃度检查结果: ${activityResult.reason}`)
 
                 // 移除监听器，防止重复处理
                 this._page?.removeListener('response', responseListener)
@@ -792,7 +802,7 @@ export default class ACTask extends EventEmitter {
                   activityInfo: activityResult.reason
                 })
               } else {
-                console.log('无法解析评论列表接口返回的JSON数据')
+                this._log('warn', '无法解析评论列表接口返回的JSON数据')
                 // 移除监听器，默认不评论
                 this._page?.removeListener('response', responseListener)
                 // 清除超时计时器
@@ -803,7 +813,7 @@ export default class ACTask extends EventEmitter {
                 })
               }
             } catch (error) {
-              console.log('解析评论列表接口响应时出错:', error)
+              this._log('error', `解析评论列表接口响应时出错: ${error}`)
               // 移除监听器，默认不评论
               this._page?.removeListener('response', responseListener)
               // 清除超时计时器
@@ -822,7 +832,7 @@ export default class ACTask extends EventEmitter {
         // 设置超时处理，10秒后如果没有捕获到评论数据就移除监听器
         const timeoutId = setTimeout(() => {
           this._page?.removeListener('response', responseListener)
-          console.log('评论数据监听超时，未捕获到数据')
+          this._log('warn', '评论数据监听超时，未捕获到数据')
           resolve({
             shouldComment: false,
             activityInfo: '监听超时，未捕获到评论数据'
@@ -831,13 +841,13 @@ export default class ACTask extends EventEmitter {
       })
 
       // 使用键盘快捷键 "X" 开启评论区
-      console.log('使用快捷键X打开评论区')
+      this._log('info', '使用快捷键X打开评论区')
       await this._page?.keyboard.press('x')
 
       // 等待评论数据
       return await commentDataPromise
     } catch (error) {
-      console.log('打开评论区并监听数据时出错:', error)
+      this._log('error', `打开评论区并监听数据时出错: ${error}`)
       return {
         shouldComment: false,
         activityInfo: '打开评论区出错'
@@ -919,7 +929,7 @@ export default class ACTask extends EventEmitter {
       const randomIndex = Math.floor(Math.random() * files.length)
       return path.join(folderPath, files[randomIndex])
     } catch (error) {
-      console.log(`读取文件夹 ${folderPath} 出错:`, error)
+      this._log('error', `读取文件夹 ${folderPath} 出错: ${error}`)
       return ''
     }
   }
@@ -927,7 +937,7 @@ export default class ACTask extends EventEmitter {
   // 处理验证码弹窗
   private async _handleVerifyDialog(): Promise<{ success: boolean; reason: string }> {
     try {
-      console.log('检查是否出现验证码弹窗...')
+      this._log('info', '检查是否出现验证码弹窗...')
 
       // 使用waitForSelector等待验证码弹窗出现，设置3秒超时
       const verifyDialog = await this._page
@@ -938,12 +948,11 @@ export default class ACTask extends EventEmitter {
         .catch(() => null)
 
       if (!verifyDialog) {
-        console.log('未检测到验证码弹窗，继续执行')
+        this._log('info', '未检测到验证码弹窗，继续执行')
         return { success: true, reason: '未检测到验证码弹窗' }
       }
 
-      console.log('检测到验证码弹窗，等待用户输入验证码...')
-      this._emitProgress('verify-dialog', '检测到验证码弹窗，请到浏览器中输入验证码')
+      this._log('warn', '检测到验证码弹窗，等待用户输入验证码...')
 
       // 等待验证码弹窗消失，最多等待60秒
       try {
@@ -952,19 +961,17 @@ export default class ACTask extends EventEmitter {
           timeout: 60000
         })
 
-        console.log('验证码弹窗已消失，用户已完成验证码输入')
-        this._emitProgress('verify-success', '验证码输入完成，继续执行任务')
+        this._log('success', '验证码弹窗已消失，用户已完成验证码输入')
         return { success: true, reason: '验证码输入完成' }
       } catch (error) {
-        console.error(error)
+        this._log('error', `${error}`)
         const reason = '验证码弹窗等待超时（60秒），请检查验证码输入'
-        this._emitProgress('verify-timeout', reason)
+        this._log('error', reason)
         return { success: false, reason }
       }
     } catch (error) {
       const reason = `处理验证码弹窗时出错: ${error}`
-      console.log(reason)
-      this._emitProgress('verify-error', reason)
+      this._log('error', reason)
       return { success: false, reason }
     }
   }
