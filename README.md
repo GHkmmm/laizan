@@ -124,16 +124,6 @@
 
 ---
 
-## 📞 联系我们
-
-如有问题或合作需求，欢迎通过以下方式联系：
-
-- **微信**：<br />
-  <img src="./assets/wechat_qr_code.JPG" alt="微信二维码" width="300px" />
-- **GitHub**：https://github.com/GHkmmm/laizan  
-
----
-
 ## ⚠️ 免责声明
 
 本工具仅供学习、研究与个人使用。
